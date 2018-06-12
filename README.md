@@ -21,18 +21,17 @@ Refer to [RAML documentation](https://github.com/hmrc/agent-client-authorisation
     *   [GET a Specific Agent's Sent Invitation](#agentSpecificInvitation)
 
 ### Supported Regimes / Services <a name="supportedRegimes"></a>
-This supports Agent and Client authorisation processes for the following regimes (aka services):
+This supports MTD-enabled Agent and Client authorisation processes for the following tax services for agents:
 
-|Regime|Service|
+|Tax service|Service Id|
 |--------|--------|
-|Self Assessment|HMRC-MTD-IT|
-|Income-Record-Viewer for Individuals|PERSONAL-INCOME-RECORD|
-|Value-Added-Tax|HMRC-MTD-VAT|
+|Report income or expenses through software|HMRC-MTD-IT|
+|View PAYE income record|PERSONAL-INCOME-RECORD|
+|Report VAT returns through software|HMRC-MTD-VAT|
 
 
 ### Invitation Status <a name="invitationStatus"></a>
 Invitations can have one of the following status:
-
 |Invitation Status|Description|
 |--------|---------|
 |Pending|Default status when an invitation has been created|
@@ -100,7 +99,7 @@ Example Body of IRV:
 
 |Response|Description|
 |--------|---------|
-|204|Successfully created invitation. (In Headers) Location → "/agencies/:arn/invitations/sent/:invitationdId"|
+|204|Successfully created invitation. (In Headers) Location → "/agencies/:arn/invitations/:invitationdId"|
 |400|Received Valid Json but incorrect data|
 |400|Received Invalid Json|
 |403|Client Registration Not Found|
