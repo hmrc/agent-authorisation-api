@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "description": "Creates a new invitation between the agency and client",
+  "properties": {
+    "service": {
+      "$ref": "service.json"
+    },
+    "clientIdType": {
+      "$ref": "clientIdType.json"
+    },
+    "clientId": {
+      "type": "string",
+      "description" : "Client identifier (of type clientIdType)"
+    },
+    "clientPostcode": {
+      "type": "string",
+      "description" : "The Client's post code (Optional)"
+    }
+  },
+  "required": [
+    "service",
+    "clientIdType",
+    "clientId",
+    "clientPostcode"
+  ]
+}

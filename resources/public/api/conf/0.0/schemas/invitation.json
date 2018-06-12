@@ -1,0 +1,90 @@
+{
+  "type": "object",
+  "properties": {
+    "_links": {
+      "type": "object",
+      "properties": {
+        "self": {
+          "type": "object",
+          "description": "A link to the current resource",
+          "properties": {
+            "href": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "href"
+          ]
+        }
+      },
+      "required": [
+        "self"
+      ]
+    },
+    "service": {
+      "$ref": "service.json"
+    },
+    "clientIdType": {
+      "$ref": "clientIdType.json"
+    },
+    "clientId": {
+      "type": "string",
+      "description" : "Client identifier (of type clientIdType)"
+    },
+    "postcode": {
+      "type": "string",
+      "description": "The Client's post code. Required if service is HMRC-MTD-IT."
+    },
+    "vatRegDate": {
+      "type": "string",
+      "description": "The Client's VAT registration date. Required if service is HMRC-MTD-VAT."
+    },
+    "arn": {
+      "type": "string",
+      "description": "The Agent Registration Number for the calling agency"
+    },
+    "created": {
+      "type": "string",
+      "description": "Creation time of the request (RFC3339 / ISO8601 format)"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "description": "Last update time of the request (RFC3339 / ISO8601 format)"
+    },
+    "status": {
+      "type": "string",
+      "description" : "The current status of the invitation",
+      "oneOf": [
+        {
+          "enum": [ "Pending" ],
+          "description": "The invitation has been created, it has not been accepted or rejected by the client. Only the service can set this status."
+        },
+        {
+          "enum": [ "Accepted" ],
+          "description": "The client has accepted the invitation. Only the client can set this status."
+        },
+        {
+          "enum": [ "Rejected" ],
+          "description": "The client has rejected the invitation. Only the client can set this status."
+        },
+        {
+          "enum": [ "Cancelled" ],
+          "description": "The agency has cancelled the invitation. Only the agency can set this status."
+        },
+        {
+          "enum": [ "Expired" ],
+          "description": "The invitation already expired. Only the service can set this status."
+        }
+      ]
+    }
+  },
+  "required": [
+    "_links",
+    "service",
+    "clientId",
+    "arn",
+    "created",
+    "lastUpdated",
+    "status"
+  ]
+}

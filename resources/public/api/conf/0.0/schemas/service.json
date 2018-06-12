@@ -1,0 +1,24 @@
+{
+  "type": "string",
+  "description": "What do you want the client to authorise you to do?",
+  "oneOf": [
+    {
+      "enum": [
+        "HMRC-MTD-IT"
+      ],
+      "description": "View their PAYE income record"
+    },
+    {
+      "enum": [
+        "PERSONAL-INCOME-RECORD"
+      ],
+      "description": "Report their income or expenses through software"
+    },
+    {
+      "enum": [
+        "HMRC-MTD-VAT"
+      ],
+      "description": "Report their VAT returns through software"
+    }
+  ]
+}

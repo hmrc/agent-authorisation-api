@@ -1,0 +1,15 @@
+{
+  "_links": {
+    "self": {
+      "href": "/agencies/AARN9999999/invitations/CS5AK7O8FPC43"
+    }
+  },
+  "created": "2017-01-25T15:20:14.917Z",
+  "lastUpdated": "2017-01-25T15:20:14.917Z",
+  "arn": "AARN9999999",
+  "service": "HMRC-MTD-IT",
+  "clientIdType": "ni",
+  "clientId": "AA999999A",
+  "postcode": "A11 1AA",
+  "status": "Pending"
+}

@@ -1,0 +1,244 @@
+#%RAML 1.0
+title: Agent Client Authorisation
+version: 0.1
+protocols: [ HTTPS ]
+baseUri: https://api.service.hmrc.gov.uk/
+mediaType: [ application/json, application/hal+json ]
+description: An API allowing MTD-enabled Agents to request authorisation to a service for a client, instead of filling the 64-8 paper form.
+
+documentation:
+ - title: Overview
+   content: !include docs/overview.md
+ - title: Versioning
+   content: !include https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/versioning.md
+ - title: Errors
+   content: !include https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/errors.md
+
+uses:
+  sec: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/securitySchemes.raml
+  headers: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/headers.raml
+  annotations: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/annotations.raml
+  types: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/types.raml
+
+types:
+
+  # These Service and Status RAML type duplicate the service and status JSON Schema types. The RAML and JSON Schema types both need to be updated in concert.
+  # The reason we need both is a current limitation in the api-documentation-raml-frontend whereby types referenced by query parameters must be RAML types and types referenced by bodies must be JSON Schemas.
+  Service:
+    description: What do you want the client to authorise you to do?
+    type: string
+    enum: [ HMRC-MTD-IT, PERSONAL-INCOME-RECORD, HMRC-MTD-VAT ]
+
+  ClientIdType:
+    description: The type of identifier that clientId is
+    type: string
+    enum: [ ni, vrn ]
+
+  Status:
+    displayName: The current status of the invitation
+    enum: [ Pending, Accepted, Rejected, Cancelled, Expired ]
+    type: string
+
+
+traits:
+  loginRequired:
+    responses:
+      401:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              invalidCredentials:
+                description: Invalid Authentication information provided.
+                value:
+                  code: INVALID_CREDENTIALS
+
+  permissionOnAgencyRequired:
+    responses:
+      403:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              noPermissionOnAgency:
+                description: The logged in user is not permitted to access invitations for the specified agency.
+                value:
+                  code: NO_PERMISSION_ON_AGENCY
+
+  permissionOnClientRequired:
+    responses:
+      403:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              noPermissionOnArn:
+                description: The logged in user is not permitted to see the invitations for the specified client.
+                value:
+                  code: NO_PERMISSION_ON_CLIENT
+
+  mustBeAnAgent:
+    responses:
+      403:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              notAnAgent:
+                description: The logged in user is not an agent.
+                value:
+                  code: NOT_AN_AGENT
+
+  mustBeAClient:
+    responses:
+      403:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              clientNinoNotFound:
+                description: There must be a NINO in the client's user profile.
+                value:
+                  code: CLIENT_NINO_NOT_FOUND
+
+  agentSubscriptionRequired:
+    responses:
+      403:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              agentNotSubscribed:
+                description: The Agent is not subscribed to Agent Services.
+                value:
+                  code: AGENT_NOT_SUBSCRIBED
+
+  clientRegistrationRequired:
+    responses:
+      403:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              clientRegistrationNotFound:
+                description: The Client's registration was not found.
+                value:
+                  code: CLIENT_REGISTRATION_NOT_FOUND
+
+  invitationMustHaveValidStatus:
+    responses:
+      403:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              invalidInvitationStatus:
+                description: The requested state transition is not permitted given the invitation's current status.
+                value:
+                  code: INVALID_INVITATION_STATUS
+
+  invitationSpecified:
+    responses:
+      404:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              invitationNotFound:
+                description: The specified invitation was not found.
+                value:
+                  code: INVITATION_NOT_FOUND
+
+/agent-client-authorisation/agencies/{arn}/invitations:
+  is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
+  uriParameters:
+    arn:
+      description: The MTD platform Agent Registration Number.
+      type: string
+      example: AARN9999999
+  post:
+    is: [clientRegistrationRequired]
+    displayName: Create a new invitation
+    (annotations.scope): "write:sent-invitations"
+    securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
+    body:
+      application/json:
+        description: Create a new invitation.
+        type: !include schemas/create-invitation.json
+        example: !include examples/post-agency-invitations-example.json
+    responses:
+      204:
+        description: The invitation was successfully created.
+        headers:
+          Location:
+            example: /agencies/AARN9999999/invitations/CS5AK7O8FPC43
+            description: Location of the invitation that was created.
+      400:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              invalidClientId:
+                description: The submitted clientId does not match the expected format.
+                value:
+                  code: CLIENT_ID_FORMAT_INVALID
+              invalidPostcode:
+                description: The submitted postcode does not match the expected format.
+                value:
+                  code: POSTCODE_FORMAT_INVALID
+              invalidVatRegistrationDate:
+                description: The submitted VAT registration date does not match the expected format.
+                value:
+                  code: VAT_REG_DATE_FORMAT_INVALID
+      403:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              postcodeDoesNotMatch:
+                description: The submitted postcode did not match the client's postcode as held by HMRC.
+                value:
+                  code: POSTCODE_DOES_NOT_MATCH
+              vatRegistrationDateDoesNotMatch:
+                description: The submitted VAT registration date did not match HMRC record for the client.
+                value:
+                  code: VAT_REG_DATE_DOES_NOT_MATCH
+
+      501:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              unsupportedService:
+                description: The submitted service is not currently supported by this API.
+                value:
+                  code: UNSUPPORTED_SERVICE
+              unsupportedClientIdType:
+                description: The submitted clientIdType is not currently supported by this API.
+                value:
+                  code: UNSUPPORTED_CLIENT_ID_TYPE
+
+  /{invitationId}:
+    is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
+    uriParameters:
+      invitationId:
+        description: A unique invitation id
+        type: string
+        example: CS5AK7O8FPC43
+    get:
+      displayName: Get an invitation by id
+      (annotations.scope): "read:sent-invitations"
+      securedBy: [ sec.oauth_2_0: { scopes: [ "read:sent-invitations" ] } ]
+      responses:
+        200:
+          body:
+            application/json:
+                description: Returns the invitation.
+                type: !include schemas/invitation.json
+                example: !include examples/get-agency-invitation-example.json
+        401:
+          description: The agent must be authenticated and authorised (logged-in) to use this resource
+        403:
+          description: The agent is not permitted to see this invitation.
+        404:
+          description: The invitation with the specified id does not exist.
