@@ -76,6 +76,10 @@
           "description": "Client did not respond to the Agent's Invitation within 10 days. Only the service can set this status."
         }
       ]
+    },
+    "clientActionUrl": {
+      "type": "string",
+      "description": "Link for the client to authorise/reject this agent's invitation."
     }
   },
   "required": [

@@ -11,5 +11,6 @@
   "clientIdType": "ni",
   "clientId": "AA999999A",
   "postcode": "A11 1AA",
-  "status": "Pending"
+  "status": "Pending",
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
 }

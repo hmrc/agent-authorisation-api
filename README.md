@@ -144,6 +144,7 @@ Example Response: 200 with Body:
       }
    },
    "status" : "Expired",
+   "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43",
    "postcode" : null
 }
 ```
