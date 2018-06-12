@@ -32,6 +32,7 @@ This supports MTD-enabled Agent and Client authorisation processes for the follo
 
 ### Invitation Status <a name="invitationStatus"></a>
 Invitations can have one of the following status:
+
 |Invitation Status|Description|
 |--------|---------|
 |Pending|Default status when an invitation has been created|
