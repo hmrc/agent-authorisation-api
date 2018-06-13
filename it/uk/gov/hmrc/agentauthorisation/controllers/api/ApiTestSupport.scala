@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentclientauthorisation.controllers.api
+package uk.gov.hmrc.agentauthorisation.controllers.api
 
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSClient
 import play.utils.UriEncoding
-import uk.gov.hmrc.agentclientauthorisation.controllers.api.ApiTestSupport.Endpoint
-import uk.gov.hmrc.agentclientauthorisation.support.Resource
+import uk.gov.hmrc.agentauthorisation.controllers.api.ApiTestSupport.Endpoint
+import uk.gov.hmrc.agentauthorisation.support.Resource
 import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.ExecutionContext

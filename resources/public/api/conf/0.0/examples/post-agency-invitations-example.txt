@@ -1,0 +1,17 @@
+{
+  "service": "HMRC-MTD-IT",
+  "clientIdType": "ni",
+  "clientId": "AA999999A"
+}
+
+{
+  "service": "HMRC-MTD-VAT",
+  "clientIdType": "vrn",
+  "clientId": "101747696"
+}
+
+{
+  "service": "PERSONAL-INCOME-RECORD",
+  "clientIdType": "ni",
+  "clientId": "AE123456C"
+}

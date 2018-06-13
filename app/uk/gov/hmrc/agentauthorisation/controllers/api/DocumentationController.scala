@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentclientauthorisation.controllers.api
+package uk.gov.hmrc.agentauthorisation.controllers.api
 
 import javax.inject.{ Inject, Singleton }
 import play.api.Configuration
 import play.api.http.HttpErrorHandler
 import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.agentclientauthorisation.views.txt
+import uk.gov.hmrc.agentauthorisation.views.txt
 
 case class ApiAccess(`type`: String, whitelistedApplicationIds: Seq[String])
 

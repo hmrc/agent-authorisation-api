@@ -31,14 +31,6 @@
       "type": "string",
       "description" : "Client identifier (of type clientIdType)"
     },
-    "postcode": {
-      "type": "string",
-      "description": "The Client's post code. Required if service is HMRC-MTD-IT."
-    },
-    "vatRegDate": {
-      "type": "string",
-      "description": "The Client's VAT registration date. Required if service is HMRC-MTD-VAT."
-    },
     "arn": {
       "type": "string",
       "description": "The Agent Registration Number for the calling agency"

@@ -1,6 +1,6 @@
 #%RAML 1.0
-title: Agent Client Authorisation
-version: 0.1
+title: Agent Authorisation
+version: 0.0
 protocols: [ HTTPS ]
 baseUri: https://api.service.hmrc.gov.uk/
 mediaType: [ application/json, application/hal+json ]
@@ -19,26 +19,6 @@ uses:
   headers: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/headers.raml
   annotations: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/annotations.raml
   types: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/types.raml
-
-types:
-
-  # These Service and Status RAML type duplicate the service and status JSON Schema types. The RAML and JSON Schema types both need to be updated in concert.
-  # The reason we need both is a current limitation in the api-documentation-raml-frontend whereby types referenced by query parameters must be RAML types and types referenced by bodies must be JSON Schemas.
-  Service:
-    description: What do you want the client to authorise you to do?
-    type: string
-    enum: [ HMRC-MTD-IT, PERSONAL-INCOME-RECORD, HMRC-MTD-VAT ]
-
-  ClientIdType:
-    description: The type of identifier that clientId is
-    type: string
-    enum: [ ni, vrn ]
-
-  Status:
-    displayName: The current status of the invitation
-    enum: [ Pending, Accepted, Rejected, Cancelled, Expired ]
-    type: string
-
 
 traits:
   loginRequired:
@@ -149,7 +129,7 @@ traits:
                 value:
                   code: INVITATION_NOT_FOUND
 
-/agent-client-authorisation/agencies/{arn}/invitations:
+/agent-authorisation/agencies/{arn}/invitations:
   is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
   uriParameters:
     arn:
@@ -165,7 +145,7 @@ traits:
       application/json:
         description: Create a new invitation.
         type: !include schemas/create-invitation.json
-        example: !include examples/post-agency-invitations-example.json
+        example: !include examples/post-agency-invitations-example.txt
     responses:
       204:
         description: The invitation was successfully created.

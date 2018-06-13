@@ -1,4 +1,4 @@
-package uk.gov.hmrc.agentclientauthorisation.support
+package uk.gov.hmrc.agentauthorisation.support
 
 import play.api.http.{ HeaderNames, MimeTypes }
 import play.api.libs.ws.{ WS, WSClient, WSRequest, WSResponse }

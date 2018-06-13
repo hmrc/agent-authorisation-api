@@ -1,4 +1,4 @@
-Agent Client Authorisation API
+Agent Authorisation API
 ==============================
 
 An API allowing MTD-enabled Agents to request authorisation to a service for a client, instead of filling the 64-8 paper form.
@@ -57,7 +57,7 @@ Any unauthorised access could receive one of the following responses:
 
 
 #### Create Invitation <a name="createInvitation"></a>
-Validates the service, clientIdentifier, type and optionally postcode (only applicable for Self-Assessment) and creates an invitation.
+Validates the service, clientIdentifier, clientIdentifierType and creates an invitation.
 
 ```
 POST  /agencies/:arn/invitations
@@ -65,7 +65,7 @@ POST  /agencies/:arn/invitations
 
 Request:
 ```
-http://localhost:9432/agent-client-authorisation/agenices/TARN0000001/invitations
+http://localhost:9433/agent-authorisation/agenices/TARN0000001/invitations
 
 ```
 Example Body of ITSA:
@@ -73,8 +73,7 @@ Example Body of ITSA:
 {
   "service": "HMRC-MTD-IT",
   "clientIdType": "ni",
-  "clientId": "AB123456A",
-  "clientPostcode": "DHJ4EJ"
+  "clientId": "AB123456A"
 }
 ```
 
@@ -83,8 +82,7 @@ Example Body of VAT:
 {
   "service": "HMRC-MTD-VAT",
   "clientIdType": "vrn",
-  "clientId": "101747696",
-  "clientPostcode": null
+  "clientId": "101747696"
 }
 ```
 
@@ -93,18 +91,16 @@ Example Body of IRV:
 {
   "service": "PERSONAL-INCOME-RECORD",
   "clientIdType": "ni",
-  "clientId": "AE123456C",
-  "clientPostcode": null
+  "clientId": "AE123456C"
 }
 ```
 
 |Response|Description|
 |--------|---------|
-|204|Successfully created invitation. (In Headers) Location → "/agencies/:arn/invitations/:invitationdId"|
+|204|Successfully created invitation. (In Headers) Location → "/agencies/:arn/invitations/:invitationId"|
 |400|Received Valid Json but incorrect data|
 |400|Received Invalid Json|
 |403|Client Registration Not Found|
-|403|(HMRC-MTD-IT Only) Post Code does not match|
 |501|Unsupported Service|
 
 Note: The link returned from a successful create invitation response is "GET a Specific Agent's Sent Invitation"
@@ -118,7 +114,7 @@ GET   /agencies/:arn/invitations/:invitationId
 
 Request:
 ```
-http://localhost:9432/agent-client-authorisation/agenices/TARN0000001/invitations/CS5AK7O8FPC43
+http://localhost:9433/agent-authorisation/agenices/TARN0000001/invitations/CS5AK7O8FPC43
 ```
 
 |Response|Description|
@@ -138,14 +134,13 @@ Example Response: 200 with Body:
    "expiryDate" : "2018-04-26",
    "suppliedClientIdType" : "vrn",
    "suppliedClientId" : "101747641",
-   "_links" : {
-      "self" : {
-         "href" : "/agent-client-authorisation/agencies/TARN0000001/invitations/CS5AK7O8FPC43"
-      }
-   },
    "status" : "Expired",
    "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43",
-   "postcode" : null
+   "_links" : {
+         "self" : {
+            "href" : "/agent-authorisation/agencies/TARN0000001/invitations/CS5AK7O8FPC43"
+         }
+      }
 }
 ```
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentclientauthorisation.controllers.api
+package uk.gov.hmrc.agentauthorisation.controllers.api
 
 import controllers.AssetsBuilder
 import javax.inject.{ Inject, Singleton }

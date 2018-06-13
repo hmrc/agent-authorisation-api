@@ -34,7 +34,7 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
   override protected def mode = environment.mode
 
   def configure(): Unit = {
-    val appName = "agent-client-authorisation-api"
+    val appName = "agent-authorisation-api"
 
     val loggerDateFormat: Option[String] = configuration.getString("logger.json.dateformat")
     Logger.info(s"Starting microservice : $appName : in mode : ${environment.mode}")

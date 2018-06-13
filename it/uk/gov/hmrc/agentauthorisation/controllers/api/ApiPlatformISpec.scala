@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentclientauthorisation.controllers.api
+package uk.gov.hmrc.agentauthorisation.controllers.api
 
 import org.scalatestplus.play.OneServerPerSuite
 import play.api.libs.ws.WSClient
-import uk.gov.hmrc.agentclientauthorisation.support.Resource
+import uk.gov.hmrc.agentauthorisation.support.Resource
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.test.UnitSpec
 
@@ -36,7 +36,7 @@ class ApiPlatformISpec extends UnitSpec with OneServerPerSuite {
 
       val definition = response.json
 
-      (definition \ "api" \ "name").as[String] shouldBe "Agent Client Authorisation"
+      (definition \ "api" \ "name").as[String] shouldBe "Agent Authorisation"
 
       val accessConfig = definition \ "api" \ "versions" \\ "access"
       (accessConfig.head \ "type").as[String] shouldBe "PRIVATE"
@@ -58,8 +58,8 @@ class ApiPlatformISpec extends UnitSpec with OneServerPerSuite {
           raml should include("#%RAML 1.0")
         }
 
-        withClue("RAML does not contain the title 'Agent Client Authorisation API'") {
-          raml should include("title: Agent Client Authorisation")
+        withClue("RAML does not contain the title 'Agent Authorisation API'") {
+          raml should include("title: Agent Authorisation")
 
         }
 

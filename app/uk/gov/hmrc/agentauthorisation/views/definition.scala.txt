@@ -1,4 +1,4 @@
-@import uk.gov.hmrc.agentclientauthorisation.controllers.api.ApiAccess
+@import uk.gov.hmrc.agentauthorisation.controllers.api.ApiAccess
 @import play.api.libs.json.Json
 
 @(access: ApiAccess)
@@ -6,19 +6,19 @@
   "scopes": [{
     "key": "read:sent-invitations",
     "name": "Read invitations sent",
-    "description": "Reads invitations sent by you"
+    "description": "Reads authorisation requests sent by you"
   }, {
     "key": "write:sent-invitations",
     "name": "Modify invitations sent",
-    "description": "Cancel invitations sent by you"
+    "description": "Request authorisation for a service"
   }],
 
   "api": {
-    "name": "Agent Client Authorisation",
+    "name": "Agent Authorisation",
     "description": "An API allowing MTD-enabled Agents to request authorisation to a service for a client, instead of filling the 64-8 paper form.",
-    "context": "agent-client-authorisation",
+    "context": "agent-authorisation",
     "versions": [{
-      "version": "0.1",
+      "version": "0.0",
       "status": "ALPHA",
       "access": @Json.toJson(access)
     }]

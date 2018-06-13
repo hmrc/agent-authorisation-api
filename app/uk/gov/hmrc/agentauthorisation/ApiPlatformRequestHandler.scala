@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentclientauthorisation
+package uk.gov.hmrc.agentauthorisation
 
 import javax.inject.Inject
 import play.api.http.{ DefaultHttpRequestHandler, HttpConfiguration, HttpErrorHandler, HttpFilters }
@@ -23,7 +23,7 @@ import play.api.routing.Router
 
 /**
  * Normalise the request path. The API platform strips the context
- * '/agent-client-authorisation' from the URL before forwarding the request.
+ * '/agent-authorisation' from the URL before forwarding the request.
  * Re-add it here if necessary.
  */
 class ApiPlatformRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters)
@@ -38,10 +38,10 @@ class ApiPlatformRequestHandler @Inject() (router: Router, errorHandler: HttpErr
   }
 
   private def addApiPlatformContext(path: String) = {
-    val context = "/agent-client-authorisation"
+    val context = "/agent-authorisation"
     if (path == "/") {
-      // special case for root - /agent-client-authorisation/ results in a 404
-      // so we need to make it /agent-client-authorisation instead
+      // special case for root - /agent-authorisation/ results in a 404
+      // so we need to make it /agent-authorisation instead
       context
     } else {
       context + path
