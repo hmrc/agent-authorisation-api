@@ -26,7 +26,6 @@ This supports MTD-enabled Agent and Client authorisation processes for the follo
 |Tax service|Service Id|
 |--------|--------|
 |Report income or expenses through software|HMRC-MTD-IT|
-|View PAYE income record|PERSONAL-INCOME-RECORD|
 |Report VAT returns through software|HMRC-MTD-VAT|
 
 
@@ -73,7 +72,8 @@ Example Body of ITSA:
 {
   "service": "HMRC-MTD-IT",
   "clientIdType": "ni",
-  "clientId": "AB123456A"
+  "clientId": "AB123456A",
+  "postcode": "AA11 1A"  // ITSA registered postcode
 }
 ```
 
@@ -82,24 +82,16 @@ Example Body of VAT:
 {
   "service": "HMRC-MTD-VAT",
   "clientIdType": "vrn",
-  "clientId": "101747696"
-}
-```
-
-Example Body of IRV:
-```json
-{
-  "service": "PERSONAL-INCOME-RECORD",
-  "clientIdType": "ni",
-  "clientId": "AE123456C"
+  "clientId": "101747696",
+  "knownFact": "2007-01-07" // VAT registration date
 }
 ```
 
 |Response|Description|
 |--------|---------|
 |204|Successfully created invitation. (In Headers) Location → "/agencies/:arn/invitations/:invitationId"|
-|400|Received Valid Json but incorrect data|
 |400|Received Invalid Json|
+|400|Received Valid Json but incorrect data|
 |403|Client Registration Not Found|
 |501|Unsupported Service|
 
@@ -122,20 +114,31 @@ http://localhost:9433/agent-authorisation/agenices/TARN0000001/invitations/CS5AK
 |200|Returns an invitation in json|
 |404|The specified invitation was not found.|
 
-Example Response: 200 with Body:
+Example response: 200 with `Pending` body:
 ```json
 {
    "arn" : "TARN0000001",
    "service" : "HMRC-MTD-VAT",
-   "lastUpdated" : "2018-05-04T13:51:35.278Z",
    "created" : "2018-04-16T15:05:54.029Z",
-   "clientIdType" : "vrn",
-   "clientId" : "101747641",
-   "expiryDate" : "2018-04-26",
-   "suppliedClientIdType" : "vrn",
-   "suppliedClientId" : "101747641",
-   "status" : "Expired",
+   "expiresOn" : "2018-05-04T00:00:00:000Z",
+   "status" : "Pending",
    "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43",
+   "_links" : {
+         "self" : {
+            "href" : "/agent-authorisation/agencies/TARN0000001/invitations/CS5AK7O8FPC43"
+         }
+      }
+}
+```
+
+Example response: 200 with `Accepted` body:
+```json
+{
+   "arn" : "TARN0000001",
+   "service" : "HMRC-MTD-VAT",
+   "created" : "2018-04-16T15:05:54.029Z",
+   "updated" : "2018-05-04T01:16:21:786Z",
+   "status" : "Accepted",
    "_links" : {
          "self" : {
             "href" : "/agent-authorisation/agencies/TARN0000001/invitations/CS5AK7O8FPC43"

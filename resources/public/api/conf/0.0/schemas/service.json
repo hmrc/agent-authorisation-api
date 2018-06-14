@@ -10,12 +10,6 @@
     },
     {
       "enum": [
-        "PERSONAL-INCOME-RECORD"
-      ],
-      "description": "Report their income or expenses through software"
-    },
-    {
-      "enum": [
         "HMRC-MTD-VAT"
       ],
       "description": "Report their VAT returns through software"

@@ -24,13 +24,6 @@
     "service": {
       "$ref": "service.json"
     },
-    "clientIdType": {
-      "$ref": "clientIdType.json"
-    },
-    "clientId": {
-      "type": "string",
-      "description" : "Client identifier (of type clientIdType)"
-    },
     "arn": {
       "type": "string",
       "description": "The Agent Registration Number for the calling agency"
@@ -39,9 +32,13 @@
       "type": "string",
       "description": "Creation time of the request (RFC3339 / ISO8601 format)"
     },
-    "lastUpdated": {
+    "updated": {
       "type": "string",
-      "description": "Last update time of the request (RFC3339 / ISO8601 format)"
+      "description": "Update time of the request (RFC3339 / ISO8601 format)"
+    },
+    "expiresOn": {
+      "type": "string",
+      "description": "Expiration time of the request (RFC3339 / ISO8601 format)"
     },
     "status": {
       "type": "string",
@@ -77,10 +74,8 @@
   "required": [
     "_links",
     "service",
-    "clientId",
     "arn",
     "created",
-    "lastUpdated",
     "status"
   ]
 }

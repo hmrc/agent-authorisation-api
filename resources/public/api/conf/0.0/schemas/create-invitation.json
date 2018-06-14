@@ -11,6 +11,10 @@
     "clientId": {
       "type": "string",
       "description" : "Client identifier (of type clientIdType)"
+    },
+    "knownFact": {
+      "type": "string",
+      "description" : "Known fact matching client identifier, required for some services"
     }
   },
   "required": [

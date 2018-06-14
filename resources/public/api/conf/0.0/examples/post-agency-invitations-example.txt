@@ -1,17 +1,13 @@
 {
   "service": "HMRC-MTD-IT",
   "clientIdType": "ni",
-  "clientId": "AA999999A"
+  "clientId": "AA999999A",
+  "knownFact" "AA11 1A" // ITSA registered postcode
 }
 
 {
   "service": "HMRC-MTD-VAT",
   "clientIdType": "vrn",
-  "clientId": "101747696"
-}
-
-{
-  "service": "PERSONAL-INCOME-RECORD",
-  "clientIdType": "ni",
-  "clientId": "AE123456C"
+  "clientId": "101747696",
+  "vatRegistrationDate": "2007-05-18" // VAT registration date
 }
