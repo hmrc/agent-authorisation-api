@@ -9,5 +9,5 @@
   "service": "HMRC-MTD-VAT",
   "clientIdType": "vrn",
   "clientId": "101747696",
-  "vatRegistrationDate": "2007-05-18" // VAT registration date
+  "knownFact": "2007-05-18" // VAT registration date
 }
