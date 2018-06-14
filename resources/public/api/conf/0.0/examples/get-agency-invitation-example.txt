@@ -5,10 +5,10 @@
     }
   },
   "created": "2017-01-25T15:20:14.917Z",
-  "updated": "2017-01-25T15:20:14.917Z", //only if status one of [Accepted, Rejected, Cancelled, Expired]
-  "expiresOn": "2017-02-04T00:00:00:000Z", //only if status is Pending
+  "updated": "2017-01-25T15:20:14.917Z",
+  "expiresOn": "2017-02-04T00:00:00:000Z",
   "arn": "AARN9999999",
   "service": "HMRC-MTD-IT",
   "status": "Pending",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43" //only if status is Pending
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
 }

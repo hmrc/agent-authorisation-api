@@ -2,12 +2,12 @@
   "service": "HMRC-MTD-IT",
   "clientIdType": "ni",
   "clientId": "AA999999A",
-  "knownFact" "AA11 1A" // ITSA registered postcode
+  "knownFact" "AA11 1A"
 }
 
 {
   "service": "HMRC-MTD-VAT",
   "clientIdType": "vrn",
   "clientId": "101747696",
-  "knownFact": "2007-05-18" // VAT registration date
+  "knownFact": "2007-05-18"
 }
