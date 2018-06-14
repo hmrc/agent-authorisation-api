@@ -93,6 +93,7 @@ Example Body of VAT registration date:
 |400|Received Invalid Json|
 |400|Received Valid Json but incorrect data|
 |403|Client Registration Not Found|
+|403|Supplied known fact does not match registration data|
 |501|Unsupported Service|
 
 Note: The link returned from a successful create invitation response is "GET a Specific Agent's Sent Invitation"
