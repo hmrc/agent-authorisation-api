@@ -77,5 +77,40 @@
     "arn",
     "created",
     "status"
-  ]
+  ],
+  "dependencies": {
+    "updated": {
+      "properties": {
+        "status" :{
+          "type": "string",
+          "oneOf": [
+            { "enum": ["Accepted"] },
+            { "enum": ["Rejected"] },
+            { "enum": ["Cancelled"] },
+            { "enum": ["Expired"] }
+          ]
+        }
+      }
+    },
+    "expiresOn": {
+      "properties": {
+        "status" :{
+          "type": "string",
+          "oneOf": [
+            { "enum": ["Pending"] }
+          ]
+        }
+      }
+    },
+    "clientActionUrl": {
+      "properties": {
+        "status" :{
+          "type": "string",
+          "oneOf": [
+            { "enum": ["Pending"] }
+          ]
+        }
+      }
+    }
+  }
 }
