@@ -2,7 +2,7 @@
   "service": "HMRC-MTD-IT",
   "clientIdType": "ni",
   "clientId": "AA999999A",
-  "knownFact" "AA11 1A"
+  "knownFact": "AA11 1A"
 }
 
 {
