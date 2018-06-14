@@ -64,9 +64,9 @@ POST  /agencies/:arn/invitations
 
 Request:
 ```
-http://localhost:9433/agent-authorisation/agenices/TARN0000001/invitations
-
+http://localhost:9433/agent-authorisation/agencies/TARN0000001/invitations
 ```
+
 Example Body with ITSA registered postcode:
 ```json
 {
