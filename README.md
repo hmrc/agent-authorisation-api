@@ -67,23 +67,23 @@ Request:
 http://localhost:9433/agent-authorisation/agenices/TARN0000001/invitations
 
 ```
-Example Body of ITSA:
+Example Body with ITSA registered postcode:
 ```json
 {
   "service": "HMRC-MTD-IT",
   "clientIdType": "ni",
   "clientId": "AB123456A",
-  "postcode": "AA11 1A"  // ITSA registered postcode
+  "knownFact": "AA11 1A"
 }
 ```
 
-Example Body of VAT:
+Example Body of VAT registration date:
 ```json
 {
   "service": "HMRC-MTD-VAT",
   "clientIdType": "vrn",
   "clientId": "101747696",
-  "knownFact": "2007-01-07" // VAT registration date
+  "knownFact": "2007-01-07"
 }
 ```
 
