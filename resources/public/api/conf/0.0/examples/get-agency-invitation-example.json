@@ -5,7 +5,11 @@
     }
   },
   "created": "2017-01-25T15:20:14.917Z",
-  "lastUpdated": "2017-01-25T15:20:14.917Z",
+  "accepted": "2017-01-25T15:20:14.917Z", //only if Accepted
+  "rejected": "2017-01-25T15:20:14.917Z", //only if Rejected
+  "cancelled": "2017-01-25T15:20:14.917Z", //only if Cancelled
+  "expired": "2017-01-25T15:20:14.917Z", //only if Expired
+  "expiresOn": "2017-02-04T00:00:00:000Z", //only if Pending
   "arn": "AARN9999999",
   "service": "HMRC-MTD-IT",
   "clientIdType": "ni",
