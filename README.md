@@ -1,12 +1,12 @@
 Agent Authorisation API
 ==============================
 
-An API allowing MTD-enabled Agents to request authorisation to a service for a client, instead of filling the 64-8 paper form.
+This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisations already requested. Please note this API has no effect on the existing XML API. 
 
 ## Motivation
 Agents often use software to perform services for their clients. 
-The API will benefit these agents since it will allow them to be able to request the invitation link to authorise an agent for a service directly through software. 
-This will save an agent time since currently an agent must separately log into Agent Services to request this link. 
+The API will benefit these agents since it will allow them to be able to request the invitation link directly through software, to send to their client so that they can authorise the agent for a service. 
+This will save an agent time since currently they must separately log into Agent Services UI to request this link. 
 This also aligns with the API first strategy for Agent Services.
 
 ### API docs
