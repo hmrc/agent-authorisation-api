@@ -10,7 +10,7 @@ This will save an agent time since currently they must separately log into Agent
 This also aligns with the API first strategy for Agent Services.
 
 ### API docs
-Refer to [RAML documentation](https://github.com/hmrc/agent-client-authorisation-api/blob/master/resources/public/api/conf/0.0/application.raml) for further details on each API.
+Refer to [RAML documentation](https://github.com/hmrc/agent-authorisation-api/blob/master/resources/public/api/conf/0.0/application.raml) for further details on each API.
    
 
 ## Table of Contents
