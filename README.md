@@ -64,7 +64,7 @@ POST  /agents/:arn/invitations
 
 Request:
 ```
-http://api.tax.service.gov.uk/agents/TARN0000001/invitations
+https://api.service.hmrc.gov.uk/agents/TARN0000001/invitations
 ```
 
 Example Body with ITSA registered postcode:
@@ -107,7 +107,7 @@ GET   /agents/:arn/invitations/:invitationId
 
 Request:
 ```
-https://api.tax.service.gov.uk/agents/TARN0000001/invitations/CS5AK7O8FPC43
+https://api.service.hmrc.gov.uk/agents/TARN0000001/invitations/CS5AK7O8FPC43
 ```
 
 |Response|Description|
