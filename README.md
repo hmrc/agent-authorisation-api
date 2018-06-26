@@ -59,12 +59,12 @@ Any unauthorised access could receive one of the following responses:
 Validates the service, clientIdentifier, clientIdentifierType and creates an invitation.
 
 ```
-POST  /agencies/:arn/invitations
+POST  /agents/:arn/invitations
 ```
 
 Request:
 ```
-http://localhost:9433/agent-authorisation/agencies/TARN0000001/invitations
+http://api.tax.service.gov.uk/agents/TARN0000001/invitations
 ```
 
 Example Body with ITSA registered postcode:
@@ -102,12 +102,12 @@ Note: The link returned from a successful create invitation response is "GET a S
 #### GET a Specific Agent's Sent Invitation <a name="agentSpecificInvitation"></a>
 Retrieves a specific invitation by its InvitationId
 ```
-GET   /agencies/:arn/invitations/:invitationId
+GET   /agents/:arn/invitations/:invitationId
 ```
 
 Request:
 ```
-http://localhost:9433/agent-authorisation/agenices/TARN0000001/invitations/CS5AK7O8FPC43
+https://api.tax.service.gov.uk/agents/TARN0000001/invitations/CS5AK7O8FPC43
 ```
 
 |Response|Description|
@@ -126,7 +126,7 @@ Example response: 200 with `Pending` body:
    "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43",
    "_links" : {
          "self" : {
-            "href" : "/agent-authorisation/agencies/TARN0000001/invitations/CS5AK7O8FPC43"
+            "href" : "/agents/TARN0000001/invitations/CS5AK7O8FPC43"
          }
       }
 }
@@ -142,7 +142,7 @@ Example response: 200 with `Accepted` body:
    "status" : "Accepted",
    "_links" : {
          "self" : {
-            "href" : "/agent-authorisation/agencies/TARN0000001/invitations/CS5AK7O8FPC43"
+            "href" : "/agents/TARN0000001/invitations/CS5AK7O8FPC43"
          }
       }
 }

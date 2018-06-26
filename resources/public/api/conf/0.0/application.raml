@@ -129,7 +129,7 @@ traits:
                 value:
                   code: INVITATION_NOT_FOUND
 
-/agent-authorisation/agencies/{arn}/invitations:
+/agents/{arn}/invitations:
   is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
   uriParameters:
     arn:
