@@ -6,7 +6,7 @@
       "enum": [
         "HMRC-MTD-IT"
       ],
-      "description": "View their PAYE income record"
+      "description": "Report income or expenses through software"
     },
     {
       "enum": [
