@@ -25,8 +25,8 @@ This supports MTD-enabled Agent and Client authorisation processes for the follo
 
 |Tax service|Service Id|
 |--------|--------|
-|Report income or expenses through software|HMRC-MTD-IT|
-|Report VAT returns through software|HMRC-MTD-VAT|
+|Report income or expenses through software|MTD-IT|
+|Report VAT returns through software|MTD-VAT|
 
 
 ### Invitation Status <a name="invitationStatus"></a>
