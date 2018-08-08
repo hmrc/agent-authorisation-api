@@ -1,7 +1,7 @@
 Agent Authorisation API
 ==============================
 
-This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisations already requested. Please note this API has no effect on the existing XML API. 
+This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisation request. Please note this API has no effect on the existing XML API. 
 
 ## Motivation
 Agents often use software to perform services for their clients. 
