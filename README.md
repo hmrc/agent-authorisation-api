@@ -12,13 +12,15 @@ This also aligns with the API first strategy for Agent Services.
 ### API docs
 Refer to [RAML documentation](https://github.com/hmrc/agent-authorisation-api/blob/master/resources/public/api/conf/0.0/application.raml) for further details on each API.
    
+or see it [here](API.0.0.md)
 
 ## Table of Contents
 *   [Supported Regimes / Services](#supportedRegimes)
 *   [Invitation Status](#invitationStatus)
 *   [Agent APIs](#agentApis)
     *   [Create Invitation](#createInvitation)
-    *   [GET a Specific Agent's Sent Invitation](#agentSpecificInvitation)
+    *   [Get a Specific Agent's Sent Invitation](#agentSpecificInvitation)
+    *   [Cancel a Specific Agent's Sent Invitation](#deleteAgentSpecificInvitation)
 
 ### Supported Regimes / Services <a name="supportedRegimes"></a>
 This supports MTD-enabled Agent and Client authorisation processes for the following tax services for agents:

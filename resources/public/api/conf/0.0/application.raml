@@ -197,19 +197,6 @@ traits:
           Location:
             example: /agencies/AARN9999999/invitations/CS5AK7O8FPC43
             description: Location of the invitation that was created.
-      501:
-        body:
-          application/json:
-            type: types.errorResponse
-            examples:
-              unsupportedService:
-                description: The submitted service is not currently supported by this API.
-                value:
-                  code: UNSUPPORTED_SERVICE
-              unsupportedClientIdType:
-                description: The submitted clientIdType is not currently supported by this API.
-                value:
-                  code: UNSUPPORTED_CLIENT_ID_TYPE
 
   /{invitationId}:
     is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
