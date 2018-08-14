@@ -9,7 +9,7 @@ The API will benefit these agents since it will allow them to be able to request
 This will save an agent time since currently they must separately log into Agent Services UI to request this link. 
 This also aligns with the API first strategy for Agent Services.
 
-##Usage scenario
+## Usage scenario
 The aim is for the API to mirror the current process that happens through the Agent Services user interface
 * Agent uses 3rd party application/software to request a new authorisation
 * Agent identifier is passed to the API (ARN)
