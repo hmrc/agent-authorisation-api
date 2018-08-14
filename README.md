@@ -5,10 +5,10 @@ This API allows agents to request authorisation to act on a client's behalf for 
 
 ### APIs
 * [/agent/:arn/invitations](#agentArnInvitations)
-    * POST
+    * [POST](#POSTagentArnInvitations) Create a new invitation.
     * [/:invitationId](#agentArnInvitationsInvitationId)
-        * GET
-        * DELETE
+        * [GET](#GETagentArnInvitationsInvitationId) Returns the invitation object
+        * [DELETE](#DELETEagentArnInvitationsInvitationId) Cancels the invitation.
 
 ## Motivation
 Agents often use software to perform services for their clients. 
@@ -45,14 +45,14 @@ See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentatio
 
 ---
 
-# /agents/{arn}/invitations <a name="agentarninvitations"></a>
+# /agents/{arn}/invitations <a name="agentArnInvitations"></a>
 
 * **arn**: The MTD platform Agent Registration Number.
     * Type: string
     
     * Required: true
 
-## **POST** *(secured)*:
+## **POST** *(secured)*: <a name="POSTagentArnInvitations"></a>
 
 ###### Headers
 
@@ -205,7 +205,7 @@ The invitation was successfully created.
     
     * Required: true
 
-## **GET** *(secured)*:
+## **GET** *(secured)*: <a name="GETagentArnInvitationsInvitationId"></a>
 
 ###### Headers
 
@@ -307,7 +307,7 @@ Returns the invitation object implementing schema [invitation.md](resources/publ
 | code |  string |  | true |  |
 
 ---
-## **DELETE**:
+## **DELETE**: <a name="DELETEagentArnInvitationsInvitationId"></a>
 
 ###### Headers
 
