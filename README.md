@@ -3,6 +3,13 @@
 ### Overview
 This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisations already requested. Please note this API has no effect on the existing XML API. 
 
+### APIs
+* [/agent/:arn/invitations](#agentArnInvitations)
+    * POST
+    * [/:invitationId](#agentArnInvitationsInvitationId)
+        * GET
+        * DELETE
+
 ## Motivation
 Agents often use software to perform services for their clients. 
 The API will benefit these agents since it will allow them to be able to request the invitation link directly through software, to send to their client so that they can authorise the agent for a service. 
@@ -38,14 +45,14 @@ See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentatio
 
 ---
 
-## /agents/{arn}/invitations
+# /agents/{arn}/invitations <a name="agentarninvitations"></a>
 
 * **arn**: The MTD platform Agent Registration Number.
     * Type: string
     
     * Required: true
 
-#### **POST** *(secured)*:
+## **POST** *(secured)*:
 
 ###### Headers
 
@@ -191,14 +198,14 @@ The invitation was successfully created.
 
 ---
 
-### /agents/{arn}/invitations/{invitationId}
+# /agents/{arn}/invitations/{invitationId} <a name="agentArnInvitationsInvitationId"></a>
 
 * **invitationId**: A unique invitation id
     * Type: string
     
     * Required: true
 
-#### **GET** *(secured)*:
+## **GET** *(secured)*:
 
 ###### Headers
 
@@ -300,7 +307,7 @@ Returns the invitation object implementing schema [invitation.md](resources/publ
 | code |  string |  | true |  |
 
 ---
-#### **DELETE**:
+## **DELETE**:
 
 ###### Headers
 
