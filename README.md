@@ -56,6 +56,8 @@ See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentatio
 #### application/json (application/json) 
 Create a new invitation.
 
+Accepts the json object implementing schema [create-invitation.md](resources/public/api/conf/0.0/schemas/create-invitation.md)
+
 ```
 {
   "service": ["MTD-IT"],
@@ -207,7 +209,7 @@ The invitation was successfully created.
 ### Response code: 200
 
 #### application/json (application/json) 
-Returns the invitation.
+Returns the invitation object implementing schema [invitation.md](resources/public/api/conf/0.0/schemas/invitation.md)
 
 ```
 {
