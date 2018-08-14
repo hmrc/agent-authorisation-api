@@ -1,4 +1,4 @@
-# Agent Authorisation API documentation version 0.0
+# Agent Authorisation API version 0.0
 
 ### Overview
 This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisations already requested. Please note this API has no effect on the existing XML API. 
@@ -40,8 +40,6 @@ See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentatio
 
 ## /agents/{arn}/invitations
 
-### /agents/{arn}/invitations
-
 * **arn**: The MTD platform Agent Registration Number.
     * Type: string
     
@@ -60,21 +58,21 @@ Create a new invitation.
 
 ```
 {
-  "service": "MTD-IT",
+  "service": ["MTD-IT"],
   "clientIdType": "ni",
   "clientId": "AA999999A",
   "knownFact": "AA11 1A"
 }
 
 {
-  "service": "MTD-VAT",
+  "service": ["MTD-VAT"],
   "clientIdType": "vrn",
   "clientId": "101747696",
   "knownFact": "2007-05-18"
 }
 
 {
-  "service": "MTD-VAT",
+  "service": ["MTD-VAT"],
   "clientIdType": "crn",
   "clientId": "AA12345678",
   "knownFact": "1234567890"
