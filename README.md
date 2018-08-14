@@ -1,7 +1,7 @@
-Agent Authorisation API
-==============================
+# Agent Authorisation API documentation version 0.0
 
-This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisation request. Please note this API has no effect on the existing XML API. 
+### Overview
+This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisations already requested. Please note this API has no effect on the existing XML API. 
 
 ## Motivation
 Agents often use software to perform services for their clients. 
@@ -9,176 +9,364 @@ The API will benefit these agents since it will allow them to be able to request
 This will save an agent time since currently they must separately log into Agent Services UI to request this link. 
 This also aligns with the API first strategy for Agent Services.
 
-### API docs
-Refer to [RAML documentation](https://github.com/hmrc/agent-authorisation-api/blob/master/resources/public/api/conf/0.0/application.raml) for further details on each API.
-   
-or see it [here](API.0.0.md)
+## Usage scenario
+The aim is for the API to mirror the current process that happens through the Agent Services user interface
+* Agent uses 3rd party application/software to request a new authorisation
+* Agent identifier is passed to the API (ARN)
+* Agent enters service they are requesting access to eg. MTD-IT, MTD-VAT
+* Agent enters the identifier for the client they are requesting access for, e.g. NINO, CRN, VAT registration number
+* If required by the service the agent enters a known fact check for the client, e.g. postcode, VAT registration date
+* Link for the client to follow to authorise the agent is returned by the API. The expiration date of the link is also returned by the API
+* Agent sends the link to the client
+* Client clicks the link and authorises agent (requires sign on through Government Gateway)
 
-## Table of Contents
-*   [Supported Regimes / Services](#supportedRegimes)
-*   [Invitation Status](#invitationStatus)
-*   [Agent APIs](#agentApis)
-    *   [Create Invitation](#createInvitation)
-    *   [Get a Specific Agent's Sent Invitation](#agentSpecificInvitation)
-    *   [Cancel a Specific Agent's Sent Invitation](#deleteAgentSpecificInvitation)
+### Versioning
+Specific versions are requested by providing an Accept header. When
+backwards-incompatible API changes are made, a new version will be released.
+Backwards-compatible changes are released in the current version without the
+need to change your Accept header.  See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentation/docs/reference-guide#versioning) for more on
+versioning.
 
-### Supported Regimes / Services <a name="supportedRegimes"></a>
-This supports MTD-enabled Agent and Client authorisation processes for the following tax services for agents:
+### Errors
+We use standard [HTTP status codes](https://developer.service.hmrc.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
+* in the 200 to 299 range if it succeeded; including code 202 if it was accepted by an API that needs to wait for further action
+* in the 400 to 499 range if it didn't succeed because of a client error by your application
+* in the 500 to 599 range if it didn't succeed because of an error on our server
 
-|Tax service|Service Id|
-|--------|--------|
-|Report income or expenses through software|MTD-IT|
-|Report VAT returns through software|MTD-VAT|
+Errors specific to each API are shown in its own Resources section, under Response. 
+See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
 
+---
 
-### Invitation Status <a name="invitationStatus"></a>
-Invitations can have one of the following status:
+## /agents/{arn}/invitations
 
-|Invitation Status|Description|
-|--------|---------|
-|Pending|Default status when an invitation has been created|
-|Accepted|Allows Agent to be authorised to act on behalf of a client|
-|Rejected|Prevents Agent being authorised to act on a client's behalf|
-|Expired|Client did not respond to the Agent's Invitation within 10 days|
-|Cancelled|Agent cancels the invitation they sent out, preventing a client from responding|
+### /agents/{arn}/invitations
 
-Note: Invitations with "Pending" status is the only editable status.
-  
+* **arn**: The MTD platform Agent Registration Number.
+    * Type: string
+    
+    * Required: true
 
-## Agent APIs <a name="agentApis"></a>
-The following APIs require agent authentication. 
+#### **POST** *(secured)*:
 
-Any unauthorised access could receive one of the following responses:
+###### Headers
 
-|Response|Description|
-|--------|---------|
-|401|Unauthorised. Not logged In|
-|403|The Agent is not subscribed to Agent Services.|
-|403|The logged in user is not permitted to access invitations for the specified agency.|
+| Name | Type | Description | Required | Examples |
+|:-----|:----:|:------------|:--------:|---------:|
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
-
-#### Create Invitation <a name="createInvitation"></a>
-Validates the service, clientIdentifier, clientIdentifierType and creates an invitation.
+#### application/json (application/json) 
+Create a new invitation.
 
 ```
-POST  /agents/:arn/invitations
-```
-
-Request:
-```
-https://api.service.hmrc.gov.uk/agents/TARN0000001/invitations
-```
-
-Example Body with ITSA registered postcode:
-```json
 {
-  "service": ["MTD-IT"],
+  "service": "MTD-IT",
   "clientIdType": "ni",
-  "clientId": "AB123456A",
+  "clientId": "AA999999A",
   "knownFact": "AA11 1A"
 }
-```
 
-Example Body of VAT registration date:
-```json
 {
-  "service": ["MTD-VAT"],
+  "service": "MTD-VAT",
   "clientIdType": "vrn",
   "clientId": "101747696",
-  "knownFact": "2007-01-07"
+  "knownFact": "2007-05-18"
 }
-```
 
-Example Body with CRN and CT UTR:
-```json
 {
-  "service": ["MTD-VAT"],
+  "service": "MTD-VAT",
   "clientIdType": "crn",
   "clientId": "AA12345678",
   "knownFact": "1234567890"
 }
 ```
 
-|Response|Description|
-|--------|---------|
-|204|Successfully created invitation. (In Headers) Location → "/agencies/:arn/invitations/:invitationId"|
-|400|Received Invalid Json|
-|400|Received Valid Json but incorrect data|
-|403|The logged in user is not permitted to access invitations for the specified agency.
-|403|The logged in user is not an agent.
-|403|The Agent is not subscribed to Agent Services.
-|403|The Client's registration was not found.|
-|403|Supplied known fact does not match registration data|
-|501|Unsupported Service|
+##### *application/json*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
 
-Note: The link returned from a successful create invitation response is "GET a Specific Agent's Sent Invitation"
+### Response code: 204
+The invitation was successfully created.
 
+###### Headers
 
-#### GET a Specific Agent's Sent Invitation <a name="agentSpecificInvitation"></a>
-Retrieves a specific invitation by its InvitationId
+| Name | Type | Description | Required | Examples |
+|:-----|:----:|:------------|:--------:|---------:|
+| Location | string | Location of the invitation that was created. | true | ``` /agencies/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
+
+### Response code: 400
+
+#### errorResponse (application/json) 
+
 ```
-GET   /agents/:arn/invitations/:invitationId
-```
-
-Request:
-```
-https://api.service.hmrc.gov.uk/agents/TARN0000001/invitations/CS5AK7O8FPC43
-```
-
-|Response|Description|
-|--------|---------|
-|200|Returns an invitation in json|
-|403|The agent must be authenticated and authorised (logged-in) to use this resource
-|403|The agent is not permitted to see this invitation.
-|404|The invitation with the specified id does not exist.|
-
-Example response: 200 with `Pending` body:
-```json
 {
-   "arn" : "TARN0000001",
-   "service" : "HMRC-MTD-VAT",
-   "created" : "2018-04-16T15:05:54.029Z",
-   "expiresOn" : "2018-05-04T00:00:00:000Z",
-   "status" : "Pending",
-   "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43",
-   "_links" : {
-         "self" : {
-            "href" : "/agents/TARN0000001/invitations/CS5AK7O8FPC43"
-         }
-      }
+  "code": "SERVICE_NOT_SUPPORTED"
+}
+```
+```
+{
+  "code": "CLIENT_ID_FORMAT_INVALID"
+}
+```
+```
+{
+  "code": "POSTCODE_FORMAT_INVALID"
+}
+```
+```
+{
+  "code": "VAT_REG_DATE_FORMAT_INVALID"
+}
+```
+```
+{
+  "code": "CT_UTR_FORMAT_INVALID"
 }
 ```
 
-Example response: 200 with `Accepted` body:
-```json
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
 {
-   "arn" : "TARN0000001",
-   "service" : "HMRC-MTD-VAT",
-   "created" : "2018-04-16T15:05:54.029Z",
-   "updated" : "2018-05-04T01:16:21:786Z",
-   "status" : "Accepted",
-   "_links" : {
-         "self" : {
-            "href" : "/agents/TARN0000001/invitations/CS5AK7O8FPC43"
-         }
-      }
+  "code": "INVALID_CREDENTIALS"
 }
 ```
 
-#### DELETE a Specific Agent's Sent Invitation <a name="deleteAgentSpecificInvitation"></a>
-Cancel a specific invitation by its InvitationId
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 403
+
+#### errorResponse (application/json) 
+
 ```
-DELETE   /agents/:arn/invitations/:invitationId
+{
+  "code": "CLIENT_REGISTRATION_NOT_FOUND"
+}
+```
+```
+{
+  "code": "POSTCODE_DOES_NOT_MATCH"
+}
+```
+```
+{
+  "code": "VAT_REG_DATE_DOES_NOT_MATCH"
+}
+```
+```
+{
+  "code": "CT_UTR_DOES_NOT_MATCH"
+}
+```
+```
+{
+  "code": "NOT_AN_AGENT"
+}
+```
+```
+{
+  "code": "AGENT_NOT_SUBSCRIBED"
+}
+```
+```
+{
+  "code": "NO_PERMISSION_ON_AGENCY"
+}
 ```
 
-|Response|Description|
-|--------|---------|
-|202|The invitation has been successfuly cancelled
-|403|The requested state transition is not permitted given the invitation's current status.
-|403|The agent must be authenticated and authorised (logged-in) to use this resource
-|403|The agent is not permitted to see this invitation.
-|404|The invitation with the specified id does not exist.
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
 
-### License
+---
 
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html")
+### /agents/{arn}/invitations/{invitationId}
+
+* **invitationId**: A unique invitation id
+    * Type: string
+    
+    * Required: true
+
+#### **GET** *(secured)*:
+
+###### Headers
+
+| Name | Type | Description | Required | Examples |
+|:-----|:----:|:------------|:--------:|---------:|
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+
+### Response code: 200
+
+#### application/json (application/json) 
+Returns the invitation.
+
+```
+{
+  "_links": {
+    "self": {
+      "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
+    }
+  },
+  "created": "2017-01-25T15:20:14.917Z",
+  "expiresOn": "2017-02-04T00:00:00:000Z",
+  "arn": "AARN9999999",
+  "service": "MTD-IT",
+  "status": "Pending",
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
+}
+
+{
+  "_links": {
+    "self": {
+      "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
+    }
+  },
+  "created": "2017-01-25T15:20:14.917Z",
+  "updated": "2017-01-25T15:20:14.917Z",
+  "arn": "AARN9999999",
+  "service": "MTD-VAT",
+  "status": "Accepted"
+}
+```
+
+##### *application/json*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INVALID_CREDENTIALS"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 403
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "NOT_AN_AGENT"
+}
+```
+```
+{
+  "code": "AGENT_NOT_SUBSCRIBED"
+}
+```
+```
+{
+  "code": "NO_PERMISSION_ON_AGENCY"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 404
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INVITATION_NOT_FOUND"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+---
+#### **DELETE**:
+
+###### Headers
+
+| Name | Type | Description | Required | Examples |
+|:-----|:----:|:------------|:--------:|---------:|
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INVALID_CREDENTIALS"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 403
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INVALID_INVITATION_STATUS"
+}
+```
+```
+{
+  "code": "NOT_AN_AGENT"
+}
+```
+```
+{
+  "code": "AGENT_NOT_SUBSCRIBED"
+}
+```
+```
+{
+  "code": "NO_PERMISSION_ON_AGENCY"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 404
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INVITATION_NOT_FOUND"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+---
+
