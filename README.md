@@ -70,7 +70,7 @@ https://api.service.hmrc.gov.uk/agents/TARN0000001/invitations
 Example Body with ITSA registered postcode:
 ```json
 {
-  "service": "HMRC-MTD-IT",
+  "service": ["MTD-IT"],
   "clientIdType": "ni",
   "clientId": "AB123456A",
   "knownFact": "AA11 1A"
@@ -80,10 +80,20 @@ Example Body with ITSA registered postcode:
 Example Body of VAT registration date:
 ```json
 {
-  "service": "HMRC-MTD-VAT",
+  "service": ["MTD-VAT"],
   "clientIdType": "vrn",
   "clientId": "101747696",
   "knownFact": "2007-01-07"
+}
+```
+
+Example Body with CRN and CT UTR:
+```json
+{
+  "service": ["MTD-VAT"],
+  "clientIdType": "crn",
+  "clientId": "AA12345678",
+  "knownFact": "1234567890"
 }
 ```
 
@@ -92,7 +102,10 @@ Example Body of VAT registration date:
 |204|Successfully created invitation. (In Headers) Location → "/agencies/:arn/invitations/:invitationId"|
 |400|Received Invalid Json|
 |400|Received Valid Json but incorrect data|
-|403|Client Registration Not Found|
+|403|The logged in user is not permitted to access invitations for the specified agency.
+|403|The logged in user is not an agent.
+|403|The Agent is not subscribed to Agent Services.
+|403|The Client's registration was not found.|
 |403|Supplied known fact does not match registration data|
 |501|Unsupported Service|
 
@@ -113,7 +126,9 @@ https://api.service.hmrc.gov.uk/agents/TARN0000001/invitations/CS5AK7O8FPC43
 |Response|Description|
 |--------|---------|
 |200|Returns an invitation in json|
-|404|The specified invitation was not found.|
+|403|The agent must be authenticated and authorised (logged-in) to use this resource
+|403|The agent is not permitted to see this invitation.
+|404|The invitation with the specified id does not exist.|
 
 Example response: 200 with `Pending` body:
 ```json
@@ -147,6 +162,20 @@ Example response: 200 with `Accepted` body:
       }
 }
 ```
+
+#### DELETE a Specific Agent's Sent Invitation <a name="deleteAgentSpecificInvitation"></a>
+Cancel a specific invitation by its InvitationId
+```
+DELETE   /agents/:arn/invitations/:invitationId
+```
+
+|Response|Description|
+|--------|---------|
+|202|The invitation has been successfuly cancelled
+|403|The requested state transition is not permitted given the invitation's current status.
+|403|The agent must be authenticated and authorised (logged-in) to use this resource
+|403|The agent is not permitted to see this invitation.
+|404|The invitation with the specified id does not exist.
 
 ### License
 

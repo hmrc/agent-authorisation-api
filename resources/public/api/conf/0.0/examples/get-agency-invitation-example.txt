@@ -7,7 +7,7 @@
   "created": "2017-01-25T15:20:14.917Z",
   "expiresOn": "2017-02-04T00:00:00:000Z",
   "arn": "AARN9999999",
-  "service": "HMRC-MTD-IT",
+  "service": "MTD-IT",
   "status": "Pending",
   "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
 }
@@ -21,6 +21,6 @@
   "created": "2017-01-25T15:20:14.917Z",
   "updated": "2017-01-25T15:20:14.917Z",
   "arn": "AARN9999999",
-  "service": "HMRC-MTD-VAT",
+  "service": "MTD-VAT",
   "status": "Accepted"
 }

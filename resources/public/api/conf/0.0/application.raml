@@ -45,18 +45,6 @@ traits:
                 value:
                   code: NO_PERMISSION_ON_AGENCY
 
-  permissionOnClientRequired:
-    responses:
-      403:
-        body:
-          application/json:
-            type: types.errorResponse
-            examples:
-              noPermissionOnArn:
-                description: The logged in user is not permitted to see the invitations for the specified client.
-                value:
-                  code: NO_PERMISSION_ON_CLIENT
-
   mustBeAnAgent:
     responses:
       403:
@@ -68,18 +56,6 @@ traits:
                 description: The logged in user is not an agent.
                 value:
                   code: NOT_AN_AGENT
-
-  mustBeAClient:
-    responses:
-      403:
-        body:
-          application/json:
-            type: types.errorResponse
-            examples:
-              clientNinoNotFound:
-                description: There must be a NINO in the client's user profile.
-                value:
-                  code: CLIENT_NINO_NOT_FOUND
 
   agentSubscriptionRequired:
     responses:
@@ -129,6 +105,74 @@ traits:
                 value:
                   code: INVITATION_NOT_FOUND
 
+  serviceSpecified:
+      responses:
+        400:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                invitationNotFound:
+                  description: The specified service is not supported.
+                  value:
+                    code: SERVICE_NOT_SUPPORTED
+
+  clientIdMatchesService:
+      responses:
+        400:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                invitationNotFound:
+                  description: The specified clientId does not match requested service.
+                  value:
+                    code: CLIENT_ID_DOES_NOT_MATCH_SERVICE
+
+  clientIdSpecified:
+    responses:
+        400:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                invalidClientId:
+                  description: The submitted clientId does not match the expected format.
+                  value:
+                    code: CLIENT_ID_FORMAT_INVALID
+                invalidPostcode:
+                  description: The submitted postcode does not match the expected format.
+                  value:
+                    code: POSTCODE_FORMAT_INVALID
+                invalidVatRegistrationDate:
+                  description: The submitted VAT registration date does not match the expected format.
+                  value:
+                    code: VAT_REG_DATE_FORMAT_INVALID
+                invalidCompanyTaxUniqueTaxpayerReference:
+                  description: The submitted CT UTR does not match the expected format.
+                  value:
+                    code: CT_UTR_FORMAT_INVALID
+
+  knownFactMatches:
+    responses:
+        403:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                postcodeDoesNotMatch:
+                  description: The submitted postcode did not match the client's postcode as held by HMRC.
+                  value:
+                    code: POSTCODE_DOES_NOT_MATCH
+                vatRegistrationDateDoesNotMatch:
+                  description: The submitted VAT registration date did not match HMRC record for the client.
+                  value:
+                    code: VAT_REG_DATE_DOES_NOT_MATCH
+                ctUtrDoesNotMatch:
+                  description: The submitted CT UTR did not match HMRC record for the client.
+                  value:
+                    code: CT_UTR_DOES_NOT_MATCH
+
 /agents/{arn}/invitations:
   is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
   uriParameters:
@@ -137,7 +181,7 @@ traits:
       type: string
       example: AARN9999999
   post:
-    is: [clientRegistrationRequired]
+    is: [serviceSpecified, clientIdSpecified, clientIdMatchesService, clientRegistrationRequired, knownFactMatches]
     displayName: Create a new invitation
     (annotations.scope): "write:sent-invitations"
     securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
@@ -153,37 +197,6 @@ traits:
           Location:
             example: /agencies/AARN9999999/invitations/CS5AK7O8FPC43
             description: Location of the invitation that was created.
-      400:
-        body:
-          application/json:
-            type: types.errorResponse
-            examples:
-              invalidClientId:
-                description: The submitted clientId does not match the expected format.
-                value:
-                  code: CLIENT_ID_FORMAT_INVALID
-              invalidPostcode:
-                description: The submitted postcode does not match the expected format.
-                value:
-                  code: POSTCODE_FORMAT_INVALID
-              invalidVatRegistrationDate:
-                description: The submitted VAT registration date does not match the expected format.
-                value:
-                  code: VAT_REG_DATE_FORMAT_INVALID
-      403:
-        body:
-          application/json:
-            type: types.errorResponse
-            examples:
-              postcodeDoesNotMatch:
-                description: The submitted postcode did not match the client's postcode as held by HMRC.
-                value:
-                  code: POSTCODE_DOES_NOT_MATCH
-              vatRegistrationDateDoesNotMatch:
-                description: The submitted VAT registration date did not match HMRC record for the client.
-                value:
-                  code: VAT_REG_DATE_DOES_NOT_MATCH
-
       501:
         body:
           application/json:
@@ -216,9 +229,11 @@ traits:
                 description: Returns the invitation.
                 type: !include schemas/invitation.json
                 example: !include examples/get-agency-invitation-example.txt
-        401:
-          description: The agent must be authenticated and authorised (logged-in) to use this resource
-        403:
-          description: The agent is not permitted to see this invitation.
-        404:
-          description: The invitation with the specified id does not exist.
+    delete:
+      is: [invitationMustHaveValidStatus]
+      displayName: Cancel an invitation by id
+        (annotations.scope): "write:sent-invitations"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
+        responses:
+          202:
+            description: The invitation has been successfuly cancelled
