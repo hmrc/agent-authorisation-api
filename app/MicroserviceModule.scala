@@ -21,6 +21,7 @@ import com.google.inject.name.{ Named, Names }
 import javax.inject.{ Inject, Provider, Singleton }
 import org.slf4j.MDC
 import play.api.{ Configuration, Environment, Logger }
+import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.HttpAuditing
@@ -42,9 +43,14 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
 
     bindProperty("appName")
+    bindBaseUrl("auth")
+    bindBaseUrl("agent-client-authorisation")
 
     bind(classOf[HttpGet]).to(classOf[HttpVerbs])
+    bind(classOf[HttpPost]).to(classOf[HttpVerbs])
     bind(classOf[HttpPut]).to(classOf[HttpVerbs])
+    bind(classOf[AuthConnector]).to(classOf[MicroserviceAuthConnector])
+
   }
 
   private def bindBaseUrl(serviceName: String) =
