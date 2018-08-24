@@ -20,6 +20,7 @@ import javax.inject.{ Inject, Singleton }
 import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -31,5 +32,11 @@ class InvitationService @Inject() (
   def createInvitationService(arn: Arn, agentInvitation: AgentInvitation)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[String]] = {
     invitationsConnector.createInvitation(arn, agentInvitation)
   }
+
+  def checkPostcodeMatches(nino: Nino, postcode: String)(
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[Boolean]] =
+    invitationsConnector.checkPostcodeForClient(nino, postcode)
 
 }

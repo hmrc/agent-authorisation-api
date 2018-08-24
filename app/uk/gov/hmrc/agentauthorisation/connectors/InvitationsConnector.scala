@@ -25,14 +25,15 @@ import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpPost, HttpResponse }
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class InvitationsConnector @Inject() (
   @Named("agent-client-authorisation-baseUrl") baseUrl: URL,
-  http: HttpPost,
+  http: HttpPost with HttpGet,
   metrics: Metrics)
   extends HttpAPIMonitor {
 
@@ -40,6 +41,9 @@ class InvitationsConnector @Inject() (
 
   private[connectors] def createInvitationUrl(arn: Arn): URL =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+
+  private[connectors] def checkPostcodeUrl(nino: Nino, postcode: String) =
+    new URL(baseUrl, s"/agent-client-authorisation/known-facts/individuals/nino/${nino.value}/sa/postcode/$postcode")
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
@@ -49,6 +53,17 @@ class InvitationsConnector @Inject() (
       http.POST[AgentInvitation, HttpResponse](createInvitationUrl(arn).toString, agentInvitation) map { r =>
         r.header("location")
       }
+    }
+
+  def checkPostcodeForClient(nino: Nino, postcode: String)(
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[Boolean]] =
+    monitor(s"ConsumedAPI-CheckPostcode-GET") {
+      http.GET[HttpResponse](checkPostcodeUrl(nino, postcode).toString).map(_ => Some(true))
+    }.recover {
+      case notMatched: Upstream4xxResponse if notMatched.message.contains("POSTCODE_DOES_NOT_MATCH") => Some(false)
+      case notEnrolled: Upstream4xxResponse if notEnrolled.message.contains("CLIENT_REGISTRATION_NOT_FOUND") => None
     }
 
 }
