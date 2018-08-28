@@ -46,6 +46,8 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindBaseUrl("auth")
     bindBaseUrl("agent-client-authorisation")
 
+    bindServiceProperty("agent-authorisation-api.external-url")
+
     bind(classOf[HttpGet]).to(classOf[HttpVerbs])
     bind(classOf[HttpPost]).to(classOf[HttpVerbs])
     bind(classOf[HttpPut]).to(classOf[HttpVerbs])
@@ -66,6 +68,16 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
   private class PropertyProvider(confKey: String) extends Provider[String] {
     override lazy val get = configuration.getString(confKey)
       .getOrElse(throw new IllegalStateException(s"No value found for configuration property $confKey"))
+  }
+
+  private def bindServiceProperty(propertyName: String) =
+    bind(classOf[String])
+      .annotatedWith(Names.named(s"$propertyName"))
+      .toProvider(new ServicePropertyProvider(propertyName))
+
+  private class ServicePropertyProvider(propertyName: String) extends Provider[String] {
+    override lazy val get =
+      getConfString(propertyName, throw new RuntimeException(s"No configuration value found for '$propertyName'"))
   }
 
 }

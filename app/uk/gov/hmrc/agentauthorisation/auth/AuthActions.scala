@@ -23,6 +23,7 @@ import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.Retrievals.authorisedEnrolments
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -57,7 +58,7 @@ trait AuthActions extends AuthorisedFunctions {
         body(Arn(arn))
       case None => Future.failed(InsufficientEnrolments("AgentReferenceNumber identifier not found"))
     } recoverWith {
-      case _: InsufficientEnrolments => Future successful Forbidden
+      case _: InsufficientEnrolments => Future successful NotAnAgent
     }
 
 }

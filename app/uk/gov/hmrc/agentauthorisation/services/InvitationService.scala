@@ -29,8 +29,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 class InvitationService @Inject() (
   invitationsConnector: InvitationsConnector) {
 
-  def createInvitationService(arn: Arn, agentInvitation: AgentInvitation)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[String]] = {
-    invitationsConnector.createInvitation(arn, agentInvitation)
+  def createInvitationService(arn: Arn, agentInvitation: AgentInvitation)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[String] = {
+    invitationsConnector.createInvitation(arn, agentInvitation).map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
   }
 
   def checkPostcodeMatches(nino: Nino, postcode: String)(

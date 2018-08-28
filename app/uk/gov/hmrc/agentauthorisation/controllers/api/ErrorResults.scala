@@ -42,7 +42,8 @@ object ErrorResults {
 
   val PostcodeRequired = BadRequest(
     toJson(
-      ErrorBody("POSTCODE_REQUIRED",
+      ErrorBody(
+        "POSTCODE_REQUIRED",
         s"Postcode is required for MTD-IT")))
 
   val PostcodeFormatInvalid = BadRequest(
@@ -62,5 +63,17 @@ object ErrorResults {
       ErrorBody(
         "CLIENT_REGISTRATION_NOT_FOUND",
         "Client is not subscribed to MTD-IT")))
+
+  val NoPermissionOnAgency = Forbidden(
+    toJson(
+      ErrorBody(
+        "NO_PERMISSION_ON_AGENCY",
+        "The logged in user is not permitted to access invitations for the specified agency.")))
+
+  val NotAnAgent = Forbidden(
+    toJson(
+      ErrorBody(
+        "NOT_AN_AGENT",
+        "The logged in user is not an agent.")))
 
 }
