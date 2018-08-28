@@ -60,7 +60,8 @@ lazy val root = (project in file("."))
     routesImport += "uk.gov.hmrc.agentauthorisation.binders.UrlBinders._",
     publishingSettings,
     scoverageSettings,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / "resources"
+    unmanagedResourceDirectories in Compile += baseDirectory.value / "resources",
+    majorVersion := 0
   )
   .configs(IntegrationTest)
   .settings(
@@ -71,7 +72,7 @@ lazy val root = (project in file("."))
     testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value)
   )
   .settings(scalariformItSettings)
-  .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) = {
   tests.map { test =>
