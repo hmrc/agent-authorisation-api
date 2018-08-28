@@ -1,1 +1,3 @@
 POST /agents/:arn/invitations       @uk.gov.hmrc.agentauthorisation.controllers.api.AgentController.createInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn)
+
+GET /agents/:arn/invitations/:invitaitonId   @uk.gov.hmrc.agentauthorisation.controllers.api.AgentController.createInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn, )

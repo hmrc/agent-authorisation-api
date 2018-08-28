@@ -28,15 +28,39 @@ object ErrorResults {
     override def writes(body: ErrorBody): JsValue = Json.obj("code" -> body.code, "message" -> body.message)
   }
 
-  def postcodeFormatInvalid(message: String) = BadRequest(toJson(ErrorBody("POSTCODE_FORMAT_INVALID", message)))
+  val UnsupportedService = BadRequest(
+    toJson(
+      ErrorBody(
+        "SERVICE_NOT_SUPPORTED",
+        "Received an invalid service")))
 
-  def postcodeRequired(service: String) =
-    BadRequest(toJson(ErrorBody("POSTCODE_REQUIRED", s"Postcode is required for service $service")))
+  val InvalidItsaNino = BadRequest(
+    toJson(
+      ErrorBody(
+        "CLIENT_ID_FORMAT_INVALID",
+        "Received an invalid nino")))
+
+  val PostcodeRequired = BadRequest(
+    toJson(
+      ErrorBody("POSTCODE_REQUIRED",
+        s"Postcode is required for MTD-IT")))
+
+  val PostcodeFormatInvalid = BadRequest(
+    toJson(
+      ErrorBody(
+        "POSTCODE_FORMAT_INVALID",
+        "The postcode is an invalid format")))
 
   val PostcodeDoesNotMatch = Forbidden(
     toJson(
       ErrorBody(
         "POSTCODE_DOES_NOT_MATCH",
         "The submitted postcode did not match the client's postcode as held by HMRC.")))
+
+  val ClientRegistrationNotFound = Forbidden(
+    toJson(
+      ErrorBody(
+        "CLIENT_REGISTRATION_NOT_FOUND",
+        "Client is not subscribed to MTD-IT")))
 
 }
