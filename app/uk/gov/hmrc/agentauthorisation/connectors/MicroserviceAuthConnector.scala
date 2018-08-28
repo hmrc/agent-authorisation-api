@@ -20,15 +20,16 @@ import java.net.URL
 
 import javax.inject.{ Inject, Named, Singleton }
 import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.http.HttpPost
-import uk.gov.hmrc.play.http.ws.WSPost
+import uk.gov.hmrc.auth.otac.PlayOtacAuthConnector
+import uk.gov.hmrc.http.{ HttpGet, HttpPost }
+import uk.gov.hmrc.play.http.ws.{ WSGet, WSPost }
 
 @Singleton
-class MicroserviceAuthConnector @Inject() (@Named("auth-baseUrl") baseUrl: URL) extends PlayAuthConnector {
+class MicroserviceAuthConnector @Inject() (@Named("auth-baseUrl") baseUrl: URL) extends PlayAuthConnector with PlayOtacAuthConnector {
 
   override val serviceUrl = baseUrl.toString
 
-  override def http = new HttpPost with WSPost {
+  override def http = new HttpPost with HttpGet with WSPost with WSGet {
     override val hooks = NoneRequired
   }
 }

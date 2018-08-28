@@ -36,12 +36,14 @@ import scala.concurrent.Future
 class AgentController @Inject() (
   @Named("agent-authorisation-api.external-url") externalUrl: String,
   invitationService: InvitationService,
-  val authConnector: AuthConnector) extends BaseController with AuthActions {
+  val authConnector: AuthConnector,
+  val withVerifiedPasscode: PasscodeVerification) extends BaseController with AuthActions {
 
   import AgentController._
 
   def createInvitationApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAsAgent { implicit arn =>
+    withAuthorisedAsAgent { (arn, _) =>
+      implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
         val invitationResponse = request.body.asJson match {
           case Some(json) => json.as[AgentInvitation]

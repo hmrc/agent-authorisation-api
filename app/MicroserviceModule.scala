@@ -22,7 +22,9 @@ import javax.inject.{ Inject, Provider, Singleton }
 import org.slf4j.MDC
 import play.api.{ Configuration, Environment, Logger }
 import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
+import uk.gov.hmrc.agentauthorisation.controllers.api.{ FrontendPasscodeVerification, PasscodeVerification }
 import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.auth.otac.OtacAuthConnector
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -52,6 +54,8 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bind(classOf[HttpPost]).to(classOf[HttpVerbs])
     bind(classOf[HttpPut]).to(classOf[HttpVerbs])
     bind(classOf[AuthConnector]).to(classOf[MicroserviceAuthConnector])
+    bind(classOf[PasscodeVerification]).to(classOf[FrontendPasscodeVerification])
+    bind(classOf[OtacAuthConnector]).to(classOf[MicroserviceAuthConnector])
 
   }
 

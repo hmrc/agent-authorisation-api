@@ -24,10 +24,13 @@ import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.Retrievals.authorisedEnrolments
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
+import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait AuthActions extends AuthorisedFunctions {
+
+  def withVerifiedPasscode: PasscodeVerification
 
   private def getEnrolmentValue(enrolments: Enrolments, serviceName: String, identifierKey: String) =
     for {
@@ -48,17 +51,19 @@ trait AuthActions extends AuthorisedFunctions {
         body(id)
       }
 
-  protected def withAuthorisedAsAgent[A](body: Arn => Future[Result])(
+  protected def withAuthorisedAsAgent[A](body: (Arn, Boolean) => Future[Result])(
     implicit
     request: Request[A],
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Result] =
-    withEnrolledAsAgent {
-      case Some(arn) =>
-        body(Arn(arn))
-      case None => Future.failed(InsufficientEnrolments("AgentReferenceNumber identifier not found"))
-    } recoverWith {
-      case _: InsufficientEnrolments => Future successful NotAnAgent
+    withVerifiedPasscode { isWhitelisted =>
+      withEnrolledAsAgent {
+        case Some(arn) =>
+          body(Arn(arn), isWhitelisted)
+        case None => Future.failed(InsufficientEnrolments("AgentReferenceNumber identifier not found"))
+      } recoverWith {
+        case _: InsufficientEnrolments => Future successful NotAnAgent
+      }
     }
 
 }

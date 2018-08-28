@@ -15,7 +15,8 @@ abstract class BaseISpec
     new GuiceApplicationBuilder()
       .configure(
         "microservice.services.auth.port" -> wireMockPort,
-        "microservice.services.agent-client-authorisation.port" -> wireMockPort)
+        "microservice.services.agent-client-authorisation.port" -> wireMockPort,
+        "passcodeAuthentication.enabled" -> true)
 
   protected implicit val materializer = app.materializer
 
