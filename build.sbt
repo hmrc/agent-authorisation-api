@@ -46,7 +46,7 @@ def testDeps(scope: String) = Seq(
 
 lazy val root = (project in file("."))
   .settings(
-    name := "agent-client-authorisation",
+    name := "agent-authorisation-api",
     organization := "uk.gov.hmrc",
     scalaVersion := "2.11.11",
     PlayKeys.playDefaultPort := 9433,

@@ -34,7 +34,6 @@ import scala.concurrent.Future
 
 @Singleton
 class AgentController @Inject() (
-  @Named("agent-authorisation-api.external-url") externalUrl: String,
   invitationService: InvitationService,
   val authConnector: AuthConnector,
   val withVerifiedPasscode: PasscodeVerification) extends BaseController with AuthActions {
@@ -75,7 +74,7 @@ class AgentController @Inject() (
           case Some(true) =>
             invitationService.createInvitationService(arn, agentInvitation).flatMap { invitationUrl =>
               val id = invitationUrl.toString.split("/").toStream.last
-              val newInvitationUrl = s"$externalUrl${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+              val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
               Future successful NoContent.withHeaders(LOCATION -> newInvitationUrl)
             }.recoverWith {
               case e =>

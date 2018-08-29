@@ -29,7 +29,7 @@ class AgentControllerISpec extends BaseISpec {
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBody), arn.value))
 
       status(result) shouldBe 204
-      result.header.headers("Location") should include(routes.AgentController.getInvitationApi(arn, invitationIdITSA).url)
+      result.header.headers("Location") shouldBe (routes.AgentController.getInvitationApi(arn, invitationIdITSA).url)
     }
 
     "return 400 SERVICE_NOT_SUPPORTED when the service is not supported" in {
