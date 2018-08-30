@@ -21,9 +21,10 @@ import java.net.URL
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import javax.inject.{ Inject, Named, Singleton }
+import org.joda.time.LocalDate
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, Vrn }
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
@@ -45,6 +46,11 @@ class InvitationsConnector @Inject() (
   private[connectors] def checkPostcodeUrl(nino: Nino, postcode: String) =
     new URL(baseUrl, s"/agent-client-authorisation/known-facts/individuals/nino/${nino.value}/sa/postcode/$postcode")
 
+  private[connectors] def checkVatRegisteredClientUrl(vrn: Vrn, registrationDate: LocalDate) =
+    new URL(
+      baseUrl,
+      s"/agent-client-authorisation/known-facts/organisations/vat/${vrn.value}/registration-date/${registrationDate.toString}")
+
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
     hc: HeaderCarrier,
@@ -64,6 +70,17 @@ class InvitationsConnector @Inject() (
     }.recover {
       case notMatched: Upstream4xxResponse if notMatched.message.contains("POSTCODE_DOES_NOT_MATCH") => Some(false)
       case notEnrolled: Upstream4xxResponse if notEnrolled.message.contains("CLIENT_REGISTRATION_NOT_FOUND") => None
+    }
+
+  def checkVatRegDateForClient(vrn: Vrn, registrationDateKnownFact: LocalDate)(
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[Boolean]] =
+    monitor(s"ConsumedAPI-CheckVatRegDate-GET") {
+      http.GET[HttpResponse](checkVatRegisteredClientUrl(vrn, registrationDateKnownFact).toString).map(_ => Some(true))
+    }.recover {
+      case ex: Upstream4xxResponse if ex.upstreamResponseCode == 403 => Some(false)
+      case _: NotFoundException => None
     }
 
 }

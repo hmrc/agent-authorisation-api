@@ -40,6 +40,12 @@ object ErrorResults {
         "CLIENT_ID_FORMAT_INVALID",
         "Received an invalid nino")))
 
+  val InvalidVatVrn = BadRequest(
+    toJson(
+      ErrorBody(
+        "CLIENT_ID_FORMAT_INVALID",
+        "Received an invalid vrn")))
+
   val PostcodeRequired = BadRequest(
     toJson(
       ErrorBody(
@@ -52,11 +58,23 @@ object ErrorResults {
         "POSTCODE_FORMAT_INVALID",
         "The postcode is an invalid format")))
 
+  val VatRegDateFormatInvalid = BadRequest(
+    toJson(
+      ErrorBody(
+        "VAT_REG_DATE_FORMAT_INVALID",
+        "The VAT registration date is an invalid format")))
+
   val PostcodeDoesNotMatch = Forbidden(
     toJson(
       ErrorBody(
         "POSTCODE_DOES_NOT_MATCH",
         "The submitted postcode did not match the client's postcode as held by HMRC.")))
+
+  val VatRegDateDoesNotMatch = Forbidden(
+    toJson(
+      ErrorBody(
+        "VAT_REG_DATE_DOES_NOT_MATCH",
+        "The submitted VAT registration date did not match the client's postcode as held by HMRC.")))
 
   val ClientRegistrationNotFound = Forbidden(
     toJson(

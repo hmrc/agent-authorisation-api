@@ -17,9 +17,10 @@
 package uk.gov.hmrc.agentauthorisation.services
 
 import javax.inject.{ Inject, Singleton }
+import org.joda.time.LocalDate
 import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, Vrn }
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -38,5 +39,11 @@ class InvitationService @Inject() (
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[Boolean]] =
     invitationsConnector.checkPostcodeForClient(nino, postcode)
+
+  def checkVatRegDateMatches(vrn: Vrn, vatRegDate: LocalDate)(
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[Boolean]] =
+    invitationsConnector.checkVatRegDateForClient(vrn, vatRegDate)
 
 }
