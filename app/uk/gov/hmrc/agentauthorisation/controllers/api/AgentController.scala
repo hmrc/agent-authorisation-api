@@ -22,7 +22,7 @@ import org.joda.time.format.DateTimeFormat
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Result }
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
-import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
+import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, AgentInvitationReceived }
 import uk.gov.hmrc.agentauthorisation.services.{ InvitationService, _ }
 import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -47,8 +47,8 @@ class AgentController @Inject() (
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
         val invitationResponse = request.body.asJson match {
-          case Some(json) => json.as[AgentInvitation]
-          case None => AgentInvitation("", "", "", "")
+          case Some(json) => json.as[AgentInvitationReceived]
+          case None => AgentInvitationReceived(List.empty, "", "", "")
         }
         invitationResponse match {
           case ItsaInvitation(invitation) =>
@@ -130,15 +130,8 @@ object AgentController {
 
   private def checkKnownFactValid(agentInvitation: AgentInvitation): Boolean = {
     agentInvitation.service match {
-      case "HMRC-MTD-IT" => {
-        agentInvitation.knownFact.matches(postcodeRegex)
-      }
-      case "HMRC-MTD-VAT" => {
-        validateDate(agentInvitation.knownFact)
-      }
-      case _ => {
-        false
-      }
+      case "HMRC-MTD-IT" => agentInvitation.knownFact.matches(postcodeRegex)
+      case "HMRC-MTD-VAT" => validateDate(agentInvitation.knownFact)
     }
   }
 
@@ -157,21 +150,20 @@ object AgentController {
   }
 
   object ItsaInvitation {
-    def unapply(arg: AgentInvitation): Option[AgentInvitation] =
+    def unapply(arg: AgentInvitationReceived): Option[AgentInvitation] =
       arg match {
-        case AgentInvitation("MTD-IT", "ni", _, _) =>
-          Some(arg.copy(service = "HMRC-MTD-IT"))
+        case AgentInvitationReceived(List("MTD-IT"), "ni", _, _) =>
+          Some(AgentInvitation("HMRC-MTD-IT", arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }
 
   object VatInvitation {
-    def unapply(arg: AgentInvitation): Option[AgentInvitation] =
+    def unapply(arg: AgentInvitationReceived): Option[AgentInvitation] =
       arg match {
-        case AgentInvitation("MTD-VAT", "vrn", _, _) =>
-          Some(arg.copy(service = "HMRC-MTD-VAT"))
+        case AgentInvitationReceived(List("MTD-VAT"), "vrn", _, _) =>
+          Some(AgentInvitation("HMRC-MTD-VAT", arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }
-
 }

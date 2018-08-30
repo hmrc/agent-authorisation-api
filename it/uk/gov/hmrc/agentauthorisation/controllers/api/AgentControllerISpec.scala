@@ -20,9 +20,9 @@ class AgentControllerISpec extends BaseISpec {
   private val invitationIdITSA = InvitationId("ABERULMHCKKW3")
   private val invitationIdVAT = InvitationId("CZTW1KY6RTAAT")
   val jsonBodyITSA = Json.parse(
-    s"""{"service": "MTD-IT", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}""")
+    s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}""")
   val jsonBodyVAT = Json.parse(
-    s"""{"service": "MTD-VAT", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate"}""")
+    s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate"}""")
 
   "/agents/:arn/invitations" should {
 
@@ -49,7 +49,7 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 400 SERVICE_NOT_SUPPORTED when the service is not supported" in {
       val jsonBodyInvalidService = Json.parse(
-        s"""{"service": "foo", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}""")
+        s"""{"service": ["foo"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}""")
 
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
 
@@ -59,7 +59,7 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for ITSA" in {
       val jsonBodyInvalidService = Json.parse(
-        s"""{"service": "MTD-IT", "clientIdType": "ni", "clientId": "foo", "knownFact": "$validPostcode"}""")
+        s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "foo", "knownFact": "$validPostcode"}""")
 
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
 
@@ -69,7 +69,7 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for VAT" in {
       val jsonBodyInvalidService = Json.parse(
-        s"""{"service": "MTD-VAT", "clientIdType": "vrn", "clientId": "foo", "knownFact": "$validVatRegDate"}""")
+        s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "foo", "knownFact": "$validVatRegDate"}""")
 
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
 
@@ -79,7 +79,7 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 400 POSTCODE_FORMAT_INVALID when the postcode has an invalid format" in {
       val jsonBodyInvalidService = Json.parse(
-        s"""{"service": "MTD-IT", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "foo"}""")
+        s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "foo"}""")
 
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
 
@@ -89,7 +89,7 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 400 VAT_REG_DATE_FORMAT_INVALID when the VAT registration date has an invalid format" in {
       val jsonBodyInvalidService = Json.parse(
-        s"""{"service": "MTD-VAT", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
+        s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
 
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
 
