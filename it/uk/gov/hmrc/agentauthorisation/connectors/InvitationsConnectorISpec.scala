@@ -1,15 +1,10 @@
-package uk.gov.hmrc.agentauthorisation.connectorsapi
+package uk.gov.hmrc.agentauthorisation.connectors
 
 import org.joda.time.LocalDate
-import play.api.libs.json.Json
-import play.api.test.FakeRequest
-import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
-import uk.gov.hmrc.agentauthorisation.controllers.api.AgentController
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
-import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
+import uk.gov.hmrc.agentauthorisation._
+import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, StoredInvitation }
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
-import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,15 +13,21 @@ class InvitationsConnectorISpec extends BaseISpec {
 
   val connector: InvitationsConnector = app.injector.instanceOf[InvitationsConnector]
 
-  private val arn = Arn("TARN0000001")
-  private val arn2 = Arn("DARN0002185")
-  private val validNino = Nino("AB123456A")
-  private val validVrn = Vrn("101747696")
-  private val validVatRegDate = "2007-07-07"
-  private val validPostcode = "DH14EJ"
-  private val invitationIdITSA = InvitationId("ABERULMHCKKW3")
-  private val invitationIdVAT = InvitationId("CZTW1KY6RTAAT")
   implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  val storedItsaInvitation = StoredInvitation(
+    s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/ABERULMHCKKW3",
+    "2017-10-31T23:22:50.971Z",
+    "2017-12-18T00:00:00.000",
+    "2017-10-31T23:22:50.971Z",
+    Arn("TARN0000001"), "MTD-IT", "Pending")
+
+  val storedVatInvitation = StoredInvitation(
+    s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/CZTW1KY6RTAAT",
+    "2017-10-31T23:22:50.971Z",
+    "2017-12-18T00:00:00.000",
+    "2017-10-31T23:22:50.971Z",
+    Arn("TARN0000001"), "MTD-VAT", "Pending")
 
   "createInvitation" should {
 
@@ -86,6 +87,29 @@ class InvitationsConnectorISpec extends BaseISpec {
     "return None when the client registration is not found" in {
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 404)
       val result = await(connector.checkVatRegDateForClient(validVrn, LocalDate.parse(validVatRegDate)))
+
+      result shouldBe None
+    }
+  }
+
+  "getInvitation" should {
+    "return an ITSA invitation" in {
+      givenGetITSAInvitationStub(arn, "Pending")
+      val result = await(connector.getInvitation(arn, invitationIdITSA))
+
+      result.get shouldBe storedItsaInvitation
+    }
+
+    "return an VAT invitation" in {
+      givenGetVATInvitationStub(arn, "Pending")
+      val result = await(connector.getInvitation(arn, invitationIdVAT))
+
+      result.get shouldBe storedVatInvitation
+    }
+
+    "return no invitation" in {
+      givenInvitationNotFound(arn, invitationIdITSA)
+      val result = await(connector.getInvitation(arn, invitationIdITSA))
 
       result shouldBe None
     }
