@@ -259,7 +259,6 @@ class AgentControllerISpec extends BaseISpec {
           s"""
              |{
              |  "authorise": [
-             |    { "identifiers":[], "state":"Activated", "enrolment": "HMRC-AS-AGENT" },
              |    { "authProviders": ["GovernmentGateway"] }
              |  ],
              |  "retrieve":["affinityGroup","allEnrolments"]
@@ -287,7 +286,6 @@ class AgentControllerISpec extends BaseISpec {
           s"""
              |{
              |  "authorise": [
-             |    { "identifiers":[], "state":"Activated", "enrolment": "HMRC-AS-AGENT" },
              |    { "authProviders": ["GovernmentGateway"] }
              |  ],
              |  "retrieve":["affinityGroup","allEnrolments"]
@@ -360,7 +358,6 @@ class AgentControllerISpec extends BaseISpec {
           s"""
              |{
              |  "authorise": [
-             |    { "identifiers":[], "state":"Activated", "enrolment": "HMRC-AS-AGENT" },
              |    { "authProviders": ["GovernmentGateway"] }
              |  ],
              |  "retrieve":["affinityGroup","allEnrolments"]
@@ -388,7 +385,6 @@ class AgentControllerISpec extends BaseISpec {
           s"""
              |{
              |  "authorise": [
-             |    { "identifiers":[], "state":"Activated", "enrolment": "HMRC-AS-AGENT" },
              |    { "authProviders": ["GovernmentGateway"] }
              |  ],
              |  "retrieve":["affinityGroup","allEnrolments"]
