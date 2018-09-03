@@ -45,8 +45,7 @@ trait AuthActions extends AuthorisedFunctions {
     request: Request[A],
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Result] =
-    authorised(Enrolment("HMRC-AS-AGENT") and
-      AuthProviders(GovernmentGateway))
+    authorised(AuthProviders(GovernmentGateway))
       .retrieve(affinityGroupAllEnrolls) {
         case Some(affinity) ~ allEnrols =>
           (isAgent(affinity), extractEnrolmentData(allEnrols.enrolments, "HMRC-AS-AGENT", "AgentReferenceNumber")) match {
