@@ -51,7 +51,7 @@ class InvitationService @Inject() (
     invitationsConnector.getInvitation(arn, invitationId)
   }
 
-  def cancelInvitationService(arn: Arn, invitationId: InvitationId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Int] = {
+  def cancelInvitationService(arn: Arn, invitationId: InvitationId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Int]] = {
     invitationsConnector.cancelInvitation(arn, invitationId)
   }
 

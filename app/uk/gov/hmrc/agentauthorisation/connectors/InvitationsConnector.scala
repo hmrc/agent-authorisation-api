@@ -98,12 +98,12 @@ class InvitationsConnector @Inject() (
       case _ => Future successful None
     }
 
-  def cancelInvitation(arn: Arn, invitationId: InvitationId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext) =
+  def cancelInvitation(arn: Arn, invitationId: InvitationId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Int]] =
     monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
-      http.PUT[String, HttpResponse](cancelInvitationUrl(arn, invitationId).toString, "").map(_.status)
+      http.PUT[String, HttpResponse](cancelInvitationUrl(arn, invitationId).toString, "").map(response => Some(response.status))
     }.recover {
-      case _: NotFoundException => 404
-      case _: Upstream5xxResponse => 500
-      case _ => 500
+      case _: NotFoundException => Some(404)
+      case _: Upstream5xxResponse => Some(500)
+      case _ => None
     }
 }
