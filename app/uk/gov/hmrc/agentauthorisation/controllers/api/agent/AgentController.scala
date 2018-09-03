@@ -94,6 +94,20 @@ class AgentController @Inject() (
     }
   }
 
+  def cancelInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] = Action.async { implicit request =>
+    withAuthorisedAsAgent { (arn, _) =>
+      implicit val loggedInArn: Arn = arn
+      forThisAgency(givenArn) {
+        invitationService.cancelInvitationService(arn, invitationId).map {
+          case 204 => NoContent
+          case 404 => InvitationNotFound
+          case 403 => NoPermissionOnAgency
+          case 500 => InvalidInvitationStatus
+        }
+      }
+    }
+  }
+
   private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(implicit hc: HeaderCarrier): Future[Result] = {
     if (checkKnownFactValid(agentInvitation)) {
       for {
