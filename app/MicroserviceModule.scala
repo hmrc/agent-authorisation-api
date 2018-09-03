@@ -47,7 +47,7 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindProperty("appName")
     bindBaseUrl("auth")
     bindBaseUrl("agent-client-authorisation")
-    bindExternalUrl("agent-invitations-frontend-external-url")
+    bindServiceProperty("agent-invitations-frontend.external-url")
 
     bind(classOf[HttpGet]).to(classOf[HttpVerbs])
     bind(classOf[HttpPost]).to(classOf[HttpVerbs])
@@ -58,11 +58,14 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
 
   }
 
-  private def bindExternalUrl(serviceUrl: String) =
-    bind(classOf[String]).annotatedWith(Names.named(serviceUrl)).toProvider(new ExternalUrl(serviceUrl))
+  private def bindServiceProperty(propertyName: String) =
+    bind(classOf[String])
+      .annotatedWith(Names.named(s"$propertyName"))
+      .toProvider(new ServicePropertyProvider(propertyName))
 
-  private class ExternalUrl(serviceUrl: String) extends Provider[String] {
-    override lazy val get = getConfString(serviceUrl, throw new RuntimeException(s"No configuration value for $serviceUrl"))
+  private class ServicePropertyProvider(propertyName: String) extends Provider[String] {
+    override lazy val get =
+      getConfString(propertyName, throw new RuntimeException(s"No configuration value found for '$propertyName'"))
   }
 
   private def bindBaseUrl(serviceName: String) =

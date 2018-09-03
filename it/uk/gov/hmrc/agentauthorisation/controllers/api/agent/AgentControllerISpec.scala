@@ -42,7 +42,7 @@ class AgentControllerISpec extends BaseISpec {
     Arn("TARN0000001"),
     "MTD-IT",
     "Pending",
-    s"someInvitationUrl/${invitationIdITSA.value}")
+    s"http://localhost:9448/invitations/${invitationIdITSA.value}")
 
   val respondedItsaInvitation = RespondedInvitation(
     s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/ABERULMHCKKW3",
@@ -68,7 +68,7 @@ class AgentControllerISpec extends BaseISpec {
     Arn("TARN0000001"),
     "MTD-VAT",
     "Pending",
-    s"someInvitationUrl/${invitationIdVAT.value}")
+    s"http://localhost:9448/invitations/${invitationIdVAT.value}")
 
   val respondedVatInvitation = RespondedInvitation(
     s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/CZTW1KY6RTAAT",

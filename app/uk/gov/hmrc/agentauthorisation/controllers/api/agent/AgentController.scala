@@ -41,7 +41,7 @@ import scala.concurrent.Future
 
 @Singleton
 class AgentController @Inject() (
-  @Named("agent-invitations-frontend-external-url") invitationFrontendUrl: String,
+  @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
   invitationService: InvitationService,
   auditService: AuditService,
   val authConnector: AuthConnector,
