@@ -103,7 +103,7 @@ class InvitationsConnector @Inject() (
       http.PUT[String, HttpResponse](cancelInvitationUrl(arn, invitationId).toString, "").map(response => Some(response.status))
     }.recover {
       case _: NotFoundException => Some(404)
-      case _: Upstream5xxResponse => Some(500)
-      case _ => None
+      case ex: Upstream4xxResponse if ex.message.contains("INVALID_INVITATION_STATUS") => Some(500)
+      case _ => Some(403)
     }
 }
