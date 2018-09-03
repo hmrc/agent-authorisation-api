@@ -437,7 +437,7 @@ class AgentControllerISpec extends BaseISpec {
       }
 
       "return 403 INVALID_INVITATION_STATUS when the status of the invitation is not Pending" in {
-        givenCancelAgentInvitationStub(arn, invitationIdITSA, 500)
+        givenCancelAgentInvitationStubInvalid(arn, invitationIdITSA)
         val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
         await(result) shouldBe InvalidInvitationStatus
       }

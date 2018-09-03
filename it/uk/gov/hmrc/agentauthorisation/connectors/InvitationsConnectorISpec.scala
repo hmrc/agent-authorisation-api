@@ -131,7 +131,7 @@ class InvitationsConnectorISpec extends BaseISpec {
     }
 
     "return 500 when an invitation cannot be cancelled" in {
-      givenCancelAgentInvitationStub(arn, invitationIdITSA, 500)
+      givenCancelAgentInvitationStubInvalid(arn, invitationIdITSA)
       val result = await(connector.cancelInvitation(arn, invitationIdITSA))
 
       result shouldBe Some(500)
@@ -141,7 +141,7 @@ class InvitationsConnectorISpec extends BaseISpec {
       givenCancelAgentInvitationStub(arn, invitationIdITSA, 403)
       val result = await(connector.cancelInvitation(arn, invitationIdITSA))
 
-      result shouldBe None
+      result shouldBe Some(403)
     }
   }
 }

@@ -172,4 +172,15 @@ trait ACAStubs {
       .willReturn(
         aResponse()
           .withStatus(status)))
+
+  def givenCancelAgentInvitationStubInvalid(arn: Arn, invitationId: InvitationId) =
+    stubFor(put(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel"))
+      .willReturn(
+        aResponse()
+          .withStatus(401).withBody(s"""
+                                          |{
+                                          |   "code":"INVALID_INVITATION_STATUS",
+                                          |   "message":"The inivtation has an invalid status to be cancelled"
+                                          |}
+           """.stripMargin)))
 }
