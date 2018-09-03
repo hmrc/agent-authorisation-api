@@ -1,16 +1,15 @@
-package uk.gov.hmrc.agentauthorisation.controllers.api
+package uk.gov.hmrc.agentauthorisation.auth
 
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import uk.gov.hmrc.agentauthorisation.auth.AuthActions
+import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
+import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.auth.core.{ AuthConnector, AuthorisationException }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
-import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuthActionsISpec extends BaseISpec {
@@ -36,7 +35,8 @@ class AuthActionsISpec extends BaseISpec {
       givenAuthorisedFor(
         "{}",
         s"""{
-           |"authorisedEnrolments": [
+           |"affinityGroup":"Agent",
+           |"allEnrolments": [
            |  { "key":"HMRC-AS-AGENT", "identifiers": [
            |    { "key":"AgentReferenceNumber", "value": "fooArn" }
            |  ]}
@@ -53,11 +53,12 @@ class AuthActionsISpec extends BaseISpec {
       }
     }
 
-    "throw InsufficientEnrolments when agent not enrolled for service" in {
+    "return 403 Not An Agent when agent not enrolled for service" in {
       givenAuthorisedFor(
         "{}",
         s"""{
-           |"authorisedEnrolments": [
+           |"affinityGroup":"Individual",
+           |"allEnrolments": [
            |  { "key":"HMRC-MTD-IT", "identifiers": [
            |    { "key":"MTDITID", "value": "fooMtdItId" }
            |  ]}
@@ -66,17 +67,18 @@ class AuthActionsISpec extends BaseISpec {
       result shouldBe NotAnAgent
     }
 
-    "throw InsufficientEnrolments when expected agent's identifier missing" in {
+    "return 403 Agent Not Subscribed when expected agent's identifier missing" in {
       givenAuthorisedFor(
         "{}",
         s"""{
-           |"authorisedEnrolments": [
-           |  { "key":"HMRC-AS-AGENT", "identifiers": [
+           |"affinityGroup":"Agent",
+           |"allEnrolments": [
+           |  { "key":"IR-SA", "identifiers": [
            |    { "key":"BAR", "value": "fooArn" }
            |  ]}
            |]}""".stripMargin)
       val result = await(TestController.withAuthorisedAsAgent)
-      result shouldBe NotAnAgent
+      result shouldBe AgentNotSubscribed
     }
   }
 }

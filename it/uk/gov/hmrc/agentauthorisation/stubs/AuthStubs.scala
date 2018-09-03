@@ -10,43 +10,8 @@ trait AuthStubs {
 
   case class Enrolment(serviceName: String, identifierName: String, identifierValue: String)
 
-  def authorisedAsValidAgent[A](request: FakeRequest[A], arn: String) =
+  def authorisedAsValidAgent[A](request: FakeRequest[A], arn: String): FakeRequest[A] =
     authenticatedAgent(request, Enrolment("HMRC-AS-AGENT", "AgentReferenceNumber", arn))
-
-  def authorisedAsValidClientITSA[A](request: FakeRequest[A], mtditid: String) =
-    authenticatedClient(request, Enrolment("HMRC-MTD-IT", "MTDITID", mtditid))
-
-  def authorisedAsValidClientAFI[A](request: FakeRequest[A], clientId: String) =
-    authenticatedClient(request, Enrolment("HMRC-NI", "NINO", clientId))
-
-  def authorisedAsValidClientVAT[A](request: FakeRequest[A], clientId: String) =
-    authenticatedClient(request, Enrolment("HMRC-MTD-VAT", "VRN", clientId))
-
-  def authenticatedClient[A](
-    request: FakeRequest[A],
-    enrolment: Enrolment,
-    confidenceLevel: String = "200"): FakeRequest[A] = {
-    givenAuthorisedFor(
-      s"""
-         |{
-         |  "authorise": [
-         |    { "identifiers":[], "state":"Activated", "enrolment": "${enrolment.serviceName}" },
-         |    { "authProviders": ["GovernmentGateway"] },
-         |    {"confidenceLevel":$confidenceLevel}
-         |    ],
-         |  "retrieve":["authorisedEnrolments"]
-         |}
-           """.stripMargin,
-      s"""
-         |{
-         |  "authorisedEnrolments": [
-         |    { "key":"${enrolment.serviceName}", "identifiers": [
-         |      {"key":"${enrolment.identifierName}", "value": "${enrolment.identifierValue}"}
-         |    ]}
-         |]}
-          """.stripMargin)
-    request.withSession(SessionKeys.authToken -> "Bearer XYZ")
-  }
 
   def authenticatedAgent[A](request: FakeRequest[A], enrolment: Enrolment): FakeRequest[A] = {
     givenAuthorisedFor(
@@ -56,12 +21,13 @@ trait AuthStubs {
          |    { "identifiers":[], "state":"Activated", "enrolment": "${enrolment.serviceName}" },
          |    { "authProviders": ["GovernmentGateway"] }
          |  ],
-         |  "retrieve":["authorisedEnrolments"]
+         |  "retrieve":["affinityGroup","allEnrolments"]
          |}
            """.stripMargin,
       s"""
          |{
-         |"authorisedEnrolments": [
+         |"affinityGroup":"Agent",
+         |"allEnrolments": [
          |  { "key":"${enrolment.serviceName}", "identifiers": [
          |    {"key":"${enrolment.identifierName}", "value": "${enrolment.identifierValue}"}
          |  ]}

@@ -37,7 +37,7 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
   override protected def mode = environment.mode
 
   def configure(): Unit = {
-    val appName = "agent-authorisation-api"
+    val appName = "agent-authorisation"
 
     val loggerDateFormat: Option[String] = configuration.getString("logger.json.dateformat")
     Logger.info(s"Starting microservice : $appName : in mode : ${environment.mode}")
@@ -47,6 +47,7 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindProperty("appName")
     bindBaseUrl("auth")
     bindBaseUrl("agent-client-authorisation")
+    bindExternalUrl("agent-invitations-frontend-external-url")
 
     bind(classOf[HttpGet]).to(classOf[HttpVerbs])
     bind(classOf[HttpPost]).to(classOf[HttpVerbs])
@@ -55,6 +56,13 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bind(classOf[PasscodeVerification]).to(classOf[FrontendPasscodeVerification])
     bind(classOf[OtacAuthConnector]).to(classOf[MicroserviceAuthConnector])
 
+  }
+
+  private def bindExternalUrl(serviceUrl: String) =
+    bind(classOf[String]).annotatedWith(Names.named(serviceUrl)).toProvider(new ExternalUrl(serviceUrl))
+
+  private class ExternalUrl(serviceUrl: String) extends Provider[String] {
+    override lazy val get = getConfString(serviceUrl, throw new RuntimeException(s"No configuration value for $serviceUrl"))
   }
 
   private def bindBaseUrl(serviceName: String) =

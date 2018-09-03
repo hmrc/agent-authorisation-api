@@ -94,4 +94,21 @@ object ErrorResults {
         "NOT_AN_AGENT",
         "The logged in user is not an agent.")))
 
+  val InvalidCredentials = Unauthorized(
+    toJson(
+      ErrorBody(
+        "INVALID_CREDENTIALS",
+        "The a user attempted to login with invalid credentials")))
+
+  val AgentNotSubscribed = Forbidden(
+    toJson(
+      ErrorBody(
+        "AGENT_NOT_SUBSCRIBED",
+        "The logged in user is not subscribed as an agent")))
+
+  val InvitationNotFound = NotFound(
+    toJson(
+      ErrorBody(
+        "INVITATION_NOT_FOUND",
+        "Invitation for given InvitationId is not found in Database")))
 }

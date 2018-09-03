@@ -1,11 +1,12 @@
 package uk.gov.hmrc.agentauthorisation.stubs
 
-import com.github.tomakehurst.wiremock.client.WireMock.{ put, _ }
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.joda.time.LocalDate
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
 import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.agentauthorisation._
 
 trait ACAStubs {
   me: WireMockSupport =>
@@ -109,4 +110,60 @@ trait ACAStubs {
       0,
       getRequestedFor(
         urlPathMatching("/agent-client-authorisation/known-facts/organisations/.*/registration-date/.*")))
+
+  def givenGetITSAInvitationStub(arn: Arn, status: String): Unit = givenGetAgentInvitationStub(
+    arn,
+    "ni",
+    validNino.value,
+    invitationIdITSA,
+    serviceITSA,
+    status)
+
+  def givenGetVATInvitationStub(arn: Arn, status: String): Unit = givenGetAgentInvitationStub(
+    arn,
+    "ni",
+    validVrn.value,
+    invitationIdVAT,
+    serviceVAT,
+    status)
+
+  def givenGetAgentInvitationStub(
+    arn: Arn,
+    clientIdType: String,
+    clientId: String,
+    invitationId: InvitationId,
+    service: String,
+    status: String): Unit =
+    stubFor(
+      get(urlEqualTo(
+        s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""
+                         |{
+                         |  "arn" : "${arn.value}",
+                         |  "service" : "$service",
+                         |  "clientId" : "$clientId",
+                         |  "clientIdType" : "$clientIdType",
+                         |  "suppliedClientId" : "$clientId",
+                         |  "suppliedClientIdType" : "$clientIdType",
+                         |  "status" : "$status",
+                         |  "created" : "2017-10-31T23:22:50.971Z",
+                         |  "lastUpdated" : "2017-10-31T23:22:50.971Z",
+                         |  "expiryDate" : "2017-12-18",
+                         |  "_links": {
+                         |    	"self" : {
+                         |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"
+                         |		  }
+                         |  }
+                         |}""".stripMargin)))
+
+  def givenInvitationNotFound(arn: Arn, invitationId: InvitationId): Unit = {
+    stubFor(
+      get(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
+        .willReturn(
+          aResponse()
+            .withStatus(404)))
+  }
 }

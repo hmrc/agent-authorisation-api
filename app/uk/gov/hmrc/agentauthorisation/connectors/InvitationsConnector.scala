@@ -23,8 +23,8 @@ import com.kenshoo.play.metrics.Metrics
 import javax.inject.{ Inject, Named, Singleton }
 import org.joda.time.LocalDate
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, Vrn }
+import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, StoredInvitation }
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
@@ -50,6 +50,9 @@ class InvitationsConnector @Inject() (
     new URL(
       baseUrl,
       s"/agent-client-authorisation/known-facts/organisations/vat/${vrn.value}/registration-date/${registrationDate.toString}")
+
+  private[connectors] def getInvitationUrl(arn: Arn, invitationId: InvitationId) =
+    new URL(baseUrl, s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}")
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
@@ -83,4 +86,10 @@ class InvitationsConnector @Inject() (
       case _: NotFoundException => None
     }
 
+  def getInvitation(arn: Arn, invitationId: InvitationId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext) =
+    monitor(s"ConsumedAPI-Get-Invitation-GET") {
+      http.GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
+    }.recoverWith {
+      case _ => Future successful None
+    }
 }
