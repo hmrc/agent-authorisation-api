@@ -99,7 +99,7 @@ The invitation was successfully created.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Location | string | Location of the invitation that was created. | true | ``` /agencies/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
+| Location | string | Location of the invitation that was created. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
 
 ### Response code: 400
 
@@ -250,7 +250,7 @@ Returns the invitation object implementing schema [invitation.md](resources/publ
 ##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-
+agents
 ### Response code: 401
 
 #### errorResponse (application/json) 
