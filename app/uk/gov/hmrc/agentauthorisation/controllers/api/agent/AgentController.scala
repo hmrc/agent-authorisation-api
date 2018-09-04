@@ -21,7 +21,7 @@ import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
 import play.api.libs.json.JsObject
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitationReceived
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
@@ -104,12 +104,18 @@ class AgentController @Inject() (
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
         invitationService.cancelInvitationService(arn, invitationId).map {
-          case Some(204) => NoContent
+          case Some(204) =>
+            auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Success")
+            NoContent
           case Some(404) => InvitationNotFound
           case Some(403) => NoPermissionOnAgency
-          case Some(500) => InvalidInvitationStatus
+          case Some(500) =>
+            auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Fail", Some(s"INVALID_INVITATION_STATUS"))
+            Logger(getClass).warn(s"Invitation Cancellation Failed: cannot transition the current status to Cancelled")
+            InvalidInvitationStatus
         }.recoverWith {
           case e =>
+            auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Fail", Some(s"Request to Cancel Invitation ${invitationId.value} failed due to: ${e.getMessage}"))
             Logger(getClass).warn(s"Invitation Cancellation Failed: ${e.getMessage}")
             Future.failed(e)
         }
@@ -117,7 +123,7 @@ class AgentController @Inject() (
     }
   }
 
-  private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(implicit hc: HeaderCarrier): Future[Result] = {
+  private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(implicit hc: HeaderCarrier, request: Request[_]): Future[Result] = {
     if (checkKnownFactValid(agentInvitation)) {
       for {
         hasKnownFact <- checkKnownFactMatches(agentInvitation)
@@ -126,14 +132,19 @@ class AgentController @Inject() (
             invitationService.createInvitationService(arn, agentInvitation).flatMap { invitationUrl =>
               val id = invitationUrl.toString.split("/").toStream.last
               val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+              auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
               Future successful NoContent.withHeaders(LOCATION -> newInvitationUrl)
             }.recoverWith {
               case e =>
                 Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
+                auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
                 Future.failed(e)
             }
-          case Some(false) => Future successful knownFactDoesNotMatch(agentInvitation.service)
+          case Some(false) =>
+            knownFactNotMatchedAudit(agentInvitation, arn)
+            Future successful knownFactDoesNotMatch(agentInvitation.service)
           case _ =>
+            auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("CLIENT_REGISTRATION_NOT_FOUND"))
             Logger(getClass).warn(s"Client Registration Not Found")
             Future successful ClientRegistrationNotFound
         }
@@ -155,6 +166,13 @@ class AgentController @Inject() (
       case _ => invitationService.checkVatRegDateMatches(Vrn(agentInvitation.clientId), LocalDate.parse(agentInvitation.knownFact))
     }
   }
+
+  private def knownFactNotMatchedAudit(agentInvitation: AgentInvitation, arn: Arn)(implicit hc: HeaderCarrier, request: Request[_]) = {
+    agentInvitation.service match {
+      case "HMRC-MTD-IT" => auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
+      case "HMRC-MTD-VAT" => auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+    }
+  }
 }
 
 object AgentController {
@@ -162,10 +180,14 @@ object AgentController {
   private val postcodeRegex = "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
   private def validateNino(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
-    if (Nino.isValid(agentInvitation.clientId)) body else Future successful InvalidItsaNino
+    if (Nino.isValid(agentInvitation.clientId)) body
+    else if (Vrn.isValid(agentInvitation.clientId)) Future successful ClientIdDoesNotMatchService
+    else Future successful InvalidItsaNino
 
   private def validateVrn(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
-    if (Vrn.isValid(agentInvitation.clientId)) body else Future successful InvalidVatVrn
+    if (Vrn.isValid(agentInvitation.clientId)) body
+    else if (Nino.isValid(agentInvitation.clientId)) Future successful ClientIdDoesNotMatchService
+    else Future successful InvalidVatVrn
 
   def validateDate(value: String): Boolean = if (parseDate(value)) true else false
 

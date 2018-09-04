@@ -32,13 +32,19 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "SERVICE_NOT_SUPPORTED",
-        "Received an invalid service")))
+        "The specified service is not supported.")))
+
+  val ClientIdDoesNotMatchService = BadRequest(
+    toJson(
+      ErrorBody(
+        "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
+        "The specified clientId does not match requested service.")))
 
   val InvalidItsaNino = BadRequest(
     toJson(
       ErrorBody(
         "CLIENT_ID_FORMAT_INVALID",
-        "Received an invalid nino")))
+        "The submitted clientId does not match the expected format.")))
 
   val InvalidVatVrn = BadRequest(
     toJson(
@@ -46,23 +52,17 @@ object ErrorResults {
         "CLIENT_ID_FORMAT_INVALID",
         "Received an invalid vrn")))
 
-  val PostcodeRequired = BadRequest(
-    toJson(
-      ErrorBody(
-        "POSTCODE_REQUIRED",
-        s"Postcode is required for MTD-IT")))
-
   val PostcodeFormatInvalid = BadRequest(
     toJson(
       ErrorBody(
         "POSTCODE_FORMAT_INVALID",
-        "The postcode is an invalid format")))
+        "The submitted postcode does not match the expected format.")))
 
   val VatRegDateFormatInvalid = BadRequest(
     toJson(
       ErrorBody(
         "VAT_REG_DATE_FORMAT_INVALID",
-        "The VAT registration date is an invalid format")))
+        "The submitted VAT registration date does not match the expected format.")))
 
   val PostcodeDoesNotMatch = Forbidden(
     toJson(
@@ -74,13 +74,13 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "VAT_REG_DATE_DOES_NOT_MATCH",
-        "The submitted VAT registration date did not match the client's postcode as held by HMRC.")))
+        "The submitted VAT registration date did not match HMRC record for the client.")))
 
   val ClientRegistrationNotFound = Forbidden(
     toJson(
       ErrorBody(
         "CLIENT_REGISTRATION_NOT_FOUND",
-        "Client is not subscribed to MTD-IT")))
+        "The Client's registration was not found.")))
 
   val NoPermissionOnAgency = Forbidden(
     toJson(
@@ -98,23 +98,23 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "INVALID_CREDENTIALS",
-        "The a user attempted to login with invalid credentials")))
+        "Invalid Authentication information provided.")))
 
   val AgentNotSubscribed = Forbidden(
     toJson(
       ErrorBody(
         "AGENT_NOT_SUBSCRIBED",
-        "The logged in user is not subscribed as an agent")))
+        "The Agent is not subscribed to Agent Services.")))
 
   val InvitationNotFound = NotFound(
     toJson(
       ErrorBody(
         "INVITATION_NOT_FOUND",
-        "Invitation for given InvitationId is not found in Database")))
+        "The specified invitation was not found.")))
 
   val InvalidInvitationStatus = Forbidden(
     toJson(
       ErrorBody(
         "INVALID_INVITATION_STATUS",
-        "Invitation status cannot be transitioned to cancelled as it is not pending")))
+        "The requested state transition is not permitted given the invitation's current status.")))
 }
