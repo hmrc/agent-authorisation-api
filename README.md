@@ -130,6 +130,11 @@ The invitation was successfully created.
   "code": "CT_UTR_FORMAT_INVALID"
 }
 ```
+```
+{
+  "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE"
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
