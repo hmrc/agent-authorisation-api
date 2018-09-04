@@ -22,19 +22,21 @@ import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import javax.inject.{ Inject, Named, Singleton }
 import org.joda.time.LocalDate
+import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, StoredInvitation }
 import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class InvitationsConnector @Inject() (
   @Named("agent-client-authorisation-baseUrl") baseUrl: URL,
-  http: HttpPost with HttpGet,
+  http: HttpPost with HttpGet with HttpPut,
   metrics: Metrics)
   extends HttpAPIMonitor {
 
@@ -53,6 +55,9 @@ class InvitationsConnector @Inject() (
 
   private[connectors] def getInvitationUrl(arn: Arn, invitationId: InvitationId) =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}")
+
+  private[connectors] def cancelInvitationUrl(arn: Arn, invitationId: InvitationId) =
+    new URL(baseUrl, s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
@@ -91,5 +96,14 @@ class InvitationsConnector @Inject() (
       http.GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
     }.recoverWith {
       case _ => Future successful None
+    }
+
+  def cancelInvitation(arn: Arn, invitationId: InvitationId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Int]] =
+    monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
+      http.PUT[String, HttpResponse](cancelInvitationUrl(arn, invitationId).toString, "").map(response => Some(response.status))
+    }.recover {
+      case _: NotFoundException => Some(404)
+      case ex: Upstream4xxResponse if ex.message.contains("INVALID_INVITATION_STATUS") => Some(500)
+      case _ => Some(403)
     }
 }

@@ -111,4 +111,10 @@ object ErrorResults {
       ErrorBody(
         "INVITATION_NOT_FOUND",
         "Invitation for given InvitationId is not found in Database")))
+
+  val InvalidInvitationStatus = Forbidden(
+    toJson(
+      ErrorBody(
+        "INVALID_INVITATION_STATUS",
+        "Invitation status cannot be transitioned to cancelled as it is not pending")))
 }

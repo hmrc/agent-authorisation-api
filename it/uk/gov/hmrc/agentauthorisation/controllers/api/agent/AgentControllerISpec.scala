@@ -36,7 +36,7 @@ class AgentControllerISpec extends BaseISpec {
     "Pending")
 
   val pendingItsaInvitation = PendingInvitation(
-    s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/ABERULMHCKKW3",
+    s"/agents/TARN0000001/invitations/ABERULMHCKKW3",
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
@@ -45,7 +45,7 @@ class AgentControllerISpec extends BaseISpec {
     s"http://localhost:9448/invitations/${invitationIdITSA.value}")
 
   val respondedItsaInvitation = RespondedInvitation(
-    s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/ABERULMHCKKW3",
+    s"/agents/TARN0000001/invitations/ABERULMHCKKW3",
     "2017-10-31T23:22:50.971Z",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
@@ -62,7 +62,7 @@ class AgentControllerISpec extends BaseISpec {
     "Pending")
 
   val pendingVatInvitation = PendingInvitation(
-    s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/CZTW1KY6RTAAT",
+    s"/agents/TARN0000001/invitations/CZTW1KY6RTAAT",
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
@@ -71,7 +71,7 @@ class AgentControllerISpec extends BaseISpec {
     s"http://localhost:9448/invitations/${invitationIdVAT.value}")
 
   val respondedVatInvitation = RespondedInvitation(
-    s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/CZTW1KY6RTAAT",
+    s"/agents/TARN0000001/invitations/CZTW1KY6RTAAT",
     "2017-10-31T23:22:50.971Z",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
@@ -220,7 +220,7 @@ class AgentControllerISpec extends BaseISpec {
     }
   }
 
-  "/agents/:arn/invitations/:invitationId" when {
+  "GET /agents/:arn/invitations/:invitationId" when {
 
     "requesting an ITSA invitation" should {
 
@@ -422,5 +422,92 @@ class AgentControllerISpec extends BaseISpec {
 
     }
 
+  }
+
+  "DELETE /agents/:arn/invitations/:invitationId" when {
+    "cancelling an ITSA invitation" should {
+
+      val cancelInvitationItsaApi = controller.cancelInvitationApi(arn, invitationIdITSA)
+      val requestITSA = FakeRequest("DELETE", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}/cancel")
+
+      "return 204 for a successful cancellation" in {
+        givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
+        val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
+        status(result) shouldBe 204
+      }
+
+      "return 403 INVALID_INVITATION_STATUS when the status of the invitation is not Pending" in {
+        givenCancelAgentInvitationStubInvalid(arn, invitationIdITSA)
+        val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
+        await(result) shouldBe InvalidInvitationStatus
+      }
+
+      "return 403 NOT_AN_AGENT when the logged in user does not have an affinity group of Agent" in {
+        givenAuthorisedFor(
+          s"""
+             |{
+             |  "authorise": [
+             |    { "authProviders": ["GovernmentGateway"] }
+             |  ],
+             |  "retrieve":["affinityGroup","allEnrolments"]
+             |}
+           """.stripMargin,
+          s"""
+             |{
+             |"affinityGroup":"Individual",
+             |"allEnrolments": [
+             |  { "key":"HMRC-MTD-IT", "identifiers": [
+             |    {"key":"MTDITID", "value": "${mtdItId.value}"}
+             |  ]}
+             |]}
+          """.stripMargin)
+        val result = cancelInvitationItsaApi(requestITSA)
+
+        await(result) shouldBe NotAnAgent
+
+      }
+
+      "return 403 AGENT_NOT_SUBSCRIBED when the logged in user does not have HMRC_AS_AGENT enrolment" in {
+        givenAuthorisedFor(
+          s"""
+             |{
+             |  "authorise": [
+             |    { "authProviders": ["GovernmentGateway"] }
+             |  ],
+             |  "retrieve":["affinityGroup","allEnrolments"]
+             |}
+           """.stripMargin,
+          s"""
+             |{
+             |"affinityGroup":"Agent",
+             |"allEnrolments": [
+             |  { "key":"IR-SA-AGENT", "identifiers": [
+             |    {"key":"IRAgentReference", "value": "someIRAR"}
+             |  ]}
+             |]}
+          """.stripMargin)
+        val result = cancelInvitationItsaApi(requestITSA)
+
+        await(result) shouldBe AgentNotSubscribed
+      }
+
+      "return 403 NO_PERMISSION_ON_AGENCY when the arn given does not match the logged in user" in {
+        givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
+        val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn2.value))
+        await(result) shouldBe NoPermissionOnAgency
+      }
+    }
+
+    "cancelling a VAT invitation" should {
+
+      val cancelInvitationVatApi = controller.cancelInvitationApi(arn, invitationIdVAT)
+      val requestVAT = FakeRequest("DELETE", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}/cancel")
+
+      "return 204 for a successful cancellation" in {
+        givenCancelAgentInvitationStub(arn, invitationIdVAT, 204)
+        val result = cancelInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
+        status(result) shouldBe 204
+      }
+    }
   }
 }

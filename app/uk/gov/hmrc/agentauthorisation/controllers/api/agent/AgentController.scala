@@ -80,16 +80,39 @@ class AgentController @Inject() (
       forThisAgency(givenArn) {
         invitationService.getInvitationService(arn, invitationId)
           .map {
-            case Some(PendingInvitation(pendingInvitation)) =>
+            case pendingInv @ Some(PendingInvitation(pendingInvitation)) =>
+              val id = pendingInv.get.href.toString.split("/").toStream.last
+              val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
               Ok(toJson(pendingInvitation
-                .copy(clientActionUrl = s"$invitationFrontendUrl" + s"${invitationId.value}"))
+                .copy(clientActionUrl = s"$invitationFrontendUrl" + s"${invitationId.value}")
+                .copy(href = newInvitationUrl))
                 .as[JsObject])
-            case Some(RespondedInvitation(respondedInvitation)) =>
-              Ok(toJson(respondedInvitation).as[JsObject])
+            case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
+              val id = respondedInv.get.href.toString.split("/").toStream.last
+              val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+              Ok(toJson(respondedInvitation.copy(href = newInvitationUrl)).as[JsObject])
             case _ =>
               Logger(getClass).warn(s"Invitation ${invitationId.value} Not Found")
               InvitationNotFound
           }
+      }
+    }
+  }
+
+  def cancelInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] = Action.async { implicit request =>
+    withAuthorisedAsAgent { (arn, _) =>
+      implicit val loggedInArn: Arn = arn
+      forThisAgency(givenArn) {
+        invitationService.cancelInvitationService(arn, invitationId).map {
+          case Some(204) => NoContent
+          case Some(404) => InvitationNotFound
+          case Some(403) => NoPermissionOnAgency
+          case Some(500) => InvalidInvitationStatus
+        }.recoverWith {
+          case e =>
+            Logger(getClass).warn(s"Invitation Cancellation Failed: ${e.getMessage}")
+            Future.failed(e)
+        }
       }
     }
   }
@@ -194,4 +217,5 @@ object AgentController {
         case _ => None
       }
   }
+
 }

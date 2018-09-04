@@ -114,4 +114,34 @@ class InvitationsConnectorISpec extends BaseISpec {
       result shouldBe None
     }
   }
+
+  "cancelInvitation" should {
+    "return 204 when cancellation is successful" in {
+      givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
+      val result = await(connector.cancelInvitation(arn, invitationIdITSA))
+
+      result shouldBe Some(204)
+    }
+
+    "return 404 when invitation is not found" in {
+      givenCancelAgentInvitationStub(arn, invitationIdITSA, 404)
+      val result = await(connector.cancelInvitation(arn, invitationIdITSA))
+
+      result shouldBe Some(404)
+    }
+
+    "return 500 when an invitation cannot be cancelled" in {
+      givenCancelAgentInvitationStubInvalid(arn, invitationIdITSA)
+      val result = await(connector.cancelInvitation(arn, invitationIdITSA))
+
+      result shouldBe Some(500)
+    }
+
+    "return None when some other response is returned" in {
+      givenCancelAgentInvitationStub(arn, invitationIdITSA, 403)
+      val result = await(connector.cancelInvitation(arn, invitationIdITSA))
+
+      result shouldBe Some(403)
+    }
+  }
 }
