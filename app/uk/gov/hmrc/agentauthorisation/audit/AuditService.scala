@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.audit
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import play.api.mvc.Request
 import uk.gov.hmrc.agentauthorisation.audit
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
@@ -41,47 +41,44 @@ object AgentAuthorisationEvent extends Enumeration {
 class AuditService @Inject() (val auditConnector: AuditConnector) {
 
   private[audit] def auditEvent(
-                                 event: AgentAuthorisationEvent,
-                                 transactionName: String,
-                                 details: Seq[(String, Any)] = Seq.empty)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
+    event: AgentAuthorisationEvent,
+    transactionName: String,
+    details: Seq[(String, Any)] = Seq.empty)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
     send(createEvent(event, transactionName, details: _*))
 
   def sendAgentInvitationSubmitted(
-                                                        arn: Arn,
-                                                        invitationId: String,
-                                                        agentInvitation: AgentInvitation,
-                                                        result: String,
-                                                        failure: Option[String] = None)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
+    arn: Arn,
+    invitationId: String,
+    agentInvitation: AgentInvitation,
+    result: String,
+    failure: Option[String] = None)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
     auditEvent(
       AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi,
       "Agent created invitation through third party software",
       Seq(
-        "factCheck"            -> result,
-        "invitationId"         -> invitationId,
+        "factCheck" -> result,
+        "invitationId" -> invitationId,
         "agentReferenceNumber" -> arn.value,
-        "clientIdType"         -> agentInvitation.clientIdType,
-        "clientId"             -> agentInvitation.clientId,
-        "service"              -> agentInvitation.service
-      ).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty)
-    )
+        "clientIdType" -> agentInvitation.clientIdType,
+        "clientId" -> agentInvitation.clientId,
+        "service" -> agentInvitation.service).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty))
 
   def sendAgentInvitationCancelled(
-                                                        arn: Arn,
-                                                        invitationId: String,
-                                                        result: String,
-                                                        failure: Option[String] = None)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
+    arn: Arn,
+    invitationId: String,
+    result: String,
+    failure: Option[String] = None)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
     auditEvent(
       AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi,
       "Agent cancelled invitation through third party software",
       Seq(
         "result" -> result,
-        "invitationId"         -> invitationId,
-        "agentReferenceNumber" -> arn.value
-      ).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty)
-    )
+        "invitationId" -> invitationId,
+        "agentReferenceNumber" -> arn.value).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty))
 
   private def createEvent(event: AgentAuthorisationEvent, transactionName: String, details: (String, Any)*)(
-    implicit hc: HeaderCarrier,
+    implicit
+    hc: HeaderCarrier,
     request: Request[Any]): DataEvent = {
 
     val detail = hc.toAuditDetails(details.map(pair => pair._1 -> pair._2.toString): _*)

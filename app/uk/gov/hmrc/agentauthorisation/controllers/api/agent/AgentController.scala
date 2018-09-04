@@ -16,19 +16,19 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{ Inject, Named, Singleton }
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
 import play.api.libs.json.JsObject
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitationReceived
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, PendingInvitation, RespondedInvitation}
+import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, PendingInvitation, RespondedInvitation }
 import uk.gov.hmrc.agentauthorisation.services.InvitationService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
@@ -110,7 +110,8 @@ class AgentController @Inject() (
           case Some(404) => InvitationNotFound
           case Some(403) => NoPermissionOnAgency
           case Some(500) =>
-            Logger(getClass).warn(s"Invitation Cancellation Failed: Invitation Already Responded, cannot transition the current status to Cancelled")
+            auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Fail", Some(s"INVALID_INVITATION_STATUS"))
+            Logger(getClass).warn(s"Invitation Cancellation Failed: cannot transition the current status to Cancelled")
             InvalidInvitationStatus
         }.recoverWith {
           case e =>
@@ -140,7 +141,7 @@ class AgentController @Inject() (
                 Future.failed(e)
             }
           case Some(false) =>
-            auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
+            knownFactNotMatchedAudit(agentInvitation, arn)
             Future successful knownFactDoesNotMatch(agentInvitation.service)
           case _ =>
             auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("CLIENT_REGISTRATION_NOT_FOUND"))
@@ -165,6 +166,13 @@ class AgentController @Inject() (
       case _ => invitationService.checkVatRegDateMatches(Vrn(agentInvitation.clientId), LocalDate.parse(agentInvitation.knownFact))
     }
   }
+
+  private def knownFactNotMatchedAudit(agentInvitation: AgentInvitation, arn: Arn)(implicit hc: HeaderCarrier, request: Request[_]) = {
+    agentInvitation.service match {
+      case "HMRC-MTD-IT" => auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
+      case "HMRC-MTD-VAT" => auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+    }
+  }
 }
 
 object AgentController {
@@ -173,12 +181,12 @@ object AgentController {
 
   private def validateNino(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (Nino.isValid(agentInvitation.clientId)) body
-    else if(Vrn.isValid(agentInvitation.clientId)) Future successful ClientIdDoesNotMatchService
+    else if (Vrn.isValid(agentInvitation.clientId)) Future successful ClientIdDoesNotMatchService
     else Future successful InvalidItsaNino
 
   private def validateVrn(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (Vrn.isValid(agentInvitation.clientId)) body
-    else if(Nino.isValid(agentInvitation.clientId)) Future successful ClientIdDoesNotMatchService
+    else if (Nino.isValid(agentInvitation.clientId)) Future successful ClientIdDoesNotMatchService
     else Future successful InvalidVatVrn
 
   def validateDate(value: String): Boolean = if (parseDate(value)) true else false

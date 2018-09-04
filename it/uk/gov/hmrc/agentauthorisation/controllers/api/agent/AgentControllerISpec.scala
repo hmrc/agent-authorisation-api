@@ -2,18 +2,17 @@ package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import akka.util.Timeout
 import org.joda.time.LocalDate
-import org.scalatest.time.Milliseconds
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentauthorisation._
 import uk.gov.hmrc.agentauthorisation.models.{ PendingInvitation, RespondedInvitation, StoredInvitation }
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId }
 import uk.gov.hmrc.http.SessionKeys
 import play.api.libs.json.Json._
-import play.api.mvc.Results._
 import play.api.test.Helpers.contentAsJson
+import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent
 
 import scala.concurrent.duration.Duration
 
@@ -90,6 +89,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 204
       result.header.headers("Location") shouldBe routes.AgentController.getInvitationApi(arn, invitationIdITSA).url
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
     }
 
     "return 204 when invitation is successfully created for VAT" in {
@@ -98,7 +98,8 @@ class AgentControllerISpec extends BaseISpec {
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
 
       status(result) shouldBe 204
-      result.header.headers("Location") shouldBe (routes.AgentController.getInvitationApi(arn, invitationIdVAT).url)
+      result.header.headers("Location") shouldBe routes.AgentController.getInvitationApi(arn, invitationIdVAT).url
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Success", "HMRC-MTD-VAT", None)
     }
 
     "return 400 SERVICE_NOT_SUPPORTED when the service is not supported" in {
@@ -109,6 +110,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe UnsupportedService
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for ITSA" in {
@@ -119,6 +121,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe InvalidItsaNino
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for VAT" in {
@@ -129,6 +132,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe InvalidVatVrn
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
     "return 400 POSTCODE_FORMAT_INVALID when the postcode has an invalid format" in {
@@ -139,6 +143,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe PostcodeFormatInvalid
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
     "return 400 VAT_REG_DATE_FORMAT_INVALID when the VAT registration date has an invalid format" in {
@@ -149,6 +154,29 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe VatRegDateFormatInvalid
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+    }
+
+    "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for ITSA" in {
+      val jsonBodyInvalidService = Json.parse(
+        s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
+
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+
+      status(result) shouldBe 400
+      await(result) shouldBe ClientIdDoesNotMatchService
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+    }
+
+    "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for VAT" in {
+      val jsonBodyInvalidService = Json.parse(
+        s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}""")
+
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+
+      status(result) shouldBe 400
+      await(result) shouldBe ClientIdDoesNotMatchService
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
     "return 403 CLIENT_REGISTRATION_NOT_FOUND when the postcode returns nothing" in {
@@ -157,6 +185,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe ClientRegistrationNotFound
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
     }
 
     "return 403 CLIENT_REGISTRATION_NOT_FOUND when the VAT registration date returns nothing" in {
@@ -165,6 +194,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe ClientRegistrationNotFound
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
     }
 
     "return 403 POSTCODE_DOES_NOT_MATCH when the postcode and clientId do not match" in {
@@ -173,6 +203,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe PostcodeDoesNotMatch
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("POSTCODE_DOES_NOT_MATCH"))
     }
 
     "return 403 VAT_REG_DATE_DOES_NOT_MATCH when the VAT registration date and clientId do not match" in {
@@ -181,6 +212,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe VatRegDateDoesNotMatch
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
     }
 
     "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
@@ -189,6 +221,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 401
       await(result) shouldBe InvalidCredentials
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
     "return 403 NOT_PERMISSION_ON_AGENCY when the logged in user does not have an HMRC-AS-AGENT enrolment" in {
@@ -197,6 +230,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe NoPermissionOnAgency
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
     "return a future failed when the invitation creation failed for ITSA" in {
@@ -207,6 +241,9 @@ class AgentControllerISpec extends BaseISpec {
       an[Exception] shouldBe thrownBy {
         await(result)
       }
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT",
+        Some(s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''"))
+
     }
 
     "return a future failed when the invitation creation failed for VAT" in {
@@ -217,6 +254,8 @@ class AgentControllerISpec extends BaseISpec {
       an[Exception] shouldBe thrownBy {
         await(result)
       }
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT",
+        Some(s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''"))
     }
   }
 
@@ -434,12 +473,14 @@ class AgentControllerISpec extends BaseISpec {
         givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
         val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
         status(result) shouldBe 204
+        verifyAgentClientInvitationCancelledEvent(arn.value, invitationIdITSA)
       }
 
       "return 403 INVALID_INVITATION_STATUS when the status of the invitation is not Pending" in {
         givenCancelAgentInvitationStubInvalid(arn, invitationIdITSA)
         val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
         await(result) shouldBe InvalidInvitationStatus
+        verifyAgentClientInvitationCancelledEvent(arn.value, invitationIdITSA, Some("INVALID_INVITATION_STATUS"))
       }
 
       "return 403 NOT_AN_AGENT when the logged in user does not have an affinity group of Agent" in {
@@ -464,6 +505,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = cancelInvitationItsaApi(requestITSA)
 
         await(result) shouldBe NotAnAgent
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi)
 
       }
 
@@ -489,12 +531,14 @@ class AgentControllerISpec extends BaseISpec {
         val result = cancelInvitationItsaApi(requestITSA)
 
         await(result) shouldBe AgentNotSubscribed
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi)
       }
 
       "return 403 NO_PERMISSION_ON_AGENCY when the arn given does not match the logged in user" in {
         givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
         val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn2.value))
         await(result) shouldBe NoPermissionOnAgency
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi)
       }
     }
 
@@ -507,7 +551,40 @@ class AgentControllerISpec extends BaseISpec {
         givenCancelAgentInvitationStub(arn, invitationIdVAT, 204)
         val result = cancelInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
         status(result) shouldBe 204
+        verifyAgentClientInvitationCancelledEvent(arn.value, invitationIdVAT)
       }
     }
   }
+
+  def verifyAgentClientInvitationSubmittedEvent(
+    arn: String,
+    clientId: String,
+    clientIdType: String,
+    result: String,
+    service: String, failure: Option[String] = None): Unit =
+    verifyAuditRequestSent(
+      1,
+      AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi,
+      detail = Map(
+        "factCheck" -> result,
+        "agentReferenceNumber" -> arn,
+        "clientIdType" -> clientIdType,
+        "clientId" -> clientId,
+        "service" -> service).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
+      tags = Map(
+        "transactionName" -> "Agent created invitation through third party software"))
+
+  def verifyAgentClientInvitationCancelledEvent(
+    arn: String,
+    invitationId: InvitationId,
+    failure: Option[String] = None): Unit =
+    verifyAuditRequestSent(
+      1,
+      AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi,
+      detail = Map(
+        "invitationId" -> invitationId.value,
+        "agentReferenceNumber" -> arn).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
+      tags = Map(
+        "transactionName" -> "Agent cancelled invitation through third party software"))
 }
+
