@@ -173,6 +173,11 @@ traits:
                   value:
                     code: CT_UTR_DOES_NOT_MATCH
 
+  relationshipNotFound:
+    responses:
+      404:
+        description: Relationship is inactive. Agent does not have delegated authorisation for the client.
+
 /agents/{arn}/invitations:
   is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
   uriParameters:
@@ -198,7 +203,7 @@ traits:
             example: /agencies/AARN9999999/invitations/CS5AK7O8FPC43
             description: Location of the invitation that was created.
 
-  /{invitationId}:
+  /invitations/{invitationId}:
     is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
     uriParameters:
       invitationId:
@@ -219,8 +224,28 @@ traits:
     delete:
       is: [invitationMustHaveValidStatus]
       displayName: Cancel an invitation by id
-        (annotations.scope): "write:sent-invitations"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
+        (annotations.scope): "write:cancel-invitations"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "write:cancel-invitations" ] } ]
         responses:
           202:
             description: The invitation has been successfuly cancelled
+
+/agents/{arn}/relationships:
+    is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
+    uriParameters:
+      arn:
+        description: The MTD platform Agent Registration Number.
+        type: string
+        example: AARN9999999
+    get:
+      displayName: Get Status of a Relationship
+      (annotations.scope): "read:check-relationship"
+      securedBy: [ sec.oauth_2_0: { scopes: [ "read:check-relationship" ] } ]
+      body:
+      application/json:
+        description: Check Relationship based on details received.
+        type: !include schemas/create-invitation.json
+        example: !include examples/post-agency-invitations-example.txt
+      responses:
+        204:
+          description: Relationship is active. Agent has delegated authorisation for the client.
