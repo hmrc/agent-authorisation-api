@@ -454,5 +454,8 @@ Relationship is active. Agent has delegated authorisation for the client.
 |:-----|:----:|:------------|:--------:|--------:|
 | code |  string |  | true |  |
 
+### Response code: 404
+Relationship is inactive. Agent does not have delegated authorisation for the client.
+
 ---
 

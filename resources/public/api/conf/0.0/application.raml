@@ -231,7 +231,7 @@ traits:
             description: The invitation has been successfuly cancelled
 
 /agents/{arn}/relationships:
-    is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
+    is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound]
     uriParameters:
       arn:
         description: The MTD platform Agent Registration Number.
