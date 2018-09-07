@@ -4,11 +4,11 @@
 This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisations already requested. Please note this API has no effect on the existing XML API. 
 
 ### APIs
-* [/agent/:arn/invitations](#agentArnInvitations)
-    * [POST](#POSTagentArnInvitations) Create a new invitation.
-    * [/:invitationId](#agentArnInvitationsInvitationId)
-        * [GET](#GETagentArnInvitationsInvitationId) Returns the invitation object
-        * [DELETE](#DELETEagentArnInvitationsInvitationId) Cancels the invitation.
+* [/agent/:arn/invitations](#agentsarninvitations)
+    * [POST](#agentsarninvitations) Create a new invitation.
+    * [/:invitationId](#agentsarninvitationsinvitationid)
+        * [GET](#agentsarninvitationsinvitationid) Returns the invitation object
+        * [DELETE](#agentsarninvitationsinvitationid) Cancels the invitation.
 * [/agent/:arn/relationships](#agentsarnrelationships) Check Status of Relationship
 
 ## Motivation
