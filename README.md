@@ -69,20 +69,22 @@ Create a new invitation.
   "service": ["MTD-IT"],
   "clientIdType": "ni",
   "clientId": "AA999999A",
-  "knownFact": "AA11 1A"
+  "knownFact": "AA11 1AA"
 }
-
+```
+```
 {
   "service": ["MTD-VAT"],
   "clientIdType": "vrn",
   "clientId": "101747696",
   "knownFact": "2007-05-18"
 }
-
+```
+```
 {
   "service": ["MTD-VAT"],
   "clientIdType": "crn",
-  "clientId": "AA12345678",
+  "clientId": "AA123456",
   "knownFact": "1234567890"
 }
 ```
@@ -227,11 +229,12 @@ Returns the invitation.
   "created": "2017-01-25T15:20:14.917Z",
   "expiresOn": "2017-02-04T00:00:00:000Z",
   "arn": "AARN9999999",
-  "service": "MTD-IT",
+  "service": ["MTD-IT"],
   "status": "Pending",
   "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
 }
-
+```
+```
 {
   "_links": {
     "self": {
@@ -241,7 +244,7 @@ Returns the invitation.
   "created": "2017-01-25T15:20:14.917Z",
   "updated": "2017-01-25T15:20:14.917Z",
   "arn": "AARN9999999",
-  "service": "MTD-VAT",
+  "service": ["MTD-VAT"],
   "status": "Accepted"
 }
 ```
@@ -402,21 +405,7 @@ Check Relationship based on details received.
   "service": ["MTD-IT"],
   "clientIdType": "ni",
   "clientId": "AA999999A",
-  "knownFact": "AA11 1A"
-}
-
-{
-  "service": ["MTD-VAT"],
-  "clientIdType": "vrn",
-  "clientId": "101747696",
-  "knownFact": "2007-05-18"
-}
-
-{
-  "service": ["MTD-VAT"],
-  "clientIdType": "crn",
-  "clientId": "AA12345678",
-  "knownFact": "1234567890"
+  "knownFact": "AA11 1AA"
 }
 ```
 
