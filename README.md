@@ -1,7 +1,7 @@
 # Agent Authorisation API documentation version 0.0
 
 ### Overview
-This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisations already requested. Please note this API has no effect on the existing XML API. 
+This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services and have the option to cancel the authorisation. The API also allows the Agent to check the status of authorisations already requested and query active or inactive relationships. Please note this API has no effect on the existing XML API. 
 
 ### APIs
 * [/agent/:arn/invitations](#agentsarninvitations)
