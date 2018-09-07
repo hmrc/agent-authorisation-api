@@ -21,20 +21,10 @@ The aim is for the API to mirror the current process that happens through the Ag
 * Client clicks the link and authorises agent (requires sign on through Government Gateway)
 
 ### Versioning
-Specific versions are requested by providing an Accept header. When
-backwards-incompatible API changes are made, a new version will be released.
-Backwards-compatible changes are released in the current version without the
-need to change your Accept header.  See our [reference guide](/api-documentation/docs/reference-guide#versioning) for more on
-versioning.
+Can not resolve https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/versioning.md
 
 ### Errors
-We use standard [HTTP status codes](/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
-* in the 200 to 299 range if it succeeded; including code 202 if it was accepted by an API that needs to wait for further action
-* in the 400 to 499 range if it didn't succeed because of a client error by your application
-* in the 500 to 599 range if it didn't succeed because of an error on our server
-
-Errors specific to each API are shown in its own Resources section, under Response. 
-See our [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors.
+Can not resolve https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/errors.md
 
 ---
 
@@ -54,12 +44,6 @@ See our [reference guide](/api-documentation/docs/reference-guide#errors) for mo
     * Required: true
 
 #### **POST** *(secured)*:
-
-###### Headers
-
-| Name | Type | Description | Required | Examples |
-|:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
 Create a new invitation.
@@ -100,11 +84,11 @@ The invitation was successfully created.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Location | string | Location of the invitation that was created. | true | ``` /agencies/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
+| Location | string | Location of the invitation that was created. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
 
 ### Response code: 400
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -132,14 +116,13 @@ The invitation was successfully created.
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 401
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -147,14 +130,13 @@ The invitation was successfully created.
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 403
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -192,10 +174,9 @@ The invitation was successfully created.
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ---
 
@@ -207,12 +188,6 @@ The invitation was successfully created.
     * Required: true
 
 #### **GET** *(secured)*:
-
-###### Headers
-
-| Name | Type | Description | Required | Examples |
-|:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
 
@@ -255,7 +230,7 @@ Returns the invitation.
 
 ### Response code: 401
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -263,14 +238,13 @@ Returns the invitation.
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 403
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -288,14 +262,13 @@ Returns the invitation.
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 404
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -303,26 +276,19 @@ Returns the invitation.
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ---
 #### **DELETE** *(secured)*:
-
-###### Headers
-
-| Name | Type | Description | Required | Examples |
-|:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 202
 The invitation has been successfully cancelled
 
 ### Response code: 401
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -330,14 +296,13 @@ The invitation has been successfully cancelled
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 403
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -360,14 +325,13 @@ The invitation has been successfully cancelled
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 404
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -375,10 +339,9 @@ The invitation has been successfully cancelled
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ---
 
@@ -390,12 +353,6 @@ The invitation has been successfully cancelled
     * Required: true
 
 #### **GET** *(secured)*:
-
-###### Headers
-
-| Name | Type | Description | Required | Examples |
-|:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
 Check Relationship based on details received.
@@ -434,7 +391,7 @@ Relationship is active. Agent has delegated authorisation for the client.
 
 ### Response code: 401
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -442,14 +399,13 @@ Relationship is active. Agent has delegated authorisation for the client.
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 403
 
-#### errorResponse (application/json) 
+#### application/json (application/json) 
 
 ```
 {
@@ -467,10 +423,9 @@ Relationship is active. Agent has delegated authorisation for the client.
 }
 ```
 
-##### *errorResponse*:
+##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 404
 Relationship is inactive. Agent does not have delegated authorisation for the client.
