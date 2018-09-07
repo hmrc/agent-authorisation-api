@@ -21,13 +21,16 @@ import com.google.inject.name.{ Named, Names }
 import javax.inject.{ Inject, Provider, Singleton }
 import org.slf4j.MDC
 import play.api.{ Configuration, Environment, Logger }
+import uk.gov.hmrc.agentauthorisation.ApplicationRegistration
 import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.agentauthorisation.controllers.api.{ FrontendPasscodeVerification, PasscodeVerification }
+import uk.gov.hmrc.api.connector.{ ApiServiceLocatorConnector, ServiceLocatorConnector }
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.otac.OtacAuthConnector
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.ws.WSHttp
 
@@ -47,14 +50,19 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindProperty("appName")
     bindBaseUrl("auth")
     bindBaseUrl("agent-client-authorisation")
+    bindBaseUrl("service-locator")
     bindServiceProperty("agent-invitations-frontend.external-url")
+    bindServiceBooleanProperty("service-locator.enabled")
 
+    bind(classOf[CorePost]).to(classOf[DefaultHttpClient])
     bind(classOf[HttpGet]).to(classOf[HttpVerbs])
     bind(classOf[HttpPost]).to(classOf[HttpVerbs])
     bind(classOf[HttpPut]).to(classOf[HttpVerbs])
+    bind(classOf[ServiceLocatorConnector]).to(classOf[ApiServiceLocatorConnector])
     bind(classOf[AuthConnector]).to(classOf[MicroserviceAuthConnector])
     bind(classOf[PasscodeVerification]).to(classOf[FrontendPasscodeVerification])
     bind(classOf[OtacAuthConnector]).to(classOf[MicroserviceAuthConnector])
+    bind(classOf[ApplicationRegistration]).asEagerSingleton()
 
   }
 
@@ -66,6 +74,16 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
   private class ServicePropertyProvider(propertyName: String) extends Provider[String] {
     override lazy val get =
       getConfString(propertyName, throw new RuntimeException(s"No configuration value found for '$propertyName'"))
+  }
+
+  private def bindServiceBooleanProperty(propertyName: String) =
+    bind(classOf[Boolean])
+      .annotatedWith(Names.named(s"$propertyName"))
+      .toProvider(new ServiceBooleanPropertyProvider(propertyName))
+
+  private class ServiceBooleanPropertyProvider(propertyName: String) extends Provider[Boolean] {
+    override lazy val get =
+      getConfBool(propertyName, throw new RuntimeException(s"No configuration value found for '$propertyName'"))
   }
 
   private def bindBaseUrl(serviceName: String) =

@@ -29,7 +29,8 @@ lazy val compileDeps = Seq(
   "uk.gov.hmrc" %% "play-whitelist-filter" % "2.0.0",
   "uk.gov.hmrc" %% "play-config" % "5.0.0",
   "uk.gov.hmrc" %% "play-hal" % "1.2.0",
-  "uk.gov.hmrc" %% "play-hmrc-api" % "2.1.0",
+  "uk.gov.hmrc" %% "play-hmrc-api" % "3.0.0",
+  "uk.gov.hmrc" %% "customs-api-common" % "1.27.0",
   ws
 )
 
@@ -41,7 +42,8 @@ def testDeps(scope: String) = Seq(
   "uk.gov.hmrc" %% "reactivemongo-test" % "3.1.0" % scope,
   "com.github.tomakehurst" % "wiremock" % "2.18.0" % scope,
   "org.pegdown" % "pegdown" % "1.6.0" % scope,
-  "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
+  "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
+  "uk.gov.hmrc" %% "customs-api-common" % "1.27.0" % scope
 )
 
 lazy val root = (project in file("."))

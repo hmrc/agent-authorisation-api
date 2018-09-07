@@ -1,14 +1,16 @@
-# Agent Authorisation API version 0.0
+# Agent Authorisation API documentation version 0.0
 
 ### Overview
-This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services. The API also allows the Agent to check the status of authorisations already requested. Please note this API has no effect on the existing XML API. 
+This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services and have the option to cancel the authorisation. The API also allows the Agent to check the status of authorisations already requested and query active or inactive relationships. Please note this API has no effect on the existing XML API. 
 
 ### APIs
-* [/agent/:arn/invitations](#agentArnInvitations)
-    * [POST](#POSTagentArnInvitations) Create a new invitation.
-    * [/:invitationId](#agentArnInvitationsInvitationId)
-        * [GET](#GETagentArnInvitationsInvitationId) Returns the invitation object
-        * [DELETE](#DELETEagentArnInvitationsInvitationId) Cancels the invitation.
+* [/agent/:arn/invitations](#agentsarninvitations)
+    * [POST](#post-secured) Create a new invitation.
+    * [/:invitationId](#agentsarninvitationsinvitationid)
+        * [GET](#get-secured) Returns the invitation object
+        * [DELETE](#delete-secured) Cancels the invitation.
+* [/agent/:arn/relationships](#agentsarnrelationships)
+    * [GET](#get-secured-1) Check Status of Relationship   
 
 ## Motivation
 Agents often use software to perform services for their clients. 
@@ -25,34 +27,36 @@ The aim is for the API to mirror the current process that happens through the Ag
 * If required by the service the agent enters a known fact check for the client, e.g. postcode, VAT registration date
 * Link for the client to follow to authorise the agent is returned by the API. The expiration date of the link is also returned by the API
 * Agent sends the link to the client
+* If the Agent decides to change their mind, they have the option to cancel the invitation as long as it has not been responded by the client.
 * Client clicks the link and authorises agent (requires sign on through Government Gateway)
+* The Agent can check if they have an active relationship for delegated authorisation to act on behalf of a client.
 
 ### Versioning
 Specific versions are requested by providing an Accept header. When
 backwards-incompatible API changes are made, a new version will be released.
 Backwards-compatible changes are released in the current version without the
-need to change your Accept header.  See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentation/docs/reference-guide#versioning) for more on
+need to change your Accept header.  See our [reference guide](/api-documentation/docs/reference-guide#versioning) for more on
 versioning.
 
 ### Errors
-We use standard [HTTP status codes](https://developer.service.hmrc.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
+We use standard [HTTP status codes](/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
 * in the 200 to 299 range if it succeeded; including code 202 if it was accepted by an API that needs to wait for further action
 * in the 400 to 499 range if it didn't succeed because of a client error by your application
 * in the 500 to 599 range if it didn't succeed because of an error on our server
 
 Errors specific to each API are shown in its own Resources section, under Response. 
-See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
+See our [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors.
 
 ---
 
-# /agents/{arn}/invitations <a name="agentArnInvitations"></a>
+### /agents/{arn}/invitations
 
 * **arn**: The MTD platform Agent Registration Number.
     * Type: string
     
     * Required: true
 
-## **POST** *(secured)*: <a name="POSTagentArnInvitations"></a>
+#### **POST** *(secured)*:
 
 ###### Headers
 
@@ -63,27 +67,27 @@ See our [reference guide](https://developer.service.hmrc.gov.uk/api-documentatio
 #### application/json (application/json) 
 Create a new invitation.
 
-Accepts the json object implementing schema [create-invitation.md](resources/public/api/conf/0.0/schemas/create-invitation.md)
-
 ```
 {
   "service": ["MTD-IT"],
   "clientIdType": "ni",
   "clientId": "AA999999A",
-  "knownFact": "AA11 1A"
+  "knownFact": "AA11 1AA"
 }
-
+```
+```
 {
   "service": ["MTD-VAT"],
   "clientIdType": "vrn",
   "clientId": "101747696",
   "knownFact": "2007-05-18"
 }
-
+```
+```
 {
   "service": ["MTD-VAT"],
   "clientIdType": "crn",
-  "clientId": "AA12345678",
+  "clientId": "AA123456",
   "knownFact": "1234567890"
 }
 ```
@@ -128,11 +132,6 @@ The invitation was successfully created.
 ```
 {
   "code": "CT_UTR_FORMAT_INVALID"
-}
-```
-```
-{
-  "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE"
 }
 ```
 
@@ -203,14 +202,14 @@ The invitation was successfully created.
 
 ---
 
-# /agents/{arn}/invitations/{invitationId} <a name="agentArnInvitationsInvitationId"></a>
+### /agents/{arn}/invitations/{invitationId}
 
 * **invitationId**: A unique invitation id
     * Type: string
     
     * Required: true
 
-## **GET** *(secured)*: <a name="GETagentArnInvitationsInvitationId"></a>
+#### **GET** *(secured)*:
 
 ###### Headers
 
@@ -221,7 +220,7 @@ The invitation was successfully created.
 ### Response code: 200
 
 #### application/json (application/json) 
-Returns the invitation object implementing schema [invitation.md](resources/public/api/conf/0.0/schemas/invitation.md)
+Returns the invitation.
 
 ```
 {
@@ -233,11 +232,12 @@ Returns the invitation object implementing schema [invitation.md](resources/publ
   "created": "2017-01-25T15:20:14.917Z",
   "expiresOn": "2017-02-04T00:00:00:000Z",
   "arn": "AARN9999999",
-  "service": "MTD-IT",
+  "service": ["MTD-IT"],
   "status": "Pending",
   "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
 }
-
+```
+```
 {
   "_links": {
     "self": {
@@ -247,7 +247,7 @@ Returns the invitation object implementing schema [invitation.md](resources/publ
   "created": "2017-01-25T15:20:14.917Z",
   "updated": "2017-01-25T15:20:14.917Z",
   "arn": "AARN9999999",
-  "service": "MTD-VAT",
+  "service": ["MTD-VAT"],
   "status": "Accepted"
 }
 ```
@@ -255,7 +255,7 @@ Returns the invitation object implementing schema [invitation.md](resources/publ
 ##### *application/json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-agents
+
 ### Response code: 401
 
 #### errorResponse (application/json) 
@@ -312,13 +312,16 @@ agents
 | code |  string |  | true |  |
 
 ---
-## **DELETE**: <a name="DELETEagentArnInvitationsInvitationId"></a>
+#### **DELETE** *(secured)*:
 
 ###### Headers
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
 | Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+
+### Response code: 202
+The invitation has been successfully cancelled
 
 ### Response code: 401
 
@@ -379,6 +382,101 @@ agents
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
 | code |  string |  | true |  |
+
+---
+
+### /agents/{arn}/relationships
+
+* **arn**: The MTD platform Agent Registration Number.
+    * Type: string
+    
+    * Required: true
+
+#### **GET** *(secured)*:
+
+###### Headers
+
+| Name | Type | Description | Required | Examples |
+|:-----|:----:|:------------|:--------:|---------:|
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+
+#### application/json (application/json) 
+Check Relationship based on details received.
+
+```
+{
+  "service": ["MTD-IT"],
+  "clientIdType": "ni",
+  "clientId": "AA999999A",
+  "knownFact": "AA11 1AA"
+}
+```
+```
+{
+  "service": ["MTD-VAT"],
+  "clientIdType": "vrn",
+  "clientId": "101747696",
+  "knownFact": "2007-05-18"
+}
+```
+```
+{
+  "service": ["MTD-VAT"],
+  "clientIdType": "crn",
+  "clientId": "AA123456",
+  "knownFact": "1234567890"
+}
+```
+
+##### *application/json*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+
+### Response code: 204
+Relationship is active. Agent has delegated authorisation for the client.
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INVALID_CREDENTIALS"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 403
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "NOT_AN_AGENT"
+}
+```
+```
+{
+  "code": "AGENT_NOT_SUBSCRIBED"
+}
+```
+```
+{
+  "code": "NO_PERMISSION_ON_AGENCY"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 404
+Relationship is inactive. Agent does not have delegated authorisation for the client.
 
 ---
 
