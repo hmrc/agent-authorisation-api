@@ -5,10 +5,10 @@ This API allows agents to request authorisation to act on a client's behalf for 
 
 ### APIs
 * [/agent/:arn/invitations](#agentsarninvitations)
-    * [POST](#agentsarninvitations) Create a new invitation.
+    * [POST](#post-secured) Create a new invitation.
     * [/:invitationId](#agentsarninvitationsinvitationid)
-        * [GET](#agentsarninvitationsinvitationid) Returns the invitation object
-        * [DELETE](#agentsarninvitationsinvitationid) Cancels the invitation.
+        * [GET](#get-secured) Returns the invitation object
+        * [DELETE](#delete-secured) Cancels the invitation.
 * [/agent/:arn/relationships](#agentsarnrelationships) Check Status of Relationship
 
 ## Motivation
