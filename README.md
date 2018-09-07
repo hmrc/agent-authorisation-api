@@ -38,11 +38,11 @@ See our [reference guide](/api-documentation/docs/reference-guide#errors) for mo
 
 ---
 
-## /agents/{arn}/invitations
+## /agents/{arn}
 
 #### Available endpoints
 
-* [/agents/{arn}/invitations](#agentsarninvitations)* [/agents/{arn}/invitations/invitations/{invitationId}](#agentsarninvitationsinvitationsinvitationid)
+* [/agents/{arn}/invitations](#agentsarninvitations)* [/agents/{arn}/invitations/{invitationId}](#agentsarninvitationsinvitationid)
 
 * [/agents/{arn}/relationships](#agentsarnrelationships)
 
@@ -197,7 +197,7 @@ The invitation was successfully created.
 
 ---
 
-### /agents/{arn}/invitations/invitations/{invitationId}
+### /agents/{arn}/invitations/{invitationId}
 
 * **invitationId**: A unique invitation id
     * Type: string
@@ -375,14 +375,6 @@ Returns the invitation.
 | code |  string |  | true |  |
 
 ---
-
-## /agents/{arn}/relationships
-
-#### Available endpoints
-
-* [/agents/{arn}/invitations](#agentsarninvitations)* [/agents/{arn}/invitations/invitations/{invitationId}](#agentsarninvitationsinvitationsinvitationid)
-
-* [/agents/{arn}/relationships](#agentsarnrelationships)
 
 ### /agents/{arn}/relationships
 

@@ -178,59 +178,61 @@ traits:
       404:
         description: Relationship is inactive. Agent does not have delegated authorisation for the client.
 
-/agents/{arn}/invitations:
-  is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
-  uriParameters:
-    arn:
-      description: The MTD platform Agent Registration Number.
-      type: string
-      example: AARN9999999
-  post:
-    is: [serviceSpecified, clientIdSpecified, clientIdMatchesService, clientRegistrationRequired, knownFactMatches]
-    displayName: Create a new invitation
-    (annotations.scope): "write:sent-invitations"
-    securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
-    body:
-      application/json:
-        description: Create a new invitation.
-        type: !include schemas/create-invitation.json
-        example: !include examples/post-agency-invitations-example.txt
-    responses:
-      204:
-        description: The invitation was successfully created.
-        headers:
-          Location:
-            example: /agencies/AARN9999999/invitations/CS5AK7O8FPC43
-            description: Location of the invitation that was created.
+/agents/{arn}:
 
-  /invitations/{invitationId}:
-    is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
+  /invitations:
+    is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
     uriParameters:
-      invitationId:
-        description: A unique invitation id
+      arn:
+        description: The MTD platform Agent Registration Number.
         type: string
-        example: CS5AK7O8FPC43
-    get:
-      displayName: Get an invitation by id
-      (annotations.scope): "read:sent-invitations"
-      securedBy: [ sec.oauth_2_0: { scopes: [ "read:sent-invitations" ] } ]
+        example: AARN9999999
+    post:
+      is: [serviceSpecified, clientIdSpecified, clientIdMatchesService, clientRegistrationRequired, knownFactMatches]
+      displayName: Create a new invitation
+      (annotations.scope): "write:sent-invitations"
+      securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
+      body:
+        application/json:
+          description: Create a new invitation.
+          type: !include schemas/create-invitation.json
+          example: !include examples/post-agency-invitations-example.txt
       responses:
-        200:
-          body:
-            application/json:
+        204:
+          description: The invitation was successfully created.
+          headers:
+            Location:
+              example: /agencies/AARN9999999/invitations/CS5AK7O8FPC43
+              description: Location of the invitation that was created.
+
+    /{invitationId}:
+      is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
+      uriParameters:
+        invitationId:
+          description: A unique invitation id
+          type: string
+          example: CS5AK7O8FPC43
+      get:
+        displayName: Get an invitation by id
+        (annotations.scope): "read:sent-invitations"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "read:sent-invitations" ] } ]
+        responses:
+          200:
+            body:
+              application/json:
                 description: Returns the invitation.
                 type: !include schemas/invitation.json
                 example: !include examples/get-agency-invitation-example.txt
-    delete:
-      is: [invitationMustHaveValidStatus]
-      displayName: Cancel an invitation by id
-        (annotations.scope): "write:cancel-invitations"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "write:cancel-invitations" ] } ]
-        responses:
-          202:
-            description: The invitation has been successfuly cancelled
+      delete:
+        is: [invitationMustHaveValidStatus]
+        displayName: Cancel an invitation by id
+          (annotations.scope): "write:cancel-invitations"
+          securedBy: [ sec.oauth_2_0: { scopes: [ "write:cancel-invitations" ] } ]
+          responses:
+            202:
+              description: The invitation has been successfuly cancelled
 
-/agents/{arn}/relationships:
+  /relationships:
     is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound]
     uriParameters:
       arn:
