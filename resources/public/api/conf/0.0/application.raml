@@ -226,11 +226,11 @@ traits:
       delete:
         is: [invitationMustHaveValidStatus]
         displayName: Cancel an invitation by id
-          (annotations.scope): "write:cancel-invitations"
-          securedBy: [ sec.oauth_2_0: { scopes: [ "write:cancel-invitations" ] } ]
-          responses:
-            202:
-              description: The invitation has been successfuly cancelled
+        (annotations.scope): "write:cancel-invitations"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "write:cancel-invitations" ] } ]
+        responses:
+          202:
+            description: The invitation has been successfully cancelled
 
   /relationships:
     is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound]
@@ -244,10 +244,10 @@ traits:
       (annotations.scope): "read:check-relationship"
       securedBy: [ sec.oauth_2_0: { scopes: [ "read:check-relationship" ] } ]
       body:
-      application/json:
-        description: Check Relationship based on details received.
-        type: !include schemas/create-invitation.json
-        example: !include examples/post-agency-invitations-example.txt
+        application/json:
+          description: Check Relationship based on details received.
+          type: !include schemas/create-invitation.json
+          example: !include examples/post-agency-invitations-example.txt
       responses:
         204:
           description: Relationship is active. Agent has delegated authorisation for the client.

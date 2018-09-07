@@ -306,13 +306,16 @@ Returns the invitation.
 | code |  string |  | true |  |
 
 ---
-#### **DELETE**:
+#### **DELETE** *(secured)*:
 
 ###### Headers
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
 | Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+
+### Response code: 202
+The invitation has been successfully cancelled
 
 ### Response code: 401
 
@@ -392,14 +395,32 @@ Returns the invitation.
 | Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
+Check Relationship based on details received.
+
+```
+{
+  "service": ["MTD-IT"],
+  "clientIdType": "ni",
+  "clientId": "AA999999A",
+  "knownFact": "AA11 1A"
+}
+
+{
+  "service": ["MTD-VAT"],
+  "clientIdType": "vrn",
+  "clientId": "101747696",
+  "knownFact": "2007-05-18"
+}
+
+{
+  "service": ["MTD-VAT"],
+  "clientIdType": "crn",
+  "clientId": "AA12345678",
+  "knownFact": "1234567890"
+}
+```
 
 ##### *application/json*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-
-#### application/hal+json (application/hal+json) 
-
-##### *application/hal+json*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
 
