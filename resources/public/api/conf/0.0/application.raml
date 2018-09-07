@@ -252,7 +252,10 @@ traits:
         application/json:
           description: Check Relationship based on details received.
           type: !include schemas/create-invitation.json
-          example: !include examples/post-agency-invitations-example.json
+          examples:
+            itsa: !include examples/post-agency-invitations-example.json
+            vat: !include examples/post-agency-invitations-vat-example.json
+            crn: !include examples/post-agency-invitations-crn-example.json
       responses:
         204:
           description: Relationship is active. Agent has delegated authorisation for the client.
