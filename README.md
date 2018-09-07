@@ -10,7 +10,7 @@ This API allows agents to request authorisation to act on a client's behalf for 
         * [GET](#get-secured) Returns the invitation object
         * [DELETE](#delete-secured) Cancels the invitation.
 * [/agent/:arn/relationships](#agentsarnrelationships)
-    *[GET](#get-secured-1) Check Status of Relationship   
+    * [GET](#get-secured-1) Check Status of Relationship   
 
 ## Motivation
 Agents often use software to perform services for their clients. 
