@@ -11,6 +11,14 @@
     "key": "write:sent-invitations",
     "name": "Modify invitations sent",
     "description": "Request authorisation for a service"
+  }, {
+    "key": "write:cancel-invitations",
+    "name": "Cancel Invitations",
+    "description": "Cancel a pending invitation"
+  }, {
+    "key": "read:check-relationship",
+    "name": "Check Relationship Status",
+    "description": "Returns current status of relationship"
   }],
 
   "api": {
