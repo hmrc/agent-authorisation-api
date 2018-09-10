@@ -28,6 +28,7 @@
     "versions": [{
       "version": "0.0",
       "status": "ALPHA",
+      "endpointsEnabled": true,
       "access": @Json.toJson(access)
     }]
   }
