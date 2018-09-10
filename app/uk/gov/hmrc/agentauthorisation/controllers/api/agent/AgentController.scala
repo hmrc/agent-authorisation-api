@@ -27,8 +27,8 @@ import uk.gov.hmrc.agentauthorisation.models.AgentInvitationReceived
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, PendingInvitation, RespondedInvitation }
-import uk.gov.hmrc.agentauthorisation.services.InvitationService
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
+import uk.gov.hmrc.agentauthorisation.services.{ InvitationService, RelationshipsService }
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, MtdItId, Vrn }
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
@@ -43,6 +43,7 @@ import scala.concurrent.Future
 class AgentController @Inject() (
   @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
   invitationService: InvitationService,
+  relationshipsService: RelationshipsService,
   auditService: AuditService,
   val authConnector: AuthConnector,
   val withVerifiedPasscode: PasscodeVerification) extends BaseController with AuthActions {
@@ -119,6 +120,54 @@ class AgentController @Inject() (
             Logger(getClass).warn(s"Invitation Cancellation Failed: ${e.getMessage}")
             Future.failed(e)
         }
+      }
+    }
+  }
+
+  def checkRelationshipApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
+    withAuthorisedAsAgent { (arn, _) =>
+      implicit val loggedInAgent: Arn = arn
+      forThisAgency(givenArn) {
+        val invitationResponse = request.body.asJson match {
+          case Some(json) => json.as[AgentInvitationReceived]
+          case None => AgentInvitationReceived(List.empty, "", "", "")
+        }
+        invitationResponse match {
+          case ItsaInvitation(invitation) =>
+            validateNino(invitation) {
+              checkRelationship(arn, invitation)
+            }
+          case VatInvitation(invitation) =>
+            validateVrn(invitation) {
+              checkRelationship(arn, invitation)
+            }
+          case s =>
+            Logger(getClass).warn(s"Unsupported service received: ${s.knownFact}")
+            Future successful UnsupportedService
+        }
+      }
+    }
+  }
+
+  private def checkRelationship(arn: Arn, agentInvitation: AgentInvitation)(implicit hc: HeaderCarrier, request: Request[_]): Future[Result] = {
+    agentInvitation.service match {
+      case "HMRC-MTD-IT" => {
+        relationshipsService.checkItsaRelationshipsService(arn, MtdItId(agentInvitation.clientId)).map {
+          case 204 => NoContent
+          case 404 => NotFound
+          case _ => {
+            InternalServerError
+          }
+        }
+      }
+      case "HMRC-MTD-VAT" => {
+        relationshipsService.checkVatRelationshipService(arn, Vrn(agentInvitation.clientId)).map {
+          case 204 => NoContent
+          case _ => InternalServerError
+        }
+      }
+      case _ => {
+        Future successful InternalServerError
       }
     }
   }

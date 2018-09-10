@@ -50,6 +50,7 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindProperty("appName")
     bindBaseUrl("auth")
     bindBaseUrl("agent-client-authorisation")
+    bindBaseUrl("agent-client-relationships")
     bindBaseUrl("service-locator")
     bindServiceProperty("agent-invitations-frontend.external-url")
     bindServiceBooleanProperty("service-locator.enabled")
