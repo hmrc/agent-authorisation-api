@@ -39,7 +39,7 @@ class ApiPlatformISpec extends UnitSpec with OneServerPerSuite {
       (definition \ "api" \ "name").as[String] shouldBe "Agent Authorisation"
 
       val accessConfig = definition \ "api" \ "versions" \\ "access"
-      (accessConfig.head \ "type").as[String] shouldBe "PRIVATE"
+      (accessConfig.head \ "type").as[String] shouldBe "PUBLIC"
       (accessConfig.head \ "whitelistedApplicationIds").head.as[String] shouldBe "00010002-0003-0004-0005-000600070008"
       (accessConfig.head \ "whitelistedApplicationIds")(1).as[String] shouldBe "00090002-0003-0004-0005-000600070008"
     }
