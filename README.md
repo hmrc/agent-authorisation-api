@@ -135,7 +135,8 @@ The invitation was successfully created.
 ```
 ```
 {
-  "code": "CT_UTR_FORMAT_INVALID"
+  "code": "CT_UTR_FORMAT_INVALID",
+  "message": "The submitted CT UTR does not match the expected format."
 }
 ```
 
@@ -184,7 +185,8 @@ The invitation was successfully created.
 ```
 ```
 {
-  "code": "CT_UTR_DOES_NOT_MATCH"
+  "code": "CT_UTR_DOES_NOT_MATCH",
+  "message": "The submitted CT UTR did not match HMRC record for the client."
 }
 ```
 ```
@@ -487,7 +489,8 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 ```
 {
-  "code": "CT_UTR_FORMAT_INVALID"
+  "code": "CT_UTR_FORMAT_INVALID",
+  "message": "The submitted CT UTR does not match the expected format."
 }
 ```
 
@@ -536,7 +539,8 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 ```
 {
-  "code": "CT_UTR_DOES_NOT_MATCH"
+  "code": "CT_UTR_DOES_NOT_MATCH",
+  "message": "The submitted CT UTR did not match HMRC record for the client."
 }
 ```
 ```
