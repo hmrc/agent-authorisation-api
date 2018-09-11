@@ -49,7 +49,7 @@ class ApiPlatformRequestHandler @Inject() (router: Router, errorHandler: HttpErr
   }
 
   private def isApiPlatformRequest(request: RequestHeader): Boolean =
-    request.path.startsWith("/agencies") ||
+    request.path.startsWith("/agents") ||
       request.path == "/"
 
 }
