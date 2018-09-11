@@ -49,6 +49,14 @@ See our [reference guide](/api-documentation/docs/reference-guide#errors) for mo
 
 ---
 
+## /agents/{arn}
+
+#### Available endpoints
+
+* [/agents/{arn}/invitations](#agentsarninvitations)* [/agents/{arn}/invitations/{invitationId}](#agentsarninvitationsinvitationid)
+
+* [/agents/{arn}/relationships](#agentsarnrelationships)
+
 ### /agents/{arn}/invitations
 
 * **arn**: The MTD platform Agent Registration Number.
@@ -111,22 +119,26 @@ The invitation was successfully created.
 
 ```
 {
-  "code": "SERVICE_NOT_SUPPORTED"
+  "code": "SERVICE_NOT_SUPPORTED",
+  "message": "The specified service is not supported."
 }
 ```
 ```
 {
-  "code": "CLIENT_ID_FORMAT_INVALID"
+  "code": "CLIENT_ID_FORMAT_INVALID",
+  "message": "The submitted clientId does not match the expected format."
 }
 ```
 ```
 {
-  "code": "POSTCODE_FORMAT_INVALID"
+  "code": "POSTCODE_FORMAT_INVALID",
+  "message": "The submitted postcode does not match the expected format."
 }
 ```
 ```
 {
-  "code": "VAT_REG_DATE_FORMAT_INVALID"
+  "code": "VAT_REG_DATE_FORMAT_INVALID",
+  "message": "The submitted VAT registration date does not match the expected format."
 }
 ```
 ```
@@ -146,7 +158,8 @@ The invitation was successfully created.
 
 ```
 {
-  "code": "INVALID_CREDENTIALS"
+  "code": "INVALID_CREDENTIALS",
+  "message": "Invalid Authentication information provided."
 }
 ```
 
@@ -161,17 +174,20 @@ The invitation was successfully created.
 
 ```
 {
-  "code": "CLIENT_REGISTRATION_NOT_FOUND"
+  "code": "CLIENT_REGISTRATION_NOT_FOUND",
+  "message": "The Client's registration was not found."
 }
 ```
 ```
 {
-  "code": "POSTCODE_DOES_NOT_MATCH"
+  "code": "POSTCODE_DOES_NOT_MATCH",
+  "message": "The submitted postcode did not match the client's postcode as held by HMRC."
 }
 ```
 ```
 {
-  "code": "VAT_REG_DATE_DOES_NOT_MATCH"
+  "code": "VAT_REG_DATE_DOES_NOT_MATCH",
+  "message": "The submitted VAT registration date did not match HMRC record for the client."
 }
 ```
 ```
@@ -181,17 +197,20 @@ The invitation was successfully created.
 ```
 ```
 {
-  "code": "NOT_AN_AGENT"
+  "code": "NOT_AN_AGENT",
+  "message": "The logged in user is not an agent."
 }
 ```
 ```
 {
-  "code": "AGENT_NOT_SUBSCRIBED"
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "The Agent is not subscribed to Agent Services."
 }
 ```
 ```
 {
-  "code": "NO_PERMISSION_ON_AGENCY"
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The logged in user is not permitted to access invitations for the specified agency."
 }
 ```
 
@@ -262,7 +281,8 @@ Returns the invitation.
 
 ```
 {
-  "code": "INVALID_CREDENTIALS"
+  "code": "INVALID_CREDENTIALS",
+  "message": "Invalid Authentication information provided."
 }
 ```
 
@@ -277,17 +297,20 @@ Returns the invitation.
 
 ```
 {
-  "code": "NOT_AN_AGENT"
+  "code": "NOT_AN_AGENT",
+  "message": "The logged in user is not an agent."
 }
 ```
 ```
 {
-  "code": "AGENT_NOT_SUBSCRIBED"
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "The Agent is not subscribed to Agent Services."
 }
 ```
 ```
 {
-  "code": "NO_PERMISSION_ON_AGENCY"
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The logged in user is not permitted to access invitations for the specified agency."
 }
 ```
 
@@ -302,7 +325,8 @@ Returns the invitation.
 
 ```
 {
-  "code": "INVITATION_NOT_FOUND"
+  "code": "INVITATION_NOT_FOUND",
+  "message": "The specified invitation was not found."
 }
 ```
 
@@ -329,7 +353,8 @@ The invitation has been successfully cancelled
 
 ```
 {
-  "code": "INVALID_CREDENTIALS"
+  "code": "INVALID_CREDENTIALS",
+  "message": "Invalid Authentication information provided."
 }
 ```
 
@@ -344,22 +369,26 @@ The invitation has been successfully cancelled
 
 ```
 {
-  "code": "INVALID_INVITATION_STATUS"
+  "code": "INVALID_INVITATION_STATUS",
+  "message": "The requested state transition is not permitted given the invitation's current status."
 }
 ```
 ```
 {
-  "code": "NOT_AN_AGENT"
+  "code": "NOT_AN_AGENT",
+  "message": "The logged in user is not an agent."
 }
 ```
 ```
 {
-  "code": "AGENT_NOT_SUBSCRIBED"
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "The Agent is not subscribed to Agent Services."
 }
 ```
 ```
 {
-  "code": "NO_PERMISSION_ON_AGENCY"
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The logged in user is not permitted to access invitations for the specified agency."
 }
 ```
 
@@ -374,7 +403,8 @@ The invitation has been successfully cancelled
 
 ```
 {
-  "code": "INVITATION_NOT_FOUND"
+  "code": "INVITATION_NOT_FOUND",
+  "message": "The specified invitation was not found."
 }
 ```
 
@@ -392,7 +422,7 @@ The invitation has been successfully cancelled
     
     * Required: true
 
-#### **GET** *(secured)*:
+#### **POST** *(secured)*:
 
 ###### Headers
 
@@ -435,13 +465,53 @@ Check Relationship based on details received.
 ### Response code: 204
 Relationship is active. Agent has delegated authorisation for the client.
 
+### Response code: 400
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "SERVICE_NOT_SUPPORTED",
+  "message": "The specified service is not supported."
+}
+```
+```
+{
+  "code": "CLIENT_ID_FORMAT_INVALID",
+  "message": "The submitted clientId does not match the expected format."
+}
+```
+```
+{
+  "code": "POSTCODE_FORMAT_INVALID",
+  "message": "The submitted postcode does not match the expected format."
+}
+```
+```
+{
+  "code": "VAT_REG_DATE_FORMAT_INVALID",
+  "message": "The submitted VAT registration date does not match the expected format."
+}
+```
+```
+{
+  "code": "CT_UTR_FORMAT_INVALID"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
 ### Response code: 401
 
 #### errorResponse (application/json) 
 
 ```
 {
-  "code": "INVALID_CREDENTIALS"
+  "code": "INVALID_CREDENTIALS",
+  "message": "Invalid Authentication information provided."
 }
 ```
 
@@ -456,17 +526,43 @@ Relationship is active. Agent has delegated authorisation for the client.
 
 ```
 {
-  "code": "NOT_AN_AGENT"
+  "code": "CLIENT_REGISTRATION_NOT_FOUND",
+  "message": "The Client's registration was not found."
 }
 ```
 ```
 {
-  "code": "AGENT_NOT_SUBSCRIBED"
+  "code": "POSTCODE_DOES_NOT_MATCH",
+  "message": "The submitted postcode did not match the client's postcode as held by HMRC."
 }
 ```
 ```
 {
-  "code": "NO_PERMISSION_ON_AGENCY"
+  "code": "VAT_REG_DATE_DOES_NOT_MATCH",
+  "message": "The submitted VAT registration date did not match HMRC record for the client."
+}
+```
+```
+{
+  "code": "CT_UTR_DOES_NOT_MATCH"
+}
+```
+```
+{
+  "code": "NOT_AN_AGENT",
+  "message": "The logged in user is not an agent."
+}
+```
+```
+{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "The Agent is not subscribed to Agent Services."
+}
+```
+```
+{
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The logged in user is not permitted to access invitations for the specified agency."
 }
 ```
 

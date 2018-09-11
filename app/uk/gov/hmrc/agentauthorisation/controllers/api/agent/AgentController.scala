@@ -27,7 +27,6 @@ import uk.gov.hmrc.agentauthorisation.models.AgentInvitationReceived
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, PendingInvitation, RespondedInvitation }
-import uk.gov.hmrc.agentauthorisation.services.InvitationService
 import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, MtdItId, Vrn }
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
@@ -36,14 +35,14 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import play.api.libs.json.Json._
 import uk.gov.hmrc.agentauthorisation.audit.AuditService
-import uk.gov.hmrc.agentauthorisation.connectors.{ DesConnector, RelationshipsConnector }
+import uk.gov.hmrc.agentauthorisation.connectors.{ DesConnector, InvitationsConnector, RelationshipsConnector }
 
 import scala.concurrent.Future
 
 @Singleton
 class AgentController @Inject() (
   @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
-  invitationService: InvitationService,
+  invitationsConnector: InvitationsConnector,
   relationshipsConnector: RelationshipsConnector,
   desConnector: DesConnector,
   auditService: AuditService,
@@ -81,7 +80,7 @@ class AgentController @Inject() (
     withAuthorisedAsAgent { (arn, _) =>
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
-        invitationService.getInvitationService(arn, invitationId)
+        invitationsConnector.getInvitation(arn, invitationId)
           .map {
             case pendingInv @ Some(PendingInvitation(pendingInvitation)) =>
               val id = pendingInv.get.href.toString.split("/").toStream.last
@@ -106,7 +105,7 @@ class AgentController @Inject() (
     withAuthorisedAsAgent { (arn, _) =>
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
-        invitationService.cancelInvitationService(arn, invitationId).map {
+        invitationsConnector.cancelInvitation(arn, invitationId).map {
           case Some(204) =>
             auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Success")
             NoContent
@@ -177,8 +176,8 @@ class AgentController @Inject() (
         hasKnownFact <- checkKnownFactMatches(agentInvitation)
         result <- hasKnownFact match {
           case Some(true) =>
-            invitationService.createInvitationService(arn, agentInvitation).flatMap { invitationUrl =>
-              val id = invitationUrl.toString.split("/").toStream.last
+            invitationsConnector.createInvitation(arn, agentInvitation).flatMap { invitationUrl =>
+              val id = invitationUrl.getOrElse(throw new Exception("Invitation location expected but missing.")).toString.split("/").toStream.last
               val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
               auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
               Future successful NoContent.withHeaders(LOCATION -> newInvitationUrl)
@@ -210,8 +209,8 @@ class AgentController @Inject() (
 
   private def checkKnownFactMatches(agentInvitation: AgentInvitation)(implicit hc: HeaderCarrier) = {
     agentInvitation.service match {
-      case "HMRC-MTD-IT" => invitationService.checkPostcodeMatches(Nino(agentInvitation.clientId), agentInvitation.knownFact)
-      case _ => invitationService.checkVatRegDateMatches(Vrn(agentInvitation.clientId), LocalDate.parse(agentInvitation.knownFact))
+      case "HMRC-MTD-IT" => invitationsConnector.checkPostcodeForClient(Nino(agentInvitation.clientId), agentInvitation.knownFact)
+      case _ => invitationsConnector.checkVatRegDateForClient(Vrn(agentInvitation.clientId), LocalDate.parse(agentInvitation.knownFact))
     }
   }
 
