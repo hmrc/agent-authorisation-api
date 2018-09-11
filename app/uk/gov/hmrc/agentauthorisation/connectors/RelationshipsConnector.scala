@@ -37,40 +37,28 @@ class RelationshipsConnector @Inject() (
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   private[connectors] def checkItsaRelationshipUrl(arn: Arn, mtdItId: MtdItId): URL =
-    new URL(baseUrl, s"/agent-client-relationships/agent/$arn/service/HMRC-MTD-IT/client/MTDITID/$mtdItId")
+    new URL(baseUrl, s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-IT/client/MTDITID/${mtdItId.value}")
 
   private[connectors] def checkVatRelationshipUrl(arn: Arn, vrn: Vrn): URL =
-    new URL(baseUrl, s"/agent-client-relationships/agent/$arn/service/HMRC-MTD-VAT/client/VRN/$vrn")
+    new URL(baseUrl, s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
 
   def checkItsaRelationship(arn: Arn, mtdItId: MtdItId)(
     implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[Int]] =
+    ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaRelationship-GET") {
-      http.GET[HttpResponse](checkItsaRelationshipUrl(arn, mtdItId).toString) map { response =>
-        response.status match {
-          case 200 => Some(204)
-          case _ => Some(404)
-        }
-      }
+      http.GET[HttpResponse](checkItsaRelationshipUrl(arn, mtdItId).toString) map (_ => true)
     }.recover {
-      case _ => None
+      case notFound: NotFoundException => false
     }
 
   def checkVatRelationship(arn: Arn, vrn: Vrn)(
     implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[Int]] =
+    ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-VatRelationship-GET") {
-      http.GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString) map { response =>
-        response.status match {
-          case 200 => Some(204)
-          case _ => Some(404)
-        }
-      }
+      http.GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString).map(_ => true)
     }.recover {
-      case _ => {
-        None
-      }
+      case notFound: NotFoundException => false
     }
 }

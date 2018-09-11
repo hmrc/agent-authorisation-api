@@ -114,10 +114,10 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for ITSA" in {
-      val jsonBodyInvalidService = Json.parse(
+      val jsonBodyInvalidClientId = Json.parse(
         s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "foo", "knownFact": "$validPostcode"}""")
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
 
       status(result) shouldBe 400
       await(result) shouldBe InvalidItsaNino
@@ -125,10 +125,10 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for VAT" in {
-      val jsonBodyInvalidService = Json.parse(
+      val jsonBodyInvalidClientId = Json.parse(
         s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "foo", "knownFact": "$validVatRegDate"}""")
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
 
       status(result) shouldBe 400
       await(result) shouldBe InvalidVatVrn
@@ -136,10 +136,10 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 400 POSTCODE_FORMAT_INVALID when the postcode has an invalid format" in {
-      val jsonBodyInvalidService = Json.parse(
+      val jsonBodyInvalidPostcode = Json.parse(
         s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "foo"}""")
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidPostcode), arn.value))
 
       status(result) shouldBe 400
       await(result) shouldBe PostcodeFormatInvalid
@@ -147,10 +147,10 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 400 VAT_REG_DATE_FORMAT_INVALID when the VAT registration date has an invalid format" in {
-      val jsonBodyInvalidService = Json.parse(
+      val jsonBodyInvalidVatRegDate = Json.parse(
         s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidVatRegDate), arn.value))
 
       status(result) shouldBe 400
       await(result) shouldBe VatRegDateFormatInvalid
@@ -158,10 +158,10 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for ITSA" in {
-      val jsonBodyInvalidService = Json.parse(
+      val jsonBodyClientIdNotMatchService = Json.parse(
         s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
 
       status(result) shouldBe 400
       await(result) shouldBe ClientIdDoesNotMatchService
@@ -169,10 +169,10 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for VAT" in {
-      val jsonBodyInvalidService = Json.parse(
+      val jsonBodyClientIdNotMatchService = Json.parse(
         s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}""")
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
 
       status(result) shouldBe 400
       await(result) shouldBe ClientIdDoesNotMatchService
@@ -552,6 +552,178 @@ class AgentControllerISpec extends BaseISpec {
         val result = cancelInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
         status(result) shouldBe 204
         verifyAgentClientInvitationCancelledEvent(arn.value, invitationIdVAT)
+      }
+    }
+  }
+
+  "POST /agents/:arn/relationships" when {
+
+    "getting the status of an ITSA relationship" should {
+      val checkRelationshipApi = controller.checkRelationshipApi(arn)
+      val request = FakeRequest("POST", s"/agents/$arn/relationships")
+
+      "return 204 when the relationship is active for ITSA" in {
+        getStatusRelationshipItsa(arn.value, mtdItId, 200)
+        givenMatchingClientIdAndPostcode(validNino, validPostcode)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+        status(result) shouldBe 204
+      }
+
+      "return 204 when the relationship is active for VAT" in {
+        getStatusRelationshipVat(arn.value, validVrn, 200)
+        checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+        status(result) shouldBe 204
+      }
+
+      "return 404 when the relationship is not found for ITSA" in {
+        getStatusRelationshipItsa(arn.value, mtdItId, 404)
+        givenMatchingClientIdAndPostcode(validNino, validPostcode)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+        status(result) shouldBe 404
+      }
+
+      "return 404 when the relationship is not found for VAT" in {
+        getStatusRelationshipVat(arn.value, validVrn, 404)
+        checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+        status(result) shouldBe 404
+      }
+
+      "return 400 SERVICE_NOT_SUPPORTED when the service is not supported" in {
+        val jsonBodyInvalidService = Json.parse(
+          s"""{"service": ["foo"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}""")
+
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+
+        status(result) shouldBe 400
+        await(result) shouldBe UnsupportedService
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      }
+
+      "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for ITSA" in {
+        val jsonBodyInvalidClientId = Json.parse(
+          s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "foo", "knownFact": "$validPostcode"}""")
+
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
+
+        status(result) shouldBe 400
+        await(result) shouldBe InvalidItsaNino
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+
+      }
+
+      "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for VAT" in {
+        val jsonBodyInvalidClientId = Json.parse(
+          s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "foo", "knownFact": "$validVatRegDate"}""")
+
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
+
+        status(result) shouldBe 400
+        await(result) shouldBe InvalidVatVrn
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      }
+
+      "return 400 POSTCODE_FORMAT_INVALID when the postcode has an invalid format" in {
+        val jsonBodyInvalidPostcode = Json.parse(
+          s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "foo"}""")
+
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidPostcode), arn.value))
+
+        status(result) shouldBe 400
+        await(result) shouldBe PostcodeFormatInvalid
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+
+      }
+
+      "return 400 VAT_REG_DATE_FORMAT_INVALID when the VAT registration date has an invalid format" in {
+        val jsonBodyInvalidVatRegDate = Json.parse(
+          s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
+
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidVatRegDate), arn.value))
+
+        status(result) shouldBe 400
+        await(result) shouldBe VatRegDateFormatInvalid
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+
+      }
+
+      "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for ITSA" in {
+        val jsonBodyClientIdNotMatchService = Json.parse(
+          s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
+
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
+
+        status(result) shouldBe 400
+        await(result) shouldBe ClientIdDoesNotMatchService
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+
+      }
+
+      "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for VAT" in {
+        val jsonBodyClientIdNotMatchService = Json.parse(
+          s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}""")
+
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
+
+        status(result) shouldBe 400
+        await(result) shouldBe ClientIdDoesNotMatchService
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      }
+
+      "return 403 CLIENT_REGISTRATION_NOT_FOUND when the postcode returns nothing" in {
+        givenNotEnrolledClientITSA(validNino, validPostcode)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+
+        status(result) shouldBe 403
+        await(result) shouldBe ClientRegistrationNotFound
+        verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+      }
+
+      "return 403 CLIENT_REGISTRATION_NOT_FOUND when the VAT registration date returns nothing" in {
+        checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 404)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+
+        status(result) shouldBe 403
+        await(result) shouldBe ClientRegistrationNotFound
+        verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+      }
+
+      "return 403 POSTCODE_DOES_NOT_MATCH when the postcode and clientId do not match" in {
+        givenNonMatchingClientIdAndPostcode(validNino, validPostcode)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+
+        status(result) shouldBe 403
+        await(result) shouldBe PostcodeDoesNotMatch
+        verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("POSTCODE_DOES_NOT_MATCH"))
+      }
+
+      "return 403 VAT_REG_DATE_DOES_NOT_MATCH when the VAT registration date and clientId do not match" in {
+        checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 403)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+
+        status(result) shouldBe 403
+        await(result) shouldBe VatRegDateDoesNotMatch
+        verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+      }
+
+      "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
+        givenUnauthorisedForInsufficientEnrolments()
+        val result = checkRelationshipApi(request.withJsonBody(jsonBodyITSA))
+
+        status(result) shouldBe 401
+        await(result) shouldBe InvalidCredentials
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+
+      }
+
+      "return 403 NOT_PERMISSION_ON_AGENCY when the logged in user does not have an HMRC-AS-AGENT enrolment" in {
+        createInvitationStub(arn, validNino.value, invitationIdITSA, validNino.value, "ni", "HMRC-MTD-IT", "MTDITID", validPostcode)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn2.value))
+
+        status(result) shouldBe 403
+        await(result) shouldBe NoPermissionOnAgency
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
       }
     }
   }
