@@ -49,8 +49,6 @@ See our [reference guide](/api-documentation/docs/reference-guide#errors) for mo
 
 ---
 
-## /agents/{arn}
-
 ### /agents/{arn}/invitations
 
 * **arn**: The MTD platform Agent Registration Number.
