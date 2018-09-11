@@ -48,9 +48,13 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
 
     bindProperty("appName")
+    bindProperty2param("des.environment", "des.environment")
+    bindProperty2param("des.authorizationToken", "des.authorization-token")
     bindBaseUrl("auth")
     bindBaseUrl("agent-client-authorisation")
+    bindBaseUrl("agent-client-relationships")
     bindBaseUrl("service-locator")
+    bindBaseUrl("des")
     bindServiceProperty("agent-invitations-frontend.external-url")
     bindServiceBooleanProperty("service-locator.enabled")
 
@@ -99,6 +103,14 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
   private class PropertyProvider(confKey: String) extends Provider[String] {
     override lazy val get = configuration.getString(confKey)
       .getOrElse(throw new IllegalStateException(s"No value found for configuration property $confKey"))
+  }
+
+  private def bindProperty2param(objectName: String, propertyName: String) =
+    bind(classOf[String]).annotatedWith(Names.named(objectName)).toProvider(new PropertyProvider2param(propertyName))
+
+  private class PropertyProvider2param(confKey: String) extends Provider[String] {
+    override lazy val get =
+      getConfString(confKey, throw new IllegalStateException(s"No value found for configuration property $confKey"))
   }
 
 }

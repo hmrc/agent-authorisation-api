@@ -24,7 +24,7 @@
   "api": {
     "name": "Agent Authorisation",
     "description": "An API allowing MTD-enabled Agents to request authorisation to a service for a client, instead of filling the 64-8 paper form.",
-    "context": "agent-authorisation",
+    "context": "agents",
     "versions": [{
       "version": "0.0",
       "status": "ALPHA",
