@@ -51,12 +51,6 @@ See our [reference guide](/api-documentation/docs/reference-guide#errors) for mo
 
 ## /agents/{arn}
 
-#### Available endpoints
-
-* [/agents/{arn}/invitations](#agentsarninvitations)* [/agents/{arn}/invitations/{invitationId}](#agentsarninvitationsinvitationid)
-
-* [/agents/{arn}/relationships](#agentsarnrelationships)
-
 ### /agents/{arn}/invitations
 
 * **arn**: The MTD platform Agent Registration Number.
