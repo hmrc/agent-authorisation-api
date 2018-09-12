@@ -35,7 +35,7 @@ class AgentControllerISpec extends BaseISpec {
     "Pending")
 
   val pendingItsaInvitation = PendingInvitation(
-    s"/agents/TARN0000001/invitations/ABERULMHCKKW3",
+    s"/TARN0000001/invitations/ABERULMHCKKW3",
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
@@ -44,7 +44,7 @@ class AgentControllerISpec extends BaseISpec {
     s"http://localhost:9448/invitations/${invitationIdITSA.value}")
 
   val respondedItsaInvitation = RespondedInvitation(
-    s"/agents/TARN0000001/invitations/ABERULMHCKKW3",
+    s"/TARN0000001/invitations/ABERULMHCKKW3",
     "2017-10-31T23:22:50.971Z",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
@@ -61,7 +61,7 @@ class AgentControllerISpec extends BaseISpec {
     "Pending")
 
   val pendingVatInvitation = PendingInvitation(
-    s"/agents/TARN0000001/invitations/CZTW1KY6RTAAT",
+    s"/TARN0000001/invitations/CZTW1KY6RTAAT",
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
@@ -70,7 +70,7 @@ class AgentControllerISpec extends BaseISpec {
     s"http://localhost:9448/invitations/${invitationIdVAT.value}")
 
   val respondedVatInvitation = RespondedInvitation(
-    s"/agents/TARN0000001/invitations/CZTW1KY6RTAAT",
+    s"/TARN0000001/invitations/CZTW1KY6RTAAT",
     "2017-10-31T23:22:50.971Z",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),

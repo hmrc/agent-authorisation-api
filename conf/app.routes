@@ -1,7 +1,7 @@
-POST /agents/:arn/invitations       @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.createInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn)
+POST /:arn/invitations       @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.createInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn)
 
-GET /agents/:arn/invitations/:invitationId   @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.getInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn, invitationId: uk.gov.hmrc.agentmtdidentifiers.model.InvitationId)
+GET /:arn/invitations/:invitationId   @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.getInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn, invitationId: uk.gov.hmrc.agentmtdidentifiers.model.InvitationId)
 
-DELETE /agents/:arn/invitations/:invitationId   @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.cancelInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn, invitationId: uk.gov.hmrc.agentmtdidentifiers.model.InvitationId)
+DELETE /:arn/invitations/:invitationId   @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.cancelInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn, invitationId: uk.gov.hmrc.agentmtdidentifiers.model.InvitationId)
 
-POST /agents/:arn/relationships  @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.checkRelationshipApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn)
+POST /:arn/relationships  @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.checkRelationshipApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn)
