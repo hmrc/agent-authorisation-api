@@ -38,10 +38,10 @@ class ApiPlatformRequestHandler @Inject() (router: Router, errorHandler: HttpErr
   }
 
   private def addApiPlatformContext(path: String) = {
-    val context = "/agent-authorisation"
+    val context = "/agents"
     if (path == "/") {
-      // special case for root - /agent-authorisation/ results in a 404
-      // so we need to make it /agent-authorisation instead
+      // special case for root - /agents/ results in a 404
+      // so we need to make it /agents instead
       context
     } else {
       context + path
