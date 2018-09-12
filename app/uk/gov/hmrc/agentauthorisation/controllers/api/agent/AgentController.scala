@@ -83,7 +83,7 @@ class AgentController @Inject() (
         invitationsConnector.getInvitation(arn, invitationId)
           .map {
             case pendingInv @ Some(PendingInvitation(pendingInvitation)) =>
-              auditService.sendAgentGetInvitation(arn, invitationId.value, "Success", Some(pendingInvitation.status))
+              auditService.sendAgentGetInvitation(arn, invitationId.value, "Success", invitation = Some(pendingInvitation))
               val id = pendingInv.get.href.toString.split("/").toStream.last
               val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
               Ok(toJson(pendingInvitation
@@ -91,7 +91,7 @@ class AgentController @Inject() (
                 .copy(href = newInvitationUrl))
                 .as[JsObject])
             case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
-              auditService.sendAgentGetInvitation(arn, invitationId.value, "Success", Some(respondedInvitation.status))
+              auditService.sendAgentGetInvitation(arn, invitationId.value, "Success", invitation = Some(respondedInvitation))
               val id = respondedInv.get.href.toString.split("/").toStream.last
               val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
               Ok(toJson(respondedInvitation.copy(href = newInvitationUrl)).as[JsObject])

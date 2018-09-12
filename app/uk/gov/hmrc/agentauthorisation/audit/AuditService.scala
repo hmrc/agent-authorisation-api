@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.audit
 import javax.inject.{ Inject, Singleton }
 import play.api.mvc.Request
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
-import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
+import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, Invitation }
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -65,7 +65,7 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     arn: Arn,
     invitationId: String,
     result: String,
-    status: Option[String] = None,
+    invitation: Option[Invitation] = None,
     failure: Option[String] = None)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
     auditEvent(
       AgentAuthorisationEvent.AgentGetInvitationApi,
@@ -74,7 +74,7 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
         "result" -> result,
         "invitationId" -> invitationId,
         "agentReferenceNumber" -> arn.value).filter(_._2.nonEmpty) ++
-        status.map(e => Seq("status" -> e)).getOrElse(Seq.empty) ++
+        invitation.map(i => Seq("service" -> i.service, "status" -> i.status)).getOrElse(Seq.empty) ++
         failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty))
 
   def sendAgentInvitationCancelled(

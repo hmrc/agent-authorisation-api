@@ -7,7 +7,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentauthorisation._
-import uk.gov.hmrc.agentauthorisation.models.{ PendingInvitation, RespondedInvitation, StoredInvitation }
+import uk.gov.hmrc.agentauthorisation.models.{ Invitation, PendingInvitation, RespondedInvitation, StoredInvitation }
 import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId }
 import uk.gov.hmrc.http.SessionKeys
 import play.api.libs.json.Json._
@@ -274,7 +274,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         contentAsJson(result) shouldBe toJson(pendingItsaInvitation).as[JsObject]
-        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some("Pending"))
+        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some(pendingItsaInvitation))
       }
 
       "return 200 and a json body of a responded invitation" in {
@@ -283,7 +283,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
-        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some("Accepted"))
+        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some(respondedItsaInvitation))
       }
 
       "return 401 for Invalid Credentials" in {
@@ -572,7 +572,7 @@ class AgentControllerISpec extends BaseISpec {
         status(result) shouldBe 204
       }
 
-      "throw an exception when the Nino cannot be converted to MtdItId" in {
+      "return 404 when the Nino cannot be converted to MtdItId" in {
         givenMtdItIdIsUnKnownFor(validNino)
         getStatusRelationshipItsa(arn.value, mtdItId, 200)
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
@@ -764,7 +764,7 @@ class AgentControllerISpec extends BaseISpec {
     arn: String,
     invitationId: String,
     result: String,
-    status: Option[String] = None,
+    invitation: Option[Invitation] = None,
     failure: Option[String] = None): Unit =
     verifyAuditRequestSent(
       1,
@@ -773,7 +773,7 @@ class AgentControllerISpec extends BaseISpec {
         "result" -> result,
         "invitationId" -> invitationId,
         "agentReferenceNumber" -> arn).filter(_._2.nonEmpty) ++
-        status.map(s => Seq("status" -> s)).getOrElse(Seq.empty) ++
+        invitation.map(i => Seq("service" -> i.service, "status" -> i.status)).getOrElse(Seq.empty) ++
         failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
       tags = Map(
         "transactionName" -> "Agent retrieved invitation through third party software"))

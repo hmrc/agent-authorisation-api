@@ -21,6 +21,11 @@ import play.api.libs.json._
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import play.api.libs.functional.syntax._
 
+trait Invitation {
+  val service: String
+  val status: String
+}
+
 case class StoredInvitation(
   href: String,
   created: String,
@@ -58,7 +63,7 @@ case class PendingInvitation(
   arn: Arn,
   service: String,
   status: String,
-  clientActionUrl: String)
+  clientActionUrl: String) extends Invitation
 
 object PendingInvitation {
 
@@ -98,7 +103,7 @@ case class RespondedInvitation(
   updated: String,
   arn: Arn,
   service: String,
-  status: String)
+  status: String) extends Invitation
 
 object RespondedInvitation {
 

@@ -17,9 +17,4 @@ trait DesStubs {
       get(urlEqualTo(s"/registration/business-details/nino/${nino.value}"))
         .willReturn(aResponse().withStatus(404)))
 
-  def givenNinoIsInvalid(nino: Nino): StubMapping =
-    stubFor(
-      get(urlMatching(s"/registration/.*?/nino/${nino.value}"))
-        .willReturn(aResponse().withStatus(400)))
-
 }
