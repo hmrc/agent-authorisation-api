@@ -30,7 +30,7 @@ import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, PendingInvitatio
 import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, MtdItId, Vrn }
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import play.api.libs.json.Json._
@@ -83,6 +83,7 @@ class AgentController @Inject() (
         invitationsConnector.getInvitation(arn, invitationId)
           .map {
             case pendingInv @ Some(PendingInvitation(pendingInvitation)) =>
+              auditService.sendAgentGetInvitation(arn, invitationId.value, "Success", invitation = Some(pendingInvitation))
               val id = pendingInv.get.href.toString.split("/").toStream.last
               val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
               Ok(toJson(pendingInvitation
@@ -90,10 +91,12 @@ class AgentController @Inject() (
                 .copy(href = newInvitationUrl))
                 .as[JsObject])
             case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
+              auditService.sendAgentGetInvitation(arn, invitationId.value, "Success", invitation = Some(respondedInvitation))
               val id = respondedInv.get.href.toString.split("/").toStream.last
               val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
               Ok(toJson(respondedInvitation.copy(href = newInvitationUrl)).as[JsObject])
             case _ =>
+              auditService.sendAgentGetInvitation(arn, invitationId.value, "Fail", failure = Some("INVITATION_NOT_FOUND"))
               Logger(getClass).warn(s"Invitation ${invitationId.value} Not Found")
               InvitationNotFound
           }
@@ -157,15 +160,16 @@ class AgentController @Inject() (
         result <- hasKnownFact match {
           case Some(true) => checkRelationship(agentInvitation, arn)
           case Some(false) =>
-            knownFactNotMatchedAudit(agentInvitation, arn)
+            knownFactNotMatchedAudit(agentInvitation, arn, "checkRelationship")
             Future successful knownFactDoesNotMatch(agentInvitation.service)
           case _ =>
-            auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+            auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("CLIENT_REGISTRATION_NOT_FOUND"))
             Logger(getClass).warn(s"Client Registration Not Found")
             Future successful ClientRegistrationNotFound
         }
       } yield result
     } else {
+      Logger(getClass).warn(s"Invalid Format for supplied Known Fact")
       Future successful knownFactFormatInvalid(agentInvitation.service)
     }
   }
@@ -188,7 +192,7 @@ class AgentController @Inject() (
                 Future.failed(e)
             }
           case Some(false) =>
-            knownFactNotMatchedAudit(agentInvitation, arn)
+            knownFactNotMatchedAudit(agentInvitation, arn, "createInvitation")
             Future successful knownFactDoesNotMatch(agentInvitation.service)
           case _ =>
             auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("CLIENT_REGISTRATION_NOT_FOUND"))
@@ -197,6 +201,7 @@ class AgentController @Inject() (
         }
       } yield result
     } else {
+      Logger(getClass).warn(s"Invalid Format for supplied Known Fact")
       Future successful knownFactFormatInvalid(agentInvitation.service)
     }
   }
@@ -214,10 +219,16 @@ class AgentController @Inject() (
     }
   }
 
-  private def knownFactNotMatchedAudit(agentInvitation: AgentInvitation, arn: Arn)(implicit hc: HeaderCarrier, request: Request[_]) = {
+  private def knownFactNotMatchedAudit(agentInvitation: AgentInvitation, arn: Arn, usage: String)(implicit hc: HeaderCarrier, request: Request[_]) = {
     agentInvitation.service match {
-      case "HMRC-MTD-IT" => auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
-      case "HMRC-MTD-VAT" => auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+      case "HMRC-MTD-IT" => usage match {
+        case "createInvitation" => auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
+        case "checkRelationship" => auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
+      }
+      case "HMRC-MTD-VAT" => usage match {
+        case "createInvitation" => auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+        case "checkRelationship" => auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+      }
     }
   }
 
@@ -226,17 +237,30 @@ class AgentController @Inject() (
       case "HMRC-MTD-IT" => {
         val res = for {
           mtdItId <- desConnector.getMtdIdFor(Nino(agentInvitation.clientId))
-          result <- relationshipsConnector.checkItsaRelationship(arn, mtdItId)
+          result <- mtdItId match {
+            case Right(id) => relationshipsConnector.checkItsaRelationship(arn, id)
+            case Left(_) => Future successful false
+          }
         } yield result
         res.map {
-          case true => NoContent
-          case false => NotFound
+          case true =>
+            auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Success")
+            NoContent
+          case false =>
+            auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("ITSA_RELATIONSHIP_NOT_FOUND"))
+            Logger(getClass).warn(s"No ITSA Relationship Found")
+            NotFound
         }
       }
       case "HMRC-MTD-VAT" => {
         relationshipsConnector.checkVatRelationship(arn, Vrn(agentInvitation.clientId)).map {
-          case true => NoContent
-          case false => NotFound
+          case true =>
+            auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Success")
+            NoContent
+          case false =>
+            auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("VAT_RELATIONSHIP_NOT_FOUND"))
+            Logger(getClass).warn(s"No VAT Relationship Found")
+            NotFound
         }
       }
     }
