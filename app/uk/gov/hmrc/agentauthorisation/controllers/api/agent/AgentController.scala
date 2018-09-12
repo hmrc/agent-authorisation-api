@@ -16,26 +16,26 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-import javax.inject.{ Inject, Named, Singleton }
+import javax.inject.{Inject, Named, Singleton}
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import play.api.Logger
 import play.api.libs.json.JsObject
-import play.api.mvc.{ Action, AnyContent, Request, Result }
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitationReceived
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
-import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, PendingInvitation, RespondedInvitation }
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, MtdItId, Vrn }
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, PendingInvitation, RespondedInvitation}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, MtdItId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import play.api.libs.json.Json._
 import uk.gov.hmrc.agentauthorisation.audit.AuditService
-import uk.gov.hmrc.agentauthorisation.connectors.{ DesConnector, InvitationsConnector, RelationshipsConnector }
+import uk.gov.hmrc.agentauthorisation.connectors.{DesConnector, InvitationsConnector, RelationshipsConnector}
 
 import scala.concurrent.Future
 
@@ -226,7 +226,10 @@ class AgentController @Inject() (
       case "HMRC-MTD-IT" => {
         val res = for {
           mtdItId <- desConnector.getMtdIdFor(Nino(agentInvitation.clientId))
-          result <- relationshipsConnector.checkItsaRelationship(arn, mtdItId)
+          result <- mtdItId match {
+            case Right(id) => relationshipsConnector.checkItsaRelationship(arn, id)
+            case Left(_) => Future successful false
+          }
         } yield result
         res.map {
           case true => NoContent

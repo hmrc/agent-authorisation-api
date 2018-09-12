@@ -563,10 +563,22 @@ class AgentControllerISpec extends BaseISpec {
       val request = FakeRequest("POST", s"/agents/$arn/relationships")
 
       "return 204 when the relationship is active for ITSA" in {
+        givenMtdItIdIsKnownFor(validNino, mtdItId)
         getStatusRelationshipItsa(arn.value, mtdItId, 200)
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
         status(result) shouldBe 204
+      }
+
+      "throw an exception when the Nino cannot be converted to MtdItId" in {
+        givenMtdItIdIsUnKnownFor(validNino)
+        getStatusRelationshipItsa(arn.value, mtdItId, 200)
+        givenMatchingClientIdAndPostcode(validNino, validPostcode)
+//        an[ClassNotFoundException] shouldBe thrownBy {
+//          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+//        }
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+        status(result) shouldBe 404
       }
 
       "return 204 when the relationship is active for VAT" in {
