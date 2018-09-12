@@ -2,13 +2,12 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import com.kenshoo.play.metrics.Metrics
 import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.agentauthorisation.support.{BaseISpec}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, MtdItId, Utr, Vrn}
+import uk.gov.hmrc.agentauthorisation.support.BaseISpec
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, MtdItId, Vrn }
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class DesConnectorSpec extends BaseISpec {
 
@@ -19,7 +18,6 @@ class DesConnectorSpec extends BaseISpec {
   val httpPost = app.injector.instanceOf[HttpPost]
 
   private implicit val hc = HeaderCarrier()
-  private implicit val ec = ExecutionContext.global
 
   val http = app.injector.instanceOf[HttpPost with HttpGet with HttpPut]
 
@@ -37,12 +35,12 @@ class DesConnectorSpec extends BaseISpec {
 
     "return MtdItId when agent's nino is known to ETMP" in {
       givenMtdItIdIsKnownFor(nino, mtdItId)
-      await(desConnector.getMtdIdFor(nino)) shouldBe mtdItId
+      await(desConnector.getMtdIdFor(nino)) shouldBe Right(mtdItId)
     }
 
     "return nothing when agent's nino identifier is unknown to ETMP" in {
       givenMtdItIdIsUnKnownFor(nino)
-      an[Exception] should be thrownBy await(desConnector.getMtdIdFor(nino))
+      await(desConnector.getMtdIdFor(nino)) shouldBe Left(false)
     }
   }
 }

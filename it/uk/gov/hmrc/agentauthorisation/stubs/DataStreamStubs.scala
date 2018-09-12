@@ -33,7 +33,7 @@ trait DataStreamStubs extends Eventually {
           .withRequestBody(
             similarToJson(
               s"""{
-                 |  "auditSource": "agent-authorisation",
+                 |  "auditSource": "agent-authorisation-api",
                  |  "auditType": "$event",
                  |  "tags": ${Json.toJson(tags)},
                  |  "detail": ${Json.toJson(detail)}
@@ -48,7 +48,7 @@ trait DataStreamStubs extends Eventually {
           .withRequestBody(
             similarToJson(
               s"""{
-                 |  "auditSource": "agent-authorisation",
+                 |  "auditSource": "agent-authorisation-api",
                  |  "auditType": "$event"
                  |}""")))
     }

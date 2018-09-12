@@ -18,11 +18,9 @@ package uk.gov.hmrc.agentauthorisation.audit
 
 import javax.inject.{ Inject, Singleton }
 import play.api.mvc.Request
-import uk.gov.hmrc.agentauthorisation.audit
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
-import uk.gov.hmrc.domain.TaxIdentifier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
@@ -33,7 +31,7 @@ import scala.concurrent.Future
 import scala.util.Try
 
 object AgentAuthorisationEvent extends Enumeration {
-  val AgentAuthorisationCreatedViaApi, AgentAuthorisedCancelledViaApi = Value
+  val AgentAuthorisationCreatedViaApi, AgentAuthorisedCancelledViaApi, AgentCheckRelationshipStatusApi, AgentGetInvitationApi = Value
   type AgentAuthorisationEvent = Value
 }
 
@@ -63,6 +61,22 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
         "clientId" -> agentInvitation.clientId,
         "service" -> agentInvitation.service).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty))
 
+  def sendAgentGetInvitation(
+    arn: Arn,
+    invitationId: String,
+    result: String,
+    status: Option[String] = None,
+    failure: Option[String] = None)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
+    auditEvent(
+      AgentAuthorisationEvent.AgentGetInvitationApi,
+      "Agent retrieved invitation through third party software",
+      Seq(
+        "result" -> result,
+        "invitationId" -> invitationId,
+        "agentReferenceNumber" -> arn.value).filter(_._2.nonEmpty) ++
+        status.map(e => Seq("status" -> e)).getOrElse(Seq.empty) ++
+        failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty))
+
   def sendAgentInvitationCancelled(
     arn: Arn,
     invitationId: String,
@@ -76,6 +90,21 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
         "invitationId" -> invitationId,
         "agentReferenceNumber" -> arn.value).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty))
 
+  def sendAgentCheckRelationshipStatus(
+    arn: Arn,
+    agentInvitation: AgentInvitation,
+    result: String,
+    failure: Option[String] = None)(implicit hc: HeaderCarrier, request: Request[Any]): Future[Unit] =
+    auditEvent(
+      AgentAuthorisationEvent.AgentCheckRelationshipStatusApi,
+      "Agent checked status of relationship through third party software",
+      Seq(
+        "result" -> result,
+        "agentReferenceNumber" -> arn.value,
+        "service" -> agentInvitation.service,
+        "clientId" -> agentInvitation.clientId,
+        "clientIdType" -> agentInvitation.clientIdType).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty))
+
   private def createEvent(event: AgentAuthorisationEvent, transactionName: String, details: (String, Any)*)(
     implicit
     hc: HeaderCarrier,
@@ -83,7 +112,7 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
 
     val detail = hc.toAuditDetails(details.map(pair => pair._1 -> pair._2.toString): _*)
     val tags = hc.toAuditTags(transactionName, request.path)
-    DataEvent(auditSource = "agent-authorisation", auditType = event.toString, tags = tags, detail = detail)
+    DataEvent(auditSource = "agent-authorisation-api", auditType = event.toString, tags = tags, detail = detail)
   }
 
   private def send(events: DataEvent*)(implicit hc: HeaderCarrier): Future[Unit] =

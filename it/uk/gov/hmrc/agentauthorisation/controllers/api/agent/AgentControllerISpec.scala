@@ -274,6 +274,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         contentAsJson(result) shouldBe toJson(pendingItsaInvitation).as[JsObject]
+        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some("Pending"))
       }
 
       "return 200 and a json body of a responded invitation" in {
@@ -282,6 +283,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
+        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some("Accepted"))
       }
 
       "return 401 for Invalid Credentials" in {
@@ -574,9 +576,6 @@ class AgentControllerISpec extends BaseISpec {
         givenMtdItIdIsUnKnownFor(validNino)
         getStatusRelationshipItsa(arn.value, mtdItId, 200)
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
-//        an[ClassNotFoundException] shouldBe thrownBy {
-//          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
-//        }
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
         status(result) shouldBe 404
       }
@@ -589,6 +588,7 @@ class AgentControllerISpec extends BaseISpec {
       }
 
       "return 404 when the relationship is not found for ITSA" in {
+        givenMtdItIdIsKnownFor(validNino, mtdItId)
         getStatusRelationshipItsa(arn.value, mtdItId, 404)
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
@@ -684,12 +684,13 @@ class AgentControllerISpec extends BaseISpec {
       }
 
       "return 403 CLIENT_REGISTRATION_NOT_FOUND when the postcode returns nothing" in {
+        givenMtdItIdIsUnKnownFor(validNino)
         givenNotEnrolledClientITSA(validNino, validPostcode)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
         status(result) shouldBe 403
         await(result) shouldBe ClientRegistrationNotFound
-        verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+        verifyAgentCheckRelationshipStatusEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
       }
 
       "return 403 CLIENT_REGISTRATION_NOT_FOUND when the VAT registration date returns nothing" in {
@@ -698,16 +699,17 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe ClientRegistrationNotFound
-        verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+        verifyAgentCheckRelationshipStatusEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
       }
 
       "return 403 POSTCODE_DOES_NOT_MATCH when the postcode and clientId do not match" in {
+        givenMtdItIdIsUnKnownFor(validNino)
         givenNonMatchingClientIdAndPostcode(validNino, validPostcode)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
         status(result) shouldBe 403
         await(result) shouldBe PostcodeDoesNotMatch
-        verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("POSTCODE_DOES_NOT_MATCH"))
+        verifyAgentCheckRelationshipStatusEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("POSTCODE_DOES_NOT_MATCH"))
       }
 
       "return 403 VAT_REG_DATE_DOES_NOT_MATCH when the VAT registration date and clientId do not match" in {
@@ -716,7 +718,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe VatRegDateDoesNotMatch
-        verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+        verifyAgentCheckRelationshipStatusEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
       }
 
       "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
@@ -758,6 +760,24 @@ class AgentControllerISpec extends BaseISpec {
       tags = Map(
         "transactionName" -> "Agent created invitation through third party software"))
 
+  def verifyAgentGetInvitationEvent(
+    arn: String,
+    invitationId: String,
+    result: String,
+    status: Option[String] = None,
+    failure: Option[String] = None): Unit =
+    verifyAuditRequestSent(
+      1,
+      AgentAuthorisationEvent.AgentGetInvitationApi,
+      detail = Map(
+        "result" -> result,
+        "invitationId" -> invitationId,
+        "agentReferenceNumber" -> arn).filter(_._2.nonEmpty) ++
+        status.map(s => Seq("status" -> s)).getOrElse(Seq.empty) ++
+        failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
+      tags = Map(
+        "transactionName" -> "Agent retrieved invitation through third party software"))
+
   def verifyAgentClientInvitationCancelledEvent(
     arn: String,
     invitationId: InvitationId,
@@ -770,5 +790,22 @@ class AgentControllerISpec extends BaseISpec {
         "agentReferenceNumber" -> arn).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
       tags = Map(
         "transactionName" -> "Agent cancelled invitation through third party software"))
-}
 
+  def verifyAgentCheckRelationshipStatusEvent(
+    arn: String,
+    clientId: String,
+    clientIdType: String,
+    result: String,
+    service: String, failure: Option[String] = None): Unit =
+    verifyAuditRequestSent(
+      1,
+      AgentAuthorisationEvent.AgentCheckRelationshipStatusApi,
+      detail = Map(
+        "result" -> result,
+        "agentReferenceNumber" -> arn,
+        "clientIdType" -> clientIdType,
+        "clientId" -> clientId,
+        "service" -> service).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
+      tags = Map(
+        "transactionName" -> "Agent checked status of relationship through third party software"))
+}
