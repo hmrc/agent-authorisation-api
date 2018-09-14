@@ -30,9 +30,15 @@ class ApiPlatformRequestHandler @Inject() (router: Router, errorHandler: HttpErr
   extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters) {
 
   val context = "/agents"
+  val health = "/ping"
+  val api = "/api"
 
   override def handlerForRequest(request: RequestHeader): (RequestHeader, Handler) = {
-    if (!request.path.startsWith(context)) {
+    if (request.path.startsWith(health)) {
+      super.handlerForRequest(request)
+    } else if (request.path.startsWith(api)) {
+      super.handlerForRequest(request)
+    } else if (!request.path.startsWith(context)) {
       super.handlerForRequest(request.copy(path = context + request.path))
     } else {
       super.handlerForRequest(request)
