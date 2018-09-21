@@ -59,7 +59,7 @@ trait AuthActions extends AuthorisedFunctions {
           }
         case _ =>
           Logger(getClass).warn(s"User Attempted to Login with Invalid Credentials")
-          Future successful InvalidCredentials
+          Future successful NotAnAgent
       }
 
   protected def withAuthorisedAsAgent[A](body: (Arn, Boolean) => Future[Result])(
@@ -73,7 +73,7 @@ trait AuthActions extends AuthorisedFunctions {
       } recoverWith {
         case _: InsufficientEnrolments =>
           Logger(getClass).warn(s"User has Insufficient Enrolments to Login")
-          Future successful InvalidCredentials
+          Future successful NotAnAgent
       }
     }
 

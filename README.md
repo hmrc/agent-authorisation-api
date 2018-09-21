@@ -1,7 +1,20 @@
 # Agent Authorisation API documentation version 0.0
 
+### Contents
+* [Overview](#overview)
+* [APIs](#apis)
+* [Why use this API?](#why_use_this_api_)
+* [Usage scenario](#usage_scenario)
+* [Versioning](#versioning)
+* [Errors](#errors)
+* [API details](#api_details)
+
 ### Overview
-This API allows agents to request authorisation to act on a client's behalf for the different MTD tax services and have the option to cancel the authorisation. The API also allows the Agent to check the status of authorisations already requested and query active or inactive relationships. Please note this API has no effect on the existing XML API. 
+This API allows tax agents to request authorisation to act on a client's behalf for a specific Making Tax Digital (MTD) tax service and have the option to cancel the authorisation request.
+
+The API also allows the agent to check the status of authorisations already requested and query active or inactive relationships.
+
+This API has no effect on the existing XML API.
 
 ### APIs
 * [/agent/:arn/invitations](#agentsarninvitations)
@@ -12,13 +25,13 @@ This API allows agents to request authorisation to act on a client's behalf for 
 * [/agent/:arn/relationships](#agentsarnrelationships)
     * [POST](#post-secured-1) Check Status of Relationship   
 
-## Motivation
+### Why use this API?
 Agents often use software to perform services for their clients. 
 The API will benefit these agents since it will allow them to be able to request the invitation link directly through software, to send to their client so that they can authorise the agent for a service. 
 This will save an agent time since currently they must separately log into Agent Services UI to request this link. 
 This also aligns with the API first strategy for Agent Services.
 
-## Usage scenario
+### Usage scenario
 The aim is for the API to mirror the current process that happens through the Agent Services user interface
 * Agent uses 3rd party application/software to request a new authorisation
 * Agent identifier is passed to the API (ARN)
@@ -47,11 +60,13 @@ We use standard [HTTP status codes](/api-documentation/docs/reference-guide#http
 Errors specific to each API are shown in its own Resources section, under Response. 
 See our [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors.
 
+### API details
+
 ---
 
 ### /agents/{arn}/invitations
 
-* **arn**: The MTD platform Agent Registration Number.
+* **arn**: The MTD platform Agent Reference Number.
     * Type: string
     
     * Required: true
@@ -65,7 +80,7 @@ See our [reference guide](/api-documentation/docs/reference-guide#errors) for mo
 | Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
-Create a new invitation.
+Create a new authorisation request.
 
 ```
 {
@@ -83,6 +98,7 @@ Create a new invitation.
   "knownFact": "2007-05-18"
 }
 ```
+The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "service": ["MTD-VAT"],
@@ -112,47 +128,38 @@ The invitation was successfully created.
 ```
 {
   "code": "SERVICE_NOT_SUPPORTED",
-  "message": "The specified service is not supported."
+  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
 }
 ```
 ```
 {
   "code": "CLIENT_ID_FORMAT_INVALID",
-  "message": "The submitted clientId does not match the expected format."
+  "message": "Client identifier must be in the correct format. Check the API documentation to find the correct format."
+}
+```
+```
+{
+  "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
+  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
 }
 ```
 ```
 {
   "code": "POSTCODE_FORMAT_INVALID",
-  "message": "The submitted postcode does not match the expected format."
+  "message": "Postcode must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
 ```
 {
   "code": "VAT_REG_DATE_FORMAT_INVALID",
-  "message": "The submitted VAT registration date does not match the expected format."
+  "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
+The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "code": "CT_UTR_FORMAT_INVALID",
-  "message": "The submitted CT UTR does not match the expected format."
-}
-```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
-### Response code: 401
-
-#### errorResponse (application/json) 
-
-```
-{
-  "code": "INVALID_CREDENTIALS",
-  "message": "Invalid Authentication information provided."
+  "message": "Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
 
@@ -168,7 +175,7 @@ The invitation was successfully created.
 ```
 {
   "code": "CLIENT_REGISTRATION_NOT_FOUND",
-  "message": "The Client's registration was not found."
+  "message": "The details provided for this client do not match HMRC's records."
 }
 ```
 ```
@@ -183,6 +190,7 @@ The invitation was successfully created.
   "message": "The submitted VAT registration date did not match HMRC record for the client."
 }
 ```
+The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "code": "CT_UTR_DOES_NOT_MATCH",
@@ -192,19 +200,19 @@ The invitation was successfully created.
 ```
 {
   "code": "NOT_AN_AGENT",
-  "message": "The logged in user is not an agent."
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
 }
 ```
 ```
 {
   "code": "AGENT_NOT_SUBSCRIBED",
-  "message": "The Agent is not subscribed to Agent Services."
+  "message": "This agent needs to create an agent services account before they can use this service."
 }
 ```
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The logged in user is not permitted to access invitations for the specified agency."
+  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -269,22 +277,6 @@ Returns the invitation.
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
 
-### Response code: 401
-
-#### errorResponse (application/json) 
-
-```
-{
-  "code": "INVALID_CREDENTIALS",
-  "message": "Invalid Authentication information provided."
-}
-```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 403
 
 #### errorResponse (application/json) 
@@ -292,19 +284,19 @@ Returns the invitation.
 ```
 {
   "code": "NOT_AN_AGENT",
-  "message": "The logged in user is not an agent."
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
 }
 ```
 ```
 {
   "code": "AGENT_NOT_SUBSCRIBED",
-  "message": "The Agent is not subscribed to Agent Services."
+  "message": "This agent needs to create an agent services account before they can use this service."
 }
 ```
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The logged in user is not permitted to access invitations for the specified agency."
+  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -320,7 +312,7 @@ Returns the invitation.
 ```
 {
   "code": "INVITATION_NOT_FOUND",
-  "message": "The specified invitation was not found."
+  "message": "The authorisation request cannot be found."
 }
 ```
 
@@ -338,24 +330,8 @@ Returns the invitation.
 |:-----|:----:|:------------|:--------:|---------:|
 | Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
-### Response code: 202
+### Response code: 204
 The invitation has been successfully cancelled
-
-### Response code: 401
-
-#### errorResponse (application/json) 
-
-```
-{
-  "code": "INVALID_CREDENTIALS",
-  "message": "Invalid Authentication information provided."
-}
-```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 403
 
@@ -364,25 +340,25 @@ The invitation has been successfully cancelled
 ```
 {
   "code": "INVALID_INVITATION_STATUS",
-  "message": "The requested state transition is not permitted given the invitation's current status."
+  "message": "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired."
 }
 ```
 ```
 {
   "code": "NOT_AN_AGENT",
-  "message": "The logged in user is not an agent."
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
 }
 ```
 ```
 {
   "code": "AGENT_NOT_SUBSCRIBED",
-  "message": "The Agent is not subscribed to Agent Services."
+  "message": "This agent needs to create an agent services account before they can use this service."
 }
 ```
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The logged in user is not permitted to access invitations for the specified agency."
+  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -398,7 +374,7 @@ The invitation has been successfully cancelled
 ```
 {
   "code": "INVITATION_NOT_FOUND",
-  "message": "The specified invitation was not found."
+  "message": "The authorisation request cannot be found."
 }
 ```
 
@@ -443,6 +419,7 @@ Check Relationship based on details received.
   "knownFact": "2007-05-18"
 }
 ```
+The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "service": ["MTD-VAT"],
@@ -466,47 +443,38 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 {
   "code": "SERVICE_NOT_SUPPORTED",
-  "message": "The specified service is not supported."
+  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
 }
 ```
 ```
 {
   "code": "CLIENT_ID_FORMAT_INVALID",
-  "message": "The submitted clientId does not match the expected format."
+  "message": "Client identifier must be in the correct format. Check the API documentation to find the correct format."
+}
+```
+```
+{
+  "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
+  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
 }
 ```
 ```
 {
   "code": "POSTCODE_FORMAT_INVALID",
-  "message": "The submitted postcode does not match the expected format."
+  "message": "Postcode must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
 ```
 {
   "code": "VAT_REG_DATE_FORMAT_INVALID",
-  "message": "The submitted VAT registration date does not match the expected format."
+  "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
+The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "code": "CT_UTR_FORMAT_INVALID",
-  "message": "The submitted CT UTR does not match the expected format."
-}
-```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
-### Response code: 401
-
-#### errorResponse (application/json) 
-
-```
-{
-  "code": "INVALID_CREDENTIALS",
-  "message": "Invalid Authentication information provided."
+  "message": "Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
 
@@ -522,7 +490,7 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 {
   "code": "CLIENT_REGISTRATION_NOT_FOUND",
-  "message": "The Client's registration was not found."
+  "message": "The details provided for this client do not match HMRC's records."
 }
 ```
 ```
@@ -537,6 +505,7 @@ Relationship is active. Agent has delegated authorisation for the client.
   "message": "The submitted VAT registration date did not match HMRC record for the client."
 }
 ```
+The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "code": "CT_UTR_DOES_NOT_MATCH",
@@ -546,19 +515,19 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 {
   "code": "NOT_AN_AGENT",
-  "message": "The logged in user is not an agent."
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
 }
 ```
 ```
 {
   "code": "AGENT_NOT_SUBSCRIBED",
-  "message": "The Agent is not subscribed to Agent Services."
+  "message": "This agent needs to create an agent services account before they can use this service."
 }
 ```
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The logged in user is not permitted to access invitations for the specified agency."
+  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -568,7 +537,20 @@ Relationship is active. Agent has delegated authorisation for the client.
 | code |  string |  | true |  |
 
 ### Response code: 404
-Relationship is inactive. Agent does not have delegated authorisation for the client.
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "RELATIONSHIP_NOT_FOUND",
+  "message": "Relationship is inactive. Agent is not authorised to act for this client."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
 
 ---
 

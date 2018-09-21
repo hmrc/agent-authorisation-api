@@ -120,7 +120,7 @@ class AgentControllerISpec extends BaseISpec {
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
 
       status(result) shouldBe 400
-      await(result) shouldBe InvalidItsaNino
+      await(result) shouldBe ClientIdInvalidFormat
       verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
@@ -131,7 +131,7 @@ class AgentControllerISpec extends BaseISpec {
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
 
       status(result) shouldBe 400
-      await(result) shouldBe InvalidVatVrn
+      await(result) shouldBe ClientIdInvalidFormat
       verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
@@ -219,8 +219,8 @@ class AgentControllerISpec extends BaseISpec {
       givenUnauthorisedForInsufficientEnrolments()
       val result = createInvitation(request.withJsonBody(jsonBodyITSA))
 
-      status(result) shouldBe 401
-      await(result) shouldBe InvalidCredentials
+      status(result) shouldBe 403
+      await(result) shouldBe NotAnAgent
       verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
     }
 
@@ -286,12 +286,12 @@ class AgentControllerISpec extends BaseISpec {
         verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some(respondedItsaInvitation))
       }
 
-      "return 401 for Invalid Credentials" in {
+      "return 403 for Not An Agent" in {
         givenUnauthorisedForInsufficientEnrolments()
         val result = getInvitationItsaApi(requestITSA)
 
-        status(result) shouldBe 401
-        await(result) shouldBe InvalidCredentials
+        status(result) shouldBe 403
+        await(result) shouldBe NotAnAgent
       }
 
       "return 403 for Not an Agent" in {
@@ -385,12 +385,12 @@ class AgentControllerISpec extends BaseISpec {
         contentAsJson(result) shouldBe toJson(respondedVatInvitation).as[JsObject]
       }
 
-      "return 401 for Invalid Credentials" in {
+      "return 403 for Not An Agent" in {
         givenUnauthorisedForInsufficientEnrolments()
         val result = getInvitationVatApi(requestVAT)
 
-        status(result) shouldBe 401
-        await(result) shouldBe InvalidCredentials
+        status(result) shouldBe 403
+        await(result) shouldBe NotAnAgent
       }
 
       "return 403 for Not an Agent" in {
@@ -620,7 +620,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
 
         status(result) shouldBe 400
-        await(result) shouldBe InvalidItsaNino
+        await(result) shouldBe ClientIdInvalidFormat
         verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
 
       }
@@ -632,7 +632,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
 
         status(result) shouldBe 400
-        await(result) shouldBe InvalidVatVrn
+        await(result) shouldBe ClientIdInvalidFormat
         verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
       }
 
@@ -725,8 +725,8 @@ class AgentControllerISpec extends BaseISpec {
         givenUnauthorisedForInsufficientEnrolments()
         val result = checkRelationshipApi(request.withJsonBody(jsonBodyITSA))
 
-        status(result) shouldBe 401
-        await(result) shouldBe InvalidCredentials
+        status(result) shouldBe 403
+        await(result) shouldBe NotAnAgent
         verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
 
       }

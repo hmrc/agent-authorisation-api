@@ -1,0 +1,606 @@
+<!DOCTYPE HTML><html><head><title>Agent Authorisation API documentation</title><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="generator" content="https://github.com/raml2html/raml2html 7.2.0"><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"><script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script><script type="text/javascript">
+      $(document).ready(function() {
+        $('.page-header pre code, .top-resource-description pre code, .modal-body pre code').each(function(i, block) {
+          hljs.highlightBlock(block);
+        });
+
+        $('[data-toggle]').click(function() {
+          var selector = $(this).data('target') + ' pre code';
+          $(selector).each(function(i, block) {
+            hljs.highlightBlock(block);
+          });
+        });
+
+        // open modal on hashes like #_action_get
+        $(window).bind('hashchange', function(e) {
+          var anchor_id = document.location.hash.substr(1); //strip #
+          var element = $('#' + anchor_id);
+
+          // do we have such element + is it a modal?  --> show it
+          if (element.length && element.hasClass('modal')) {
+            element.modal('show');
+          }
+        });
+
+        // execute hashchange on first page load
+        $(window).trigger('hashchange');
+
+        // remove url fragment on modal hide
+        $('.modal').on('hidden.bs.modal', function() {
+          try {
+            if (history && history.replaceState) {
+                history.replaceState({}, '', '#');
+            }
+          } catch(e) {}
+        });
+      });
+    </script><style>
+      .hljs {
+        background: transparent;
+      }
+      .parent {
+        color: #999;
+      }
+      .list-group-item > .badge {
+        float: none;
+        margin-right: 6px;
+      }
+      .panel-title > .methods {
+        float: right;
+      }
+      .badge {
+        border-radius: 0;
+        text-transform: uppercase;
+        width: 70px;
+        font-weight: normal;
+        color: #f3f3f6;
+        line-height: normal;
+      }
+      .badge_get {
+        background-color: #63a8e2;
+      }
+      .badge_post {
+        background-color: #6cbd7d;
+      }
+      .badge_put {
+        background-color: #22bac4;
+      }
+      .badge_delete {
+        background-color: #d26460;
+      }
+      .badge_patch {
+        background-color: #ccc444;
+      }
+      .list-group, .panel-group {
+        margin-bottom: 0;
+      }
+      .panel-group .panel+.panel-white {
+        margin-top: 0;
+      }
+      .panel-group .panel-white {
+        border-bottom: 1px solid #F5F5F5;
+        border-radius: 0;
+      }
+      .panel-white:last-child {
+        border-bottom-color: white;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+      }
+      .panel-white .panel-heading {
+        background: white;
+      }
+      .tab-pane ul {
+        padding-left: 2em;
+      }
+      .tab-pane h1 {
+        font-size: 1.3em;
+      }
+      .tab-pane h2 {
+        font-size: 1.2em;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #ddd;
+      }
+      .tab-pane h3 {
+        font-size: 1.1em;
+      }
+      .tab-content {
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+      }
+      #sidebar {
+        margin-top: 30px;
+        padding-right: 5px;
+        overflow: auto;
+        height: 90%;
+      }
+      .top-resource-description {
+        border-bottom: 1px solid #ddd;
+        background: #fcfcfc;
+        padding: 15px 15px 0 15px;
+        margin: -15px -15px 10px -15px;
+      }
+      .resource-description {
+        border-bottom: 1px solid #fcfcfc;
+        background: #fcfcfc;
+        padding: 15px 15px 0 15px;
+        margin: -15px -15px 10px -15px;
+      }
+      .resource-description p:last-child {
+        margin: 0;
+      }
+      .list-group .badge {
+        float: left;
+      }
+      .method_description {
+        margin-left: 85px;
+      }
+      .method_description p:last-child {
+        margin: 0;
+      }
+      .list-group-item {
+        cursor: pointer;
+      }
+      .list-group-item:hover {
+        background-color: #f5f5f5;
+      }
+      pre code {
+        overflow: auto;
+        word-wrap: normal;
+        white-space: pre;
+      }
+      .items {
+        background: #f5f5f5;
+        color: #333;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 9.5px;
+        margin: 0 0 10px;
+        font-size: 13px;
+        line-height: 1.42857143;
+      }
+      .examples {
+        margin-left: 0.5em;
+      }
+      .resource-modal li > ul {
+        margin-bottom: 1em;
+      }
+    </style></head><body data-spy="scroll" data-target="#sidebar"><div class="container"><div class="row"><div class="col-md-9" role="main"><div class="page-header"><h1>Agent Authorisation API documentation <small>version 0.0</small></h1><p>https://api.service.hmrc.gov.uk/</p><p>An API allowing MTD-enabled Agents to request authorisation to a service for a client, instead of filling the 64-8 paper form.</p><h3 id="contents"><a href="#contents">Contents</a></h3><ul><li><a href="#overview">Overview</a></li><li><a href="#apis">APIs</a></li><li><a href="#why_use_this_api_">Why use this API?</a></li><li><a href="#usage_scenario">Usage scenario</a></li><li><a href="#versioning">Versioning</a></li><li><a href="#errors">Errors</a></li><li><a href="#api_details">API details</a></li></ul><h3 id="overview"><a href="#overview">Overview</a></h3><p>This API allows tax agents to request authorisation to act on a client&#39;s behalf for a specific Making Tax Digital (MTD) tax service and have the option to cancel the authorisation request.</p><p>The API also allows the agent to check the status of authorisations already requested and query active or inactive relationships.</p><p>This API has no effect on the existing XML API.</p><h3 id="apis"><a href="#apis">APIs</a></h3><ul><li><a href="#agentsarninvitations">/agent/:arn/invitations</a><ul><li><a href="#post-secured">POST</a> Create a new invitation.</li><li><a href="#agentsarninvitationsinvitationid">/:invitationId</a><ul><li><a href="#get-secured">GET</a> Returns the invitation object</li><li><a href="#delete-secured">DELETE</a> Cancels the invitation.</li></ul></li></ul></li><li><a href="#agentsarnrelationships">/agent/:arn/relationships</a><ul><li><a href="#post-secured-1">POST</a> Check Status of Relationship</li></ul></li></ul><h3 id="why_use_this_api_"><a href="#why_use_this_api_">Why use this API?</a></h3><p>Agents often use software to perform services for their clients. The API will benefit these agents since it will allow them to be able to request the invitation link directly through software, to send to their client so that they can authorise the agent for a service. This will save an agent time since currently they must separately log into Agent Services UI to request this link. This also aligns with the API first strategy for Agent Services.</p><h3 id="usage_scenario"><a href="#usage_scenario">Usage scenario</a></h3><p>The aim is for the API to mirror the current process that happens through the Agent Services user interface</p><ul><li>Agent uses 3rd party application/software to request a new authorisation</li><li>Agent identifier is passed to the API (ARN)</li><li>Agent enters service they are requesting access to eg. MTD-IT, MTD-VAT</li><li>Agent enters the identifier for the client they are requesting access for, e.g. NINO, CRN, VAT registration number</li><li>If required by the service the agent enters a known fact check for the client, e.g. postcode, VAT registration date</li><li>Link for the client to follow to authorise the agent is returned by the API. The expiration date of the link is also returned by the API</li><li>Agent sends the link to the client</li><li>If the Agent decides to change their mind, they have the option to cancel the invitation as long as it has not been responded by the client.</li><li>Client clicks the link and authorises agent (requires sign on through Government Gateway)</li><li>The Agent can check if they have an active relationship for delegated authorisation to act on behalf of a client.</li></ul><h3 id="versioning"><a href="#versioning">Versioning</a></h3><p>Specific versions are requested by providing an Accept header. When backwards-incompatible API changes are made, a new version will be released. Backwards-compatible changes are released in the current version without the need to change your Accept header. See our <a href="/api-documentation/docs/reference-guide#versioning">reference guide</a> for more on versioning.</p><h3 id="errors"><a href="#errors">Errors</a></h3><p>We use standard <a href="/api-documentation/docs/reference-guide#http-status-codes">HTTP status codes</a> to show whether an API request succeeded or not. They&#39;re usually:</p><ul><li>in the 200 to 299 range if it succeeded; including code 202 if it was accepted by an API that needs to wait for further action</li><li>in the 400 to 499 range if it didn&#39;t succeed because of a client error by your application</li><li>in the 500 to 599 range if it didn&#39;t succeed because of an error on our server</li></ul><p>Errors specific to each API are shown in its own Resources section, under Response. See our <a href="/api-documentation/docs/reference-guide#errors">reference guide</a> for more on errors.</p><h3 id="api_details"><a href="#api_details">API details</a></h3></div><div class="panel panel-default"><div class="panel-heading"><h3 id="agents__arn_" class="panel-title">/agents/{arn}</h3></div><div class="panel-body"><div class="panel-group"><div class="panel panel-white resource-modal"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_agents__arn__invitations"><span class="parent">/agents/{arn}</span>/invitations</a> <span class="methods"><a href="#agents__arn__invitations_post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_agents__arn__invitations" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#agents__arn__invitations_post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="agents__arn__invitations_post"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/agents/{arn}</span>/invitations</h4></div><div class="modal-body"><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by <b></b> with scopes:<ul><li>write:sent-invitations</li></ul></div><ul class="nav nav-tabs"><li class="active"><a href="#agents__arn__invitations_post_request" data-toggle="tab">Request</a></li><li><a href="#agents__arn__invitations_post_response" data-toggle="tab">Response</a></li><li><a href="#agents__arn__invitations_post_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="agents__arn__invitations_post_request"><h3>URI Parameters</h3><ul><li><strong>arn</strong>: <em>required (string)</em></li><li><strong>arn</strong>: <em>required (string)</em><p>The MTD platform Agent Reference Number.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>AARN9999999</code></pre></div></li></ul><h3>Annotations</h3><ul><li><strong>annotations.scope</strong><pre><code>"write:sent-invitations"</code></pre></li></ul><h3>Headers</h3><ul><li><strong>Accept</strong>: <em>required (string)</em><p>Specifies the version of the API that you want to call. See <a href="/api-documentation/docs/reference-guide#versioning">versioning</a>.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>application/vnd.hmrc.1.0+json</code></pre></div></li></ul><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>:</p><pre><code>{
+  "type": "object",
+  "description": "Creates a new invitation between the agency and client",
+  "required": [
+    "service",
+    "clientIdType",
+    "clientId",
+    "knownFact"
+  ],
+  "oneOf": [
+    {
+      "type": "object",
+      "description": "Report income or expenses through software",
+      "properties": {
+        "service": {
+          "const": ["MTD-IT"]
+        },
+        "clientIdType": {
+          "const": "ni"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ]?\\d{2}?\\d{2}?\\d{2}?[A-D]{1}$",
+          "description" : "National Insurance Number"
+        },
+        "knownFact": {
+          "type": "string",
+          "pattern": "^([A-Za-z][A-Za-z]\\d\\d|[A-Za-z][A-Za-z]\\d|[A-Za-z]\\d|[A-Za-z]\\d\\d|[A-Za-z]\\d[A-Za-z]|[A-Za-z]{2}\\d[A-Za-z]) {0,1}\\d[A-Za-z]{2}$",
+          "description" : "Postcode"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "description": "Report their VAT returns through software",
+      "properties": {
+        "service": {
+          "const": ["MTD-VAT"]
+        },
+        "clientIdType": {
+          "const": "vrn"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^[0-9]{1,9}$",
+          "description" : "VAT Registration Number"
+        },
+        "knownFact": {
+          "type": "string",
+          "format": "date",
+          "description" : "VAT Registration Date"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "description": "Report their VAT returns through software",
+      "properties": {
+        "service": {
+          "const": ["MTD-VAT"]
+        },
+        "clientIdType": {
+          "const": "crn"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^([A-Za-z0-9]{0,2})?([0-9]{1,6})$",
+          "description" : "Company Registration Number (including CRN Prefix)"
+        },
+        "knownFact": {
+          "type": "string",
+          "pattern": "^[0-9]{10}$",
+          "description" : "Corporation Tax Unique Taxpayer Reference (CT UTR)"
+        }
+      }
+    }
+  ]
+}</code></pre><p><strong>Examples</strong>:</p><div class="examples"><p><strong>example-1</strong>:<br></p><pre><code>{
+  "service": ["MTD-IT"],
+  "clientIdType": "ni",
+  "clientId": "AA999999A",
+  "knownFact": "AA11 1AA"
+}
+</code></pre><p><strong>example-2</strong>:<br></p><pre><code>{
+  "service": ["MTD-VAT"],
+  "clientIdType": "vrn",
+  "clientId": "101747696",
+  "knownFact": "2007-05-18"
+}
+</code></pre><p><strong>example-3</strong>:<br>The following feature is currently not available but it is expected to be available in a future release.</p><pre><code>{
+  "service": ["MTD-VAT"],
+  "clientIdType": "crn",
+  "clientId": "AA123456",
+  "knownFact": "1234567890"
+}
+</code></pre></div></div><div class="tab-pane" id="agents__arn__invitations_post_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>The invitation was successfully created.</p><h3>Headers</h3><ul><li><strong>Location</strong>: <em>required (string)</em><p>Location of the invitation that was created.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>/agents/AARN9999999/invitations/CS5AK7O8FPC43</code></pre></div></li></ul><h2>HTTP status code <a href="http://httpstatus.es/400" target="_blank">400</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Examples</strong>:</p><div class="examples"><p><strong>invitationNotFound</strong>:<br>The specified service is not supported.</p><pre><code>{
+  "code": "SERVICE_NOT_SUPPORTED",
+  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
+}</code></pre><p><strong>invalidClientId</strong>:<br>The submitted clientId does not match the expected format.</p><pre><code>{
+  "code": "CLIENT_ID_FORMAT_INVALID",
+  "message": "Client identifier must be in the correct format. Check the API documentation to find the correct format."
+}</code></pre><p><strong>invalidPostcode</strong>:<br>The submitted postcode does not match the expected format.</p><pre><code>{
+  "code": "POSTCODE_FORMAT_INVALID",
+  "message": "Postcode must be in the correct format. Check the API documentation to find the correct format."
+}</code></pre><p><strong>invalidVatRegistrationDate</strong>:<br>The submitted VAT registration date does not match the expected format.</p><pre><code>{
+  "code": "VAT_REG_DATE_FORMAT_INVALID",
+  "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
+}</code></pre><p><strong>invalidCompanyTaxUniqueTaxpayerReference</strong>:<br>(TBC) The submitted CT UTR does not match the expected format.</p><pre><code>{
+  "code": "CT_UTR_FORMAT_INVALID",
+  "message": "Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format."
+}</code></pre><p><strong>clientIdMatchesService</strong>:<br>The specified clientId does not match requested service.</p><pre><code>{
+  "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
+  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
+}</code></pre></div><h2>HTTP status code <a href="http://httpstatus.es/403" target="_blank">403</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Examples</strong>:</p><div class="examples"><p><strong>clientRegistrationNotFound</strong>:<br>The Client's registration was not found.</p><pre><code>{
+  "code": "CLIENT_REGISTRATION_NOT_FOUND",
+  "message": "The details provided for this client do not match HMRC&#39;s records."
+}</code></pre><p><strong>postcodeDoesNotMatch</strong>:<br>The submitted postcode did not match the client's postcode as held by HMRC.</p><pre><code>{
+  "code": "POSTCODE_DOES_NOT_MATCH",
+  "message": "The submitted postcode did not match the client&#39;s postcode as held by HMRC."
+}</code></pre><p><strong>vatRegistrationDateDoesNotMatch</strong>:<br>The submitted VAT registration date did not match HMRC record for the client.</p><pre><code>{
+  "code": "VAT_REG_DATE_DOES_NOT_MATCH",
+  "message": "The submitted VAT registration date did not match HMRC record for the client."
+}</code></pre><p><strong>ctUtrDoesNotMatch</strong>:<br>(TBC) The submitted CT UTR did not match HMRC record for the client.</p><pre><code>{
+  "code": "CT_UTR_DOES_NOT_MATCH",
+  "message": "The submitted CT UTR did not match HMRC record for the client."
+}</code></pre><p><strong>notAnAgent</strong>:<br>The logged in user is not an agent.</p><pre><code>{
+  "code": "NOT_AN_AGENT",
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
+}</code></pre><p><strong>agentNotSubscribed</strong>:<br>The Agent is not subscribed to Agent Services.</p><pre><code>{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "This agent needs to create an agent services account before they can use this service."
+}</code></pre><p><strong>noPermissionOnAgency</strong>:<br>The logged in user is not permitted to access invitations for the specified agency.</p><pre><code>{
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}</code></pre></div></div><div class="tab-pane" id="agents__arn__invitations_post_securedby"><h1>Secured by</h1></div></div></div></div></div></div></div><div class="panel panel-white resource-modal"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_agents__arn__invitations__invitationid_"><span class="parent">/agents/{arn}/invitations</span>/{invitationId}</a> <span class="methods"><a href="#agents__arn__invitations__invitationid__get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#agents__arn__invitations__invitationid__delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_agents__arn__invitations__invitationid_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#agents__arn__invitations__invitationid__get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"></div><div class="clearfix"></div></div><div onclick="window.location.href = '#agents__arn__invitations__invitationid__delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="agents__arn__invitations__invitationid__get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/agents/{arn}/invitations</span>/{invitationId}</h4></div><div class="modal-body"><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by <b></b> with scopes:<ul><li>read:sent-invitations</li></ul></div><ul class="nav nav-tabs"><li class="active"><a href="#agents__arn__invitations__invitationid__get_request" data-toggle="tab">Request</a></li><li><a href="#agents__arn__invitations__invitationid__get_response" data-toggle="tab">Response</a></li><li><a href="#agents__arn__invitations__invitationid__get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="agents__arn__invitations__invitationid__get_request"><h3>URI Parameters</h3><ul><li><strong>arn</strong>: <em>required (string)</em></li><li><strong>arn</strong>: <em>required (string)</em><p>The MTD platform Agent Reference Number.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>AARN9999999</code></pre></div></li><li><strong>invitationId</strong>: <em>required (string)</em><p>A unique invitation id</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>CS5AK7O8FPC43</code></pre></div></li></ul><h3>Annotations</h3><ul><li><strong>annotations.scope</strong><pre><code>"read:sent-invitations"</code></pre></li></ul><h3>Headers</h3><ul><li><strong>Accept</strong>: <em>required (string)</em><p>Specifies the version of the API that you want to call. See <a href="/api-documentation/docs/reference-guide#versioning">versioning</a>.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>application/vnd.hmrc.1.0+json</code></pre></div></li></ul></div><div class="tab-pane" id="agents__arn__invitations__invitationid__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>:</p><pre><code>{
+  "type": "object",
+  "properties": {
+    "_links": {
+      "type": "object",
+      "properties": {
+        "self": {
+          "type": "object",
+          "description": "A link to the current resource",
+          "properties": {
+            "href": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "href"
+          ]
+        }
+      },
+      "required": [
+        "self"
+      ]
+    },
+    "service": {
+      "$ref": "service.json"
+    },
+    "arn": {
+      "type": "string",
+      "description": "The Agent Registration Number for the calling agency"
+    },
+    "created": {
+      "type": "string",
+      "description": "Creation time of the request (RFC3339 / ISO8601 format)"
+    },
+    "updated": {
+      "type": "string",
+      "description": "Update time of the request (RFC3339 / ISO8601 format)"
+    },
+    "expiresOn": {
+      "type": "string",
+      "description": "Expiration time of the request (RFC3339 / ISO8601 format)"
+    },
+    "status": {
+      "type": "string",
+      "description" : "The current status of the invitation",
+      "oneOf": [
+        {
+          "enum": [ "Pending" ],
+          "description": "The invitation has been created, it has not been accepted or rejected by the client. Only the service can set this status."
+        },
+        {
+          "enum": [ "Accepted" ],
+          "description": "The client has accepted the invitation. Only the client can set this status."
+        },
+        {
+          "enum": [ "Rejected" ],
+          "description": "The client has rejected the invitation. Only the client can set this status."
+        },
+        {
+          "enum": [ "Cancelled" ],
+          "description": "The agency has cancelled the invitation. Only the agency can set this status."
+        },
+        {
+          "enum": [ "Expired" ],
+          "description": "Client did not respond to the Agent&#39;s Invitation within 10 days. Only the service can set this status."
+        }
+      ]
+    },
+    "clientActionUrl": {
+      "type": "string",
+      "description": "Link for the client to authorise/reject this agent&#39;s invitation."
+    }
+  },
+  "required": [
+    "_links",
+    "service",
+    "arn",
+    "created",
+    "status"
+  ],
+  "dependencies": {
+    "updated": {
+      "properties": {
+        "status" :{
+          "type": "string",
+          "oneOf": [
+            { "enum": ["Accepted"] },
+            { "enum": ["Rejected"] },
+            { "enum": ["Cancelled"] },
+            { "enum": ["Expired"] }
+          ]
+        }
+      }
+    },
+    "expiresOn": {
+      "properties": {
+        "status" :{
+          "type": "string",
+          "oneOf": [
+            { "enum": ["Pending"] }
+          ]
+        }
+      }
+    },
+    "clientActionUrl": {
+      "properties": {
+        "status" :{
+          "type": "string",
+          "oneOf": [
+            { "enum": ["Pending"] }
+          ]
+        }
+      }
+    }
+  }
+}</code></pre><p><strong>Examples</strong>:</p><div class="examples"><p><strong>pending</strong>:<br></p><pre><code>{
+  "_links": {
+    "self": {
+      "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
+    }
+  },
+  "created": "2017-01-25T15:20:14.917Z",
+  "expiresOn": "2017-02-04T00:00:00:000Z",
+  "arn": "AARN9999999",
+  "service": ["MTD-IT"],
+  "status": "Pending",
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
+}
+</code></pre><p><strong>responded</strong>:<br></p><pre><code>{
+  "_links": {
+    "self": {
+      "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
+    }
+  },
+  "created": "2017-01-25T15:20:14.917Z",
+  "updated": "2017-01-25T15:20:14.917Z",
+  "arn": "AARN9999999",
+  "service": ["MTD-VAT"],
+  "status": "Accepted"
+}</code></pre></div><h2>HTTP status code <a href="http://httpstatus.es/403" target="_blank">403</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Examples</strong>:</p><div class="examples"><p><strong>notAnAgent</strong>:<br>The logged in user is not an agent.</p><pre><code>{
+  "code": "NOT_AN_AGENT",
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
+}</code></pre><p><strong>agentNotSubscribed</strong>:<br>The Agent is not subscribed to Agent Services.</p><pre><code>{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "This agent needs to create an agent services account before they can use this service."
+}</code></pre><p><strong>noPermissionOnAgency</strong>:<br>The logged in user is not permitted to access invitations for the specified agency.</p><pre><code>{
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}</code></pre></div><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Example</strong>:</p><div class="examples"><p><strong>invitationNotFound</strong>:<br>The specified invitation was not found.</p><pre><code>{
+  "code": "INVITATION_NOT_FOUND",
+  "message": "The authorisation request cannot be found."
+}</code></pre></div></div><div class="tab-pane" id="agents__arn__invitations__invitationid__get_securedby"><h1>Secured by</h1></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="agents__arn__invitations__invitationid__delete"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/agents/{arn}/invitations</span>/{invitationId}</h4></div><div class="modal-body"><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by <b></b> with scopes:<ul><li>write:cancel-invitations</li></ul></div><ul class="nav nav-tabs"><li class="active"><a href="#agents__arn__invitations__invitationid__delete_request" data-toggle="tab">Request</a></li><li><a href="#agents__arn__invitations__invitationid__delete_response" data-toggle="tab">Response</a></li><li><a href="#agents__arn__invitations__invitationid__delete_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="agents__arn__invitations__invitationid__delete_request"><h3>URI Parameters</h3><ul><li><strong>arn</strong>: <em>required (string)</em></li><li><strong>arn</strong>: <em>required (string)</em><p>The MTD platform Agent Reference Number.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>AARN9999999</code></pre></div></li><li><strong>invitationId</strong>: <em>required (string)</em><p>A unique invitation id</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>CS5AK7O8FPC43</code></pre></div></li></ul><h3>Annotations</h3><ul><li><strong>annotations.scope</strong><pre><code>"write:cancel-invitations"</code></pre></li></ul><h3>Headers</h3><ul><li><strong>Accept</strong>: <em>required (string)</em><p>Specifies the version of the API that you want to call. See <a href="/api-documentation/docs/reference-guide#versioning">versioning</a>.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>application/vnd.hmrc.1.0+json</code></pre></div></li></ul></div><div class="tab-pane" id="agents__arn__invitations__invitationid__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>The invitation has been successfully cancelled</p><h2>HTTP status code <a href="http://httpstatus.es/403" target="_blank">403</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Examples</strong>:</p><div class="examples"><p><strong>invalidInvitationStatus</strong>:<br>The requested state transition is not permitted given the invitation's current status.</p><pre><code>{
+  "code": "INVALID_INVITATION_STATUS",
+  "message": "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired."
+}</code></pre><p><strong>notAnAgent</strong>:<br>The logged in user is not an agent.</p><pre><code>{
+  "code": "NOT_AN_AGENT",
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
+}</code></pre><p><strong>agentNotSubscribed</strong>:<br>The Agent is not subscribed to Agent Services.</p><pre><code>{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "This agent needs to create an agent services account before they can use this service."
+}</code></pre><p><strong>noPermissionOnAgency</strong>:<br>The logged in user is not permitted to access invitations for the specified agency.</p><pre><code>{
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}</code></pre></div><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Example</strong>:</p><div class="examples"><p><strong>invitationNotFound</strong>:<br>The specified invitation was not found.</p><pre><code>{
+  "code": "INVITATION_NOT_FOUND",
+  "message": "The authorisation request cannot be found."
+}</code></pre></div></div><div class="tab-pane" id="agents__arn__invitations__invitationid__delete_securedby"><h1>Secured by</h1></div></div></div></div></div></div></div><div class="panel panel-white resource-modal"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_agents__arn__relationships"><span class="parent">/agents/{arn}</span>/relationships</a> <span class="methods"><a href="#agents__arn__relationships_post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_agents__arn__relationships" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#agents__arn__relationships_post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="agents__arn__relationships_post"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/agents/{arn}</span>/relationships</h4></div><div class="modal-body"><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by <b></b> with scopes:<ul><li>read:check-relationship</li></ul></div><ul class="nav nav-tabs"><li class="active"><a href="#agents__arn__relationships_post_request" data-toggle="tab">Request</a></li><li><a href="#agents__arn__relationships_post_response" data-toggle="tab">Response</a></li><li><a href="#agents__arn__relationships_post_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="agents__arn__relationships_post_request"><h3>URI Parameters</h3><ul><li><strong>arn</strong>: <em>required (string)</em></li><li><strong>arn</strong>: <em>required (string)</em><p>The MTD platform Agent Registration Number.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>AARN9999999</code></pre></div></li></ul><h3>Annotations</h3><ul><li><strong>annotations.scope</strong><pre><code>"read:check-relationship"</code></pre></li></ul><h3>Headers</h3><ul><li><strong>Accept</strong>: <em>required (string)</em><p>Specifies the version of the API that you want to call. See <a href="/api-documentation/docs/reference-guide#versioning">versioning</a>.</p><p><strong>Example</strong>:</p><div class="examples"><pre><code>application/vnd.hmrc.1.0+json</code></pre></div></li></ul><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>:</p><pre><code>{
+  "type": "object",
+  "description": "Creates a new invitation between the agency and client",
+  "required": [
+    "service",
+    "clientIdType",
+    "clientId",
+    "knownFact"
+  ],
+  "oneOf": [
+    {
+      "type": "object",
+      "description": "Report income or expenses through software",
+      "properties": {
+        "service": {
+          "const": ["MTD-IT"]
+        },
+        "clientIdType": {
+          "const": "ni"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ]?\\d{2}?\\d{2}?\\d{2}?[A-D]{1}$",
+          "description" : "National Insurance Number"
+        },
+        "knownFact": {
+          "type": "string",
+          "pattern": "^([A-Za-z][A-Za-z]\\d\\d|[A-Za-z][A-Za-z]\\d|[A-Za-z]\\d|[A-Za-z]\\d\\d|[A-Za-z]\\d[A-Za-z]|[A-Za-z]{2}\\d[A-Za-z]) {0,1}\\d[A-Za-z]{2}$",
+          "description" : "Postcode"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "description": "Report their VAT returns through software",
+      "properties": {
+        "service": {
+          "const": ["MTD-VAT"]
+        },
+        "clientIdType": {
+          "const": "vrn"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^[0-9]{1,9}$",
+          "description" : "VAT Registration Number"
+        },
+        "knownFact": {
+          "type": "string",
+          "format": "date",
+          "description" : "VAT Registration Date"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "description": "Report their VAT returns through software",
+      "properties": {
+        "service": {
+          "const": ["MTD-VAT"]
+        },
+        "clientIdType": {
+          "const": "crn"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^([A-Za-z0-9]{0,2})?([0-9]{1,6})$",
+          "description" : "Company Registration Number (including CRN Prefix)"
+        },
+        "knownFact": {
+          "type": "string",
+          "pattern": "^[0-9]{10}$",
+          "description" : "Corporation Tax Unique Taxpayer Reference (CT UTR)"
+        }
+      }
+    }
+  ]
+}</code></pre><p><strong>Examples</strong>:</p><div class="examples"><p><strong>example-1</strong>:<br></p><pre><code>{
+  "service": ["MTD-IT"],
+  "clientIdType": "ni",
+  "clientId": "AA999999A",
+  "knownFact": "AA11 1AA"
+}
+</code></pre><p><strong>example-2</strong>:<br></p><pre><code>{
+  "service": ["MTD-VAT"],
+  "clientIdType": "vrn",
+  "clientId": "101747696",
+  "knownFact": "2007-05-18"
+}
+</code></pre><p><strong>example-3</strong>:<br>The following feature is currently not available but it is expected to be available in a future release.</p><pre><code>{
+  "service": ["MTD-VAT"],
+  "clientIdType": "crn",
+  "clientId": "AA123456",
+  "knownFact": "1234567890"
+}
+</code></pre></div></div><div class="tab-pane" id="agents__arn__relationships_post_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>Relationship is active. Agent has delegated authorisation for the client.</p><h2>HTTP status code <a href="http://httpstatus.es/400" target="_blank">400</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Examples</strong>:</p><div class="examples"><p><strong>invitationNotFound</strong>:<br>The specified service is not supported.</p><pre><code>{
+  "code": "SERVICE_NOT_SUPPORTED",
+  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
+}</code></pre><p><strong>invalidClientId</strong>:<br>The submitted clientId does not match the expected format.</p><pre><code>{
+  "code": "CLIENT_ID_FORMAT_INVALID",
+  "message": "Client identifier must be in the correct format. Check the API documentation to find the correct format."
+}</code></pre><p><strong>invalidPostcode</strong>:<br>The submitted postcode does not match the expected format.</p><pre><code>{
+  "code": "POSTCODE_FORMAT_INVALID",
+  "message": "Postcode must be in the correct format. Check the API documentation to find the correct format."
+}</code></pre><p><strong>invalidVatRegistrationDate</strong>:<br>The submitted VAT registration date does not match the expected format.</p><pre><code>{
+  "code": "VAT_REG_DATE_FORMAT_INVALID",
+  "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
+}</code></pre><p><strong>invalidCompanyTaxUniqueTaxpayerReference</strong>:<br>(TBC) The submitted CT UTR does not match the expected format.</p><pre><code>{
+  "code": "CT_UTR_FORMAT_INVALID",
+  "message": "Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format."
+}</code></pre><p><strong>clientIdMatchesService</strong>:<br>The specified clientId does not match requested service.</p><pre><code>{
+  "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
+  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
+}</code></pre></div><h2>HTTP status code <a href="http://httpstatus.es/403" target="_blank">403</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Examples</strong>:</p><div class="examples"><p><strong>clientRegistrationNotFound</strong>:<br>The Client's registration was not found.</p><pre><code>{
+  "code": "CLIENT_REGISTRATION_NOT_FOUND",
+  "message": "The details provided for this client do not match HMRC&#39;s records."
+}</code></pre><p><strong>postcodeDoesNotMatch</strong>:<br>The submitted postcode did not match the client's postcode as held by HMRC.</p><pre><code>{
+  "code": "POSTCODE_DOES_NOT_MATCH",
+  "message": "The submitted postcode did not match the client&#39;s postcode as held by HMRC."
+}</code></pre><p><strong>vatRegistrationDateDoesNotMatch</strong>:<br>The submitted VAT registration date did not match HMRC record for the client.</p><pre><code>{
+  "code": "VAT_REG_DATE_DOES_NOT_MATCH",
+  "message": "The submitted VAT registration date did not match HMRC record for the client."
+}</code></pre><p><strong>ctUtrDoesNotMatch</strong>:<br>(TBC) The submitted CT UTR did not match HMRC record for the client.</p><pre><code>{
+  "code": "CT_UTR_DOES_NOT_MATCH",
+  "message": "The submitted CT UTR did not match HMRC record for the client."
+}</code></pre><p><strong>notAnAgent</strong>:<br>The logged in user is not an agent.</p><pre><code>{
+  "code": "NOT_AN_AGENT",
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
+}</code></pre><p><strong>agentNotSubscribed</strong>:<br>The Agent is not subscribed to Agent Services.</p><pre><code>{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "This agent needs to create an agent services account before they can use this service."
+}</code></pre><p><strong>noPermissionOnAgency</strong>:<br>The logged in user is not permitted to access invitations for the specified agency.</p><pre><code>{
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}</code></pre></div><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><h3>Body</h3><p><strong>Media type</strong>: application/json</p><p><strong>Type</strong>: object</p><strong>Properties</strong><ul><li><strong>code</strong>: <em>required (string)</em></li></ul><p><strong>Example</strong>:</p><div class="examples"><p><strong>notfoundrelationship</strong>:<br>Relationship is inactive. Agent does not have delegated authorisation for the client.</p><pre><code>{
+  "code": "RELATIONSHIP_NOT_FOUND",
+  "message": "Relationship is inactive. Agent is not authorised to act for this client."
+}</code></pre></div></div><div class="tab-pane" id="agents__arn__relationships_post_securedby"><h1>Secured by</h1></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#agents__arn_">/agents/{arn}</a></li></ul></div></div></div></div></body></html>

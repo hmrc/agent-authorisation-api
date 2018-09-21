@@ -32,89 +32,83 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "SERVICE_NOT_SUPPORTED",
-        "The specified service is not supported.")))
+        "The service requested is not supported. Check the API documentation to find which services are supported.")))
 
   val ClientIdDoesNotMatchService = BadRequest(
     toJson(
       ErrorBody(
         "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
-        "The specified clientId does not match requested service.")))
+        "The specified client Identifier does not match the requested service. Check the API documentation to find the correct format.")))
 
-  val InvalidItsaNino = BadRequest(
+  val ClientIdInvalidFormat = BadRequest(
     toJson(
       ErrorBody(
         "CLIENT_ID_FORMAT_INVALID",
-        "The submitted clientId does not match the expected format.")))
-
-  val InvalidVatVrn = BadRequest(
-    toJson(
-      ErrorBody(
-        "CLIENT_ID_FORMAT_INVALID",
-        "Received an invalid vrn")))
+        "Client identifier must be in the correct format. Check the API documentation to find the correct format.")))
 
   val PostcodeFormatInvalid = BadRequest(
     toJson(
       ErrorBody(
         "POSTCODE_FORMAT_INVALID",
-        "The submitted postcode does not match the expected format.")))
+        "Postcode must be in the correct format. Check the API documentation to find the correct format.")))
 
   val VatRegDateFormatInvalid = BadRequest(
     toJson(
       ErrorBody(
         "VAT_REG_DATE_FORMAT_INVALID",
-        "The submitted VAT registration date does not match the expected format.")))
+        "VAT registration date must be in the correct format. Check the API documentation to find the correct format.")))
 
   val PostcodeDoesNotMatch = Forbidden(
     toJson(
       ErrorBody(
         "POSTCODE_DOES_NOT_MATCH",
-        "The submitted postcode did not match the client's postcode as held by HMRC.")))
+        "The postcode provided does not match HMRC's record for this client.")))
 
   val VatRegDateDoesNotMatch = Forbidden(
     toJson(
       ErrorBody(
         "VAT_REG_DATE_DOES_NOT_MATCH",
-        "The submitted VAT registration date did not match HMRC record for the client.")))
+        "The VAT registration date provided does not match HMRC's record for this client.")))
 
   val ClientRegistrationNotFound = Forbidden(
     toJson(
       ErrorBody(
         "CLIENT_REGISTRATION_NOT_FOUND",
-        "The Client's registration was not found.")))
+        "The details provided for this client do not match HMRC's records.")))
 
   val NoPermissionOnAgency = Forbidden(
     toJson(
       ErrorBody(
         "NO_PERMISSION_ON_AGENCY",
-        "The logged in user is not permitted to access invitations for the specified agency.")))
+        "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.")))
 
   val NotAnAgent = Forbidden(
     toJson(
       ErrorBody(
         "NOT_AN_AGENT",
-        "The logged in user is not an agent.")))
-
-  val InvalidCredentials = Unauthorized(
-    toJson(
-      ErrorBody(
-        "INVALID_CREDENTIALS",
-        "Invalid Authentication information provided.")))
+        "This account used to sign in is not an Government Gateway account for an agent. The agent needs to create an Government Gateway agent account before they can use this service.")))
 
   val AgentNotSubscribed = Forbidden(
     toJson(
       ErrorBody(
         "AGENT_NOT_SUBSCRIBED",
-        "The Agent is not subscribed to Agent Services.")))
+        "This agent needs to create an agent services account before they can use this service.")))
 
   val InvitationNotFound = NotFound(
     toJson(
       ErrorBody(
         "INVITATION_NOT_FOUND",
-        "The specified invitation was not found.")))
+        "The authorisation request cannot be found.")))
 
   val InvalidInvitationStatus = Forbidden(
     toJson(
       ErrorBody(
         "INVALID_INVITATION_STATUS",
-        "The requested state transition is not permitted given the invitation's current status.")))
+        "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.")))
+
+  val RelationshipNotFound = NotFound(
+    toJson(
+      ErrorBody(
+        "RELATIONSHIP_NOT_FOUND",
+        "Relationship is inactive. Agent is not authorised to act for this client.")))
 }
