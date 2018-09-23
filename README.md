@@ -29,6 +29,46 @@ The aim is for the API to mirror the current process that happens through the Ag
 * The agent accesses the link and signs in using their a Government Gateway login details to accept the agent's request
 * The agent can check if they have been authorised by a client.
 
+### Upcoming Feature
+The following feature is currently not available but it is expected to be available in a future release.
+
+Request Body:
+
+Create a new invitation (via CRN and UTR)
+
+/agents/:arn/invitations: 
+
+```json
+{
+  "service": ["MTD-VAT"],
+  "clientIdType": "crn",
+  "clientId": "AA123456",
+  "knownFact": "1234567890"
+}
+```
+
+Response Header:
+
+Location : /agents/AARN9999999/invitations/CS5AK7O8FPC43
+
+Error Responses:
+
+Http Error Code: 400
+```json
+{
+  "code": "CT_UTR_FORMAT_INVALID",
+  "message": "Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format."
+}
+```
+
+Http Error Code: 403
+```json
+{
+  "code": "CT_UTR_DOES_NOT_MATCH",
+  "message": " The submitted CT UTR did not match HMRC record for the client."
+}
+```
+
 ### Versioning
 Specific versions are requested by providing an Accept header. When
 backwards-incompatible API changes are made, a new version will be released.
@@ -44,7 +84,6 @@ We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documenta
 
 Errors specific to each API are shown in its own Resources section, under Response. 
 See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
-
 
 ---
 
@@ -138,12 +177,6 @@ The invitation was successfully created.
   "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
-```
-{
-  "code": "CT_UTR_FORMAT_INVALID",
-  "message": "Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format."
-}
-```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
@@ -170,12 +203,6 @@ The invitation was successfully created.
 {
   "code": "VAT_REG_DATE_DOES_NOT_MATCH",
   "message": "The submitted VAT registration date did not match HMRC record for the client."
-}
-```
-```
-{
-  "code": "CT_UTR_DOES_NOT_MATCH",
-  "message": "The submitted CT UTR did not match HMRC record for the client."
 }
 ```
 ```
@@ -450,12 +477,6 @@ Relationship is active. Agent has delegated authorisation for the client.
   "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
-```
-{
-  "code": "CT_UTR_FORMAT_INVALID",
-  "message": "Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format."
-}
-```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
@@ -482,12 +503,6 @@ Relationship is active. Agent has delegated authorisation for the client.
 {
   "code": "VAT_REG_DATE_DOES_NOT_MATCH",
   "message": "The submitted VAT registration date did not match HMRC record for the client."
-}
-```
-```
-{
-  "code": "CT_UTR_DOES_NOT_MATCH",
-  "message": "The submitted CT UTR did not match HMRC record for the client."
 }
 ```
 ```

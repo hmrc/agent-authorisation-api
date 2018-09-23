@@ -13,6 +13,8 @@ documentation:
    content: !include docs/why-use-this-api.md
  - title: Usage scenario
    content: !include docs/usage-scenario.md
+ - title: Upcoming Feature
+   content: !include docs/upcoming-feature.md
  - title: Versioning
    content: !include https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/versioning.md
  - title: Errors
@@ -144,11 +146,11 @@ traits:
                   value:
                     code: VAT_REG_DATE_FORMAT_INVALID
                     message: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
-                invalidCompanyTaxUniqueTaxpayerReference:
-                  description: (TBC) The submitted CT UTR does not match the expected format.
-                  value:
-                    code: CT_UTR_FORMAT_INVALID
-                    message: Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format.
+#                invalidCompanyTaxUniqueTaxpayerReference:
+#                  description: The submitted CT UTR does not match the expected format.
+#                  value:
+#                    code: CT_UTR_FORMAT_INVALID
+#                    message: Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format.
 
   knownFactMatches:
     responses:
@@ -167,11 +169,11 @@ traits:
                   value:
                     code: VAT_REG_DATE_DOES_NOT_MATCH
                     message: The submitted VAT registration date did not match HMRC record for the client.
-                ctUtrDoesNotMatch:
-                  description: (TBC) The submitted CT UTR did not match HMRC record for the client.
-                  value:
-                    code: CT_UTR_DOES_NOT_MATCH
-                    message: The submitted CT UTR did not match HMRC record for the client.
+#                ctUtrDoesNotMatch:
+#                  description: The submitted CT UTR did not match HMRC record for the client.
+#                  value:
+#                    code: CT_UTR_DOES_NOT_MATCH
+#                    message: The submitted CT UTR did not match HMRC record for the client.
 
   relationshipNotFound:
     responses:
