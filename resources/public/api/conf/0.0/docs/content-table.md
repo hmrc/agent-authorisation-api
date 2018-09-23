@@ -1,7 +1,0 @@
-* [Overview](#overview)
-* [APIs](#apis)
-* [Why use this API?](#why_use_this_api_)
-* [Usage scenario](#usage_scenario)
-* [Versioning](#versioning)
-* [Errors](#errors)
-* [API details](#api_details)

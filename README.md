@@ -1,29 +1,11 @@
 # Agent Authorisation API documentation version 0.0
 
-### Contents
-* [Overview](#overview)
-* [APIs](#apis)
-* [Why use this API?](#why_use_this_api_)
-* [Usage scenario](#usage_scenario)
-* [Versioning](#versioning)
-* [Errors](#errors)
-* [API details](#api_details)
-
 ### Overview
 This API allows tax agents to request authorisation to act on a client's behalf for a specific Making Tax Digital (MTD) tax service and have the option to cancel the authorisation request.
 
 The API also allows the agent to check the status of authorisations already requested and query active or inactive relationships.
 
 This API has no effect on the existing XML API.
-
-### APIs
-* [/agent/:arn/invitations](#agentsarninvitations)
-    * [POST](#post-secured) Create a new invitation.
-    * [/:invitationId](#agentsarninvitationsinvitationid)
-        * [GET](#get-secured) Returns the invitation object
-        * [DELETE](#delete-secured) Cancels the invitation.
-* [/agent/:arn/relationships](#agentsarnrelationships)
-    * [POST](#post-secured-1) Check Status of Relationship   
 
 ### Why use this API?
 Agents often use software to perform services for their clients. 
@@ -32,35 +14,37 @@ This will save an agent time since currently they must separately log into Agent
 This also aligns with the API first strategy for Agent Services.
 
 ### Usage scenario
-The aim is for the API to mirror the current process that happens through the Agent Services user interface
-* Agent uses 3rd party application/software to request a new authorisation
-* Agent identifier is passed to the API (ARN)
-* Agent enters service they are requesting access to eg. MTD-IT, MTD-VAT
-* Agent enters the identifier for the client they are requesting access for, e.g. NINO, CRN, VAT registration number
-* If required by the service the agent enters a known fact check for the client, e.g. postcode, VAT registration date
-* Link for the client to follow to authorise the agent is returned by the API. The expiration date of the link is also returned by the API
-* Agent sends the link to the client
-* If the Agent decides to change their mind, they have the option to cancel the invitation as long as it has not been responded by the client.
-* Client clicks the link and authorises agent (requires sign on through Government Gateway)
-* The Agent can check if they have an active relationship for delegated authorisation to act on behalf of a client.
+The aim is for the API to mirror the current process that happens through the Agent Services user interface:
+* An gent uses a third-party application or software to request a new authorisation
+* An agent identifier - the Agent Reference Number (ARN) - is passed to the API
+* The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
+* The agent enters the identifier for the client they are requesting authorisation from, for example:
+    * National Insurance number (NINO)
+    * Company registration number (CRN)
+    * VAT registration number (VRN)
+* If required by the service the agent enters an additional identifer for the client, for example, the client's postcode or VAT registration date
+* The API returns a link for the client to follow to authorise the agent and the date when the authorisation request will expire
+* The agent sends the link to the client they wish to act on behalf of
+* If the agent changes their mind, they can cancel the authorisation request as long as the client has not responded to it
+* The agent accesses the link and signs in using their a Government Gateway login details to accept the agent's request
+* The agent can check if they have been authorised by a client.
 
 ### Versioning
 Specific versions are requested by providing an Accept header. When
 backwards-incompatible API changes are made, a new version will be released.
 Backwards-compatible changes are released in the current version without the
-need to change your Accept header.  See our [reference guide](/api-documentation/docs/reference-guide#versioning) for more on
+need to change your Accept header.  See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) for more on
 versioning.
 
 ### Errors
-We use standard [HTTP status codes](/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
+We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
 * in the 200 to 299 range if it succeeded; including code 202 if it was accepted by an API that needs to wait for further action
 * in the 400 to 499 range if it didn't succeed because of a client error by your application
 * in the 500 to 599 range if it didn't succeed because of an error on our server
 
 Errors specific to each API are shown in its own Resources section, under Response. 
-See our [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors.
+See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
 
-### API details
 
 ---
 
@@ -77,7 +61,7 @@ See our [reference guide](/api-documentation/docs/reference-guide#errors) for mo
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
 Create a new authorisation request.
@@ -98,7 +82,6 @@ Create a new authorisation request.
   "knownFact": "2007-05-18"
 }
 ```
-The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "service": ["MTD-VAT"],
@@ -155,7 +138,6 @@ The invitation was successfully created.
   "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
-The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "code": "CT_UTR_FORMAT_INVALID",
@@ -190,7 +172,6 @@ The following feature is currently not available but it is expected to be availa
   "message": "The submitted VAT registration date did not match HMRC record for the client."
 }
 ```
-The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "code": "CT_UTR_DOES_NOT_MATCH",
@@ -236,7 +217,7 @@ The following feature is currently not available but it is expected to be availa
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
 
@@ -328,7 +309,7 @@ Returns the invitation.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 204
 The invitation has been successfully cancelled
@@ -398,7 +379,7 @@ The invitation has been successfully cancelled
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
 Check Relationship based on details received.
@@ -419,7 +400,6 @@ Check Relationship based on details received.
   "knownFact": "2007-05-18"
 }
 ```
-The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "service": ["MTD-VAT"],
@@ -470,7 +450,6 @@ Relationship is active. Agent has delegated authorisation for the client.
   "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
-The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "code": "CT_UTR_FORMAT_INVALID",
@@ -505,7 +484,6 @@ The following feature is currently not available but it is expected to be availa
   "message": "The submitted VAT registration date did not match HMRC record for the client."
 }
 ```
-The following feature is currently not available but it is expected to be available in a future release.
 ```
 {
   "code": "CT_UTR_DOES_NOT_MATCH",
