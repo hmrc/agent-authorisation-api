@@ -121,14 +121,6 @@ Create a new authorisation request.
   "knownFact": "2007-05-18"
 }
 ```
-```
-{
-  "service": ["MTD-VAT"],
-  "clientIdType": "crn",
-  "clientId": "AA123456",
-  "knownFact": "1234567890"
-}
-```
 
 ##### *application/json*:
 | Name | Type | Description | Required | Pattern |
@@ -425,14 +417,6 @@ Check Relationship based on details received.
   "clientIdType": "vrn",
   "clientId": "101747696",
   "knownFact": "2007-05-18"
-}
-```
-```
-{
-  "service": ["MTD-VAT"],
-  "clientIdType": "crn",
-  "clientId": "AA123456",
-  "knownFact": "1234567890"
 }
 ```
 
