@@ -38,7 +38,7 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
-        "The specified client Identifier does not match the requested service. Check the API documentation to find the correct format.")))
+        "The specified client identifier does not match the requested service. Check the API documentation to find the correct format.")))
 
   val ClientIdInvalidFormat = BadRequest(
     toJson(

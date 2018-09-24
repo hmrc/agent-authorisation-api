@@ -154,7 +154,7 @@ The invitation was successfully created.
 ```
 {
   "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
-  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
+  "message": "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
 }
 ```
 ```
@@ -446,7 +446,7 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 {
   "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
-  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
+  "message": "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
 }
 ```
 ```
