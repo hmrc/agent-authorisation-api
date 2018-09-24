@@ -9,6 +9,12 @@ description: An API allowing MTD-enabled Agents to request authorisation to a se
 documentation:
  - title: Overview
    content: !include docs/overview.md
+ - title: Why use this API?
+   content: !include docs/why-use-this-api.md
+ - title: Usage scenario
+   content: !include docs/usage-scenario.md
+ - title: Upcoming Feature
+   content: !include docs/upcoming-feature.md
  - title: Versioning
    content: !include https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/versioning.md
  - title: Errors
@@ -21,18 +27,6 @@ uses:
   types: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/types.raml
 
 traits:
-  loginRequired:
-    responses:
-      401:
-        body:
-          application/json:
-            type: types.errorResponse
-            examples:
-              invalidCredentials:
-                description: Invalid Authentication information provided.
-                value:
-                  code: INVALID_CREDENTIALS
-                  message: Invalid Authentication information provided.
 
   permissionOnAgencyRequired:
     responses:
@@ -45,7 +39,7 @@ traits:
                 description: The logged in user is not permitted to access invitations for the specified agency.
                 value:
                   code: NO_PERMISSION_ON_AGENCY
-                  message: The logged in user is not permitted to access invitations for the specified agency.
+                  message: The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
 
   mustBeAnAgent:
     responses:
@@ -58,7 +52,7 @@ traits:
                 description: The logged in user is not an agent.
                 value:
                   code: NOT_AN_AGENT
-                  message: The logged in user is not an agent.
+                  message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
 
   agentSubscriptionRequired:
     responses:
@@ -71,7 +65,7 @@ traits:
                 description: The Agent is not subscribed to Agent Services.
                 value:
                   code: AGENT_NOT_SUBSCRIBED
-                  message: The Agent is not subscribed to Agent Services.
+                  message: This agent needs to create an agent services account before they can use this service.
 
   clientRegistrationRequired:
     responses:
@@ -84,7 +78,7 @@ traits:
                 description: The Client's registration was not found.
                 value:
                   code: CLIENT_REGISTRATION_NOT_FOUND
-                  message: The Client's registration was not found.
+                  message: The details provided for this client do not match HMRC's records.
 
   invitationMustHaveValidStatus:
     responses:
@@ -97,7 +91,7 @@ traits:
                 description: The requested state transition is not permitted given the invitation's current status.
                 value:
                   code: INVALID_INVITATION_STATUS
-                  message: The requested state transition is not permitted given the invitation's current status.
+                  message: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
 
   invitationSpecified:
     responses:
@@ -110,7 +104,7 @@ traits:
                 description: The specified invitation was not found.
                 value:
                   code: INVITATION_NOT_FOUND
-                  message: The specified invitation was not found.
+                  message: The authorisation request cannot be found.
 
   serviceSpecified:
       responses:
@@ -123,20 +117,7 @@ traits:
                   description: The specified service is not supported.
                   value:
                     code: SERVICE_NOT_SUPPORTED
-                    message: The specified service is not supported.
-
-  clientIdMatchesService:
-      responses:
-        400:
-          body:
-            application/json:
-              type: types.errorResponse
-              examples:
-                invitationNotFound:
-                  description: The specified clientId does not match requested service.
-                  value:
-                    code: CLIENT_ID_DOES_NOT_MATCH_SERVICE
-                    message: The specified clientId does not match requested service.
+                    message: The service requested is not supported. Check the API documentation to find which services are supported.
 
   clientIdSpecified:
     responses:
@@ -149,22 +130,27 @@ traits:
                   description: The submitted clientId does not match the expected format.
                   value:
                     code: CLIENT_ID_FORMAT_INVALID
-                    message: The submitted clientId does not match the expected format.
+                    message: Client identifier must be in the correct format. Check the API documentation to find the correct format.
+                clientIdMatchesService:
+                  description: The specified client identifier does not match the requested service. Check the API documentation to find the correct format.
+                  value:
+                    code: CLIENT_ID_DOES_NOT_MATCH_SERVICE
+                    message: The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use.
                 invalidPostcode:
                   description: The submitted postcode does not match the expected format.
                   value:
                     code: POSTCODE_FORMAT_INVALID
-                    message: The submitted postcode does not match the expected format.
+                    message: Postcode must be in the correct format. Check the API documentation to find the correct format.
                 invalidVatRegistrationDate:
                   description: The submitted VAT registration date does not match the expected format.
                   value:
                     code: VAT_REG_DATE_FORMAT_INVALID
-                    message: The submitted VAT registration date does not match the expected format.
-                invalidCompanyTaxUniqueTaxpayerReference:
-                  description: The submitted CT UTR does not match the expected format.
-                  value:
-                    code: CT_UTR_FORMAT_INVALID
-                    message: The submitted CT UTR does not match the expected format.
+                    message: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
+#                invalidCompanyTaxUniqueTaxpayerReference:
+#                  description: The submitted CT UTR does not match the expected format.
+#                  value:
+#                    code: CT_UTR_FORMAT_INVALID
+#                    message: Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format.
 
   knownFactMatches:
     responses:
@@ -183,39 +169,50 @@ traits:
                   value:
                     code: VAT_REG_DATE_DOES_NOT_MATCH
                     message: The submitted VAT registration date did not match HMRC record for the client.
-                ctUtrDoesNotMatch:
-                  description: The submitted CT UTR did not match HMRC record for the client.
-                  value:
-                    code: CT_UTR_DOES_NOT_MATCH
-                    message: The submitted CT UTR did not match HMRC record for the client.
+#                ctUtrDoesNotMatch:
+#                  description: The submitted CT UTR did not match HMRC record for the client.
+#                  value:
+#                    code: CT_UTR_DOES_NOT_MATCH
+#                    message: The submitted CT UTR did not match HMRC record for the client.
 
   relationshipNotFound:
     responses:
       404:
-        description: Relationship is inactive. Agent does not have delegated authorisation for the client.
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              notfoundrelationship:
+                description: Relationship is inactive. Agent does not have delegated authorisation for the client.
+                value:
+                  code: RELATIONSHIP_NOT_FOUND
+                  message: Relationship is inactive. Agent is not authorised to act for this client.
 
 /agents/{arn}:
-
   /invitations:
-    is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
+    is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
     uriParameters:
       arn:
-        description: The MTD platform Agent Registration Number.
+        description: The MTD platform Agent Reference Number.
         type: string
         example: AARN9999999
     post:
-      is: [serviceSpecified, clientIdSpecified, clientIdMatchesService, clientRegistrationRequired, knownFactMatches]
+      is: [serviceSpecified, clientIdSpecified, clientRegistrationRequired, knownFactMatches]
       displayName: Create a new invitation
       (annotations.scope): "write:sent-invitations"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
       body:
           application/json:
-            description: Create a new invitation.
+            description: Create a new authorisation request.
             type: !include schemas/create-invitation.json
             examples:
-              itsa: !include examples/post-agency-invitations-example.json
-              vat: !include examples/post-agency-invitations-vat-example.json
-              crn: !include examples/post-agency-invitations-crn-example.json
+              example-1:
+                value: !include examples/post-agency-invitations-example.json
+              example-2:
+                value: !include examples/post-agency-invitations-vat-example.json
+#              example-3:
+#                value: !include examples/post-agency-invitations-crn-example.json
+
       responses:
         204:
           description: The invitation was successfully created.
@@ -225,7 +222,7 @@ traits:
               description: Location of the invitation that was created.
 
     /{invitationId}:
-      is: [headers.acceptHeader, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
+      is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
       uriParameters:
         invitationId:
           description: A unique invitation id
@@ -250,11 +247,11 @@ traits:
         (annotations.scope): "write:cancel-invitations"
         securedBy: [ sec.oauth_2_0: { scopes: [ "write:cancel-invitations" ] } ]
         responses:
-          202:
+          204:
             description: The invitation has been successfully cancelled
 
   /relationships:
-    is: [headers.acceptHeader, clientRegistrationRequired, knownFactMatches, loginRequired, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound, serviceSpecified, clientIdMatchesService, clientIdSpecified]
+    is: [headers.acceptHeader, clientRegistrationRequired, knownFactMatches, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound, serviceSpecified, clientIdSpecified]
     uriParameters:
       arn:
         description: The MTD platform Agent Registration Number.
@@ -269,9 +266,12 @@ traits:
           description: Check Relationship based on details received.
           type: !include schemas/create-invitation.json
           examples:
-            itsa: !include examples/post-agency-invitations-example.json
-            vat: !include examples/post-agency-invitations-vat-example.json
-            crn: !include examples/post-agency-invitations-crn-example.json
+            example-1:
+              value: !include examples/post-agency-invitations-example.json
+            example-2:
+              value: !include examples/post-agency-invitations-vat-example.json
+#            example-3:
+#              value: !include examples/post-agency-invitations-crn-example.json
       responses:
         204:
           description: Relationship is active. Agent has delegated authorisation for the client.

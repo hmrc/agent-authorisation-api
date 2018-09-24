@@ -146,7 +146,7 @@ class AgentController @Inject() (
               checkKnownFactAndRelationship(arn, invitation)
             }
           case s =>
-            Logger(getClass).warn(s"Unsupported service received: ${s.knownFact}")
+            Logger(getClass).warn(s"Unsupported service received: ${s.service}")
             Future successful UnsupportedService
         }
       }
@@ -161,6 +161,7 @@ class AgentController @Inject() (
           case Some(true) => checkRelationship(agentInvitation, arn)
           case Some(false) =>
             knownFactNotMatchedAudit(agentInvitation, arn, "checkRelationship")
+            Logger(getClass).warn(s"Postcode does not match for ${agentInvitation.service}")
             Future successful knownFactDoesNotMatch(agentInvitation.service)
           case _ =>
             auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("CLIENT_REGISTRATION_NOT_FOUND"))
@@ -249,7 +250,7 @@ class AgentController @Inject() (
           case false =>
             auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("ITSA_RELATIONSHIP_NOT_FOUND"))
             Logger(getClass).warn(s"No ITSA Relationship Found")
-            NotFound
+            RelationshipNotFound
         }
       }
       case "HMRC-MTD-VAT" => {
@@ -260,7 +261,7 @@ class AgentController @Inject() (
           case false =>
             auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("VAT_RELATIONSHIP_NOT_FOUND"))
             Logger(getClass).warn(s"No VAT Relationship Found")
-            NotFound
+            RelationshipNotFound
         }
       }
     }
@@ -273,13 +274,23 @@ object AgentController {
 
   private def validateNino(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (Nino.isValid(agentInvitation.clientId)) body
-    else if (Vrn.isValid(agentInvitation.clientId)) Future successful ClientIdDoesNotMatchService
-    else Future successful InvalidItsaNino
+    else if (Vrn.isValid(agentInvitation.clientId)) {
+      Logger(getClass).warn(s"Client Id does not match service")
+      Future successful ClientIdDoesNotMatchService
+    } else {
+      Logger(getClass).warn(s"Invalid Nino provided for ITSA")
+      Future successful ClientIdInvalidFormat
+    }
 
   private def validateVrn(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (Vrn.isValid(agentInvitation.clientId)) body
-    else if (Nino.isValid(agentInvitation.clientId)) Future successful ClientIdDoesNotMatchService
-    else Future successful InvalidVatVrn
+    else if (Nino.isValid(agentInvitation.clientId)) {
+      Logger(getClass).warn(s"Client Id does not match service")
+      Future successful ClientIdDoesNotMatchService
+    } else {
+      Logger(getClass).warn(s"Invalid Vrn provided for VAT")
+      Future successful ClientIdInvalidFormat
+    }
 
   def validateDate(value: String): Boolean = if (parseDate(value)) true else false
 
