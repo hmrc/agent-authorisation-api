@@ -86,7 +86,7 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "NOT_AN_AGENT",
-        "This account used to sign in is not an Government Gateway account for an agent. The agent needs to create an Government Gateway agent account before they can use this service.")))
+        "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.")))
 
   val AgentNotSubscribed = Forbidden(
     toJson(
