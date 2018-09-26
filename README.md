@@ -1,4 +1,4 @@
-# Agent Authorisation API documentation version 0.0
+# Agent Authorisation API documentation version 1.0
 
 ### Overview
 This API allows tax agents to request authorisation to act on a client's behalf for a specific Making Tax Digital (MTD) tax service and have the option to cancel the authorisation request.
@@ -8,21 +8,24 @@ The API also allows the agent to check the status of authorisations already requ
 This API has no effect on the existing XML API.
 
 ### Why use this API?
-Agents often use software to perform services for their clients. 
-The API will benefit these agents since it will allow them to be able to request the invitation link directly through software, to send to their client so that they can authorise the agent for a service. 
-This will save an agent time since currently they must separately log into Agent Services UI to request this link. 
-This also aligns with the API first strategy for Agent Services.
+Agents often use software to perform services for their clients. The API will benefit these agents as it allows them to create a request for authorisation to act on a client's behalf for a specific Making Tax Digital service directly through software.
+
+This process involves the agent providing their own personal identifier and some information about the client that they wish to act on behalf of.
+This generates a link that the agent can send to their client. The client can then follow this link to authorise the agent  for a service.
+
+This API will save an agent time as they currently need to use an Agent Services user interface to create an authorisation request using their agent services account.
 
 ### Usage scenario
 The aim is for the API to mirror the current process that happens through the Agent Services user interface:
-* An gent uses a third-party application or software to request a new authorisation
+
+* An agent uses a third-party application or software to request a new authorisation
 * An agent identifier - the Agent Reference Number (ARN) - is passed to the API
 * The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
 * The agent enters the identifier for the client they are requesting authorisation from, for example:
     * National Insurance number (NINO)
     * Company registration number (CRN)
     * VAT registration number (VRN)
-* If required by the service the agent enters an additional identifer for the client, for example, the client's postcode or VAT registration date
+* If required by the service the agent enters an additional identifier for the client, for example, the client's postcode or VAT registration date
 * The API returns a link for the client to follow to authorise the agent and the date when the authorisation request will expire
 * The agent sends the link to the client they wish to act on behalf of
 * If the agent changes their mind, they can cancel the authorisation request as long as the client has not responded to it
@@ -34,11 +37,11 @@ The following feature is currently not available but it is expected to be availa
 
 Request Body:
 
-Create a new invitation (via CRN and UTR)
+Create a new authorisation (via CRN and UTR)
 
 /agents/:arn/invitations: 
 
-```json
+```
 {
   "service": ["MTD-VAT"],
   "clientIdType": "crn",
@@ -54,7 +57,7 @@ Location : /agents/AARN9999999/invitations/CS5AK7O8FPC43
 Error Responses:
 
 Http Error Code: 400
-```json
+```
 {
   "code": "CT_UTR_FORMAT_INVALID",
   "message": "Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format."
@@ -62,7 +65,7 @@ Http Error Code: 400
 ```
 
 Http Error Code: 403
-```json
+```
 {
   "code": "CT_UTR_DOES_NOT_MATCH",
   "message": " The submitted CT UTR did not match HMRC record for the client."
@@ -89,7 +92,7 @@ See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/
 
 ### /agents/{arn}/invitations
 
-* **arn**: The MTD platform Agent Reference Number.
+* **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
     * Type: string
     
     * Required: true
@@ -127,13 +130,13 @@ Create a new authorisation request.
 |:-----|:----:|:------------|:--------:|--------:|
 
 ### Response code: 204
-The invitation was successfully created.
+The authorisation request was created successfully.
 
 ###### Headers
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Location | string | Location of the invitation that was created. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
+| Location | string | Location of the authorisation request that was created. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
 
 ### Response code: 400
 
@@ -154,7 +157,7 @@ The invitation was successfully created.
 ```
 {
   "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
-  "message": "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
+  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
 }
 ```
 ```
@@ -188,13 +191,13 @@ The invitation was successfully created.
 ```
 {
   "code": "POSTCODE_DOES_NOT_MATCH",
-  "message": "The submitted postcode did not match the client's postcode as held by HMRC."
+  "message": "The postcode provided does not match HMRC's record for the client."
 }
 ```
 ```
 {
   "code": "VAT_REG_DATE_DOES_NOT_MATCH",
-  "message": "The submitted VAT registration date did not match HMRC record for the client."
+  "message": "The VAT registration date provided does not match HMRC's record for the client."
 }
 ```
 ```
@@ -212,7 +215,7 @@ The invitation was successfully created.
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+  "message": "The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -225,7 +228,7 @@ The invitation was successfully created.
 
 ### /agents/{arn}/invitations/{invitationId}
 
-* **invitationId**: A unique invitation id
+* **invitationId**: A unique authorisation request ID
     * Type: string
     
     * Required: true
@@ -241,7 +244,7 @@ The invitation was successfully created.
 ### Response code: 200
 
 #### application/json (application/json) 
-Returns the invitation.
+Returns the authorisation request.
 
 ```
 {
@@ -296,7 +299,7 @@ Returns the invitation.
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+  "message": "The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -331,7 +334,7 @@ Returns the invitation.
 | Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 204
-The invitation has been successfully cancelled
+The authorisation request has been cancelled successfully.
 
 ### Response code: 403
 
@@ -358,7 +361,7 @@ The invitation has been successfully cancelled
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+  "message": "The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -387,7 +390,7 @@ The invitation has been successfully cancelled
 
 ### /agents/{arn}/relationships
 
-* **arn**: The MTD platform Agent Registration Number.
+* **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
     * Type: string
     
     * Required: true
@@ -401,7 +404,7 @@ The invitation has been successfully cancelled
 | Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
-Check Relationship based on details received.
+Check Relationship based on the details received.
 
 ```
 {
@@ -425,7 +428,7 @@ Check Relationship based on details received.
 |:-----|:----:|:------------|:--------:|--------:|
 
 ### Response code: 204
-Relationship is active. Agent has delegated authorisation for the client.
+Relationship is active. Agent is authorised to act for the client.
 
 ### Response code: 400
 
@@ -446,7 +449,7 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 {
   "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
-  "message": "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
+  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
 }
 ```
 ```
@@ -480,13 +483,13 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 {
   "code": "POSTCODE_DOES_NOT_MATCH",
-  "message": "The submitted postcode did not match the client's postcode as held by HMRC."
+  "message": "The postcode provided does not match HMRC's record for the client."
 }
 ```
 ```
 {
   "code": "VAT_REG_DATE_DOES_NOT_MATCH",
-  "message": "The submitted VAT registration date did not match HMRC record for the client."
+  "message": "The VAT registration date provided does not match HMRC's record for the client."
 }
 ```
 ```
@@ -504,7 +507,7 @@ Relationship is active. Agent has delegated authorisation for the client.
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+  "message": "The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
