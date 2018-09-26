@@ -215,7 +215,7 @@ The authorisation request was created successfully.
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+  "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -299,7 +299,7 @@ Returns the authorisation request.
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+  "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -361,7 +361,7 @@ The authorisation request has been cancelled successfully.
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+  "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 
@@ -507,7 +507,7 @@ Relationship is active. Agent is authorised to act for the client.
 ```
 {
   "code": "NO_PERMISSION_ON_AGENCY",
-  "message": "The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+  "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
 

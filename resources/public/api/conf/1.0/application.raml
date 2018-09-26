@@ -36,10 +36,10 @@ traits:
             type: types.errorResponse
             examples:
               noPermissionOnAgency:
-                description: The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+                description: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
                 value:
                   code: NO_PERMISSION_ON_AGENCY
-                  message: The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+                  message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
 
   mustBeAnAgent:
     responses:
