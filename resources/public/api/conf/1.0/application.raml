@@ -1,6 +1,6 @@
 #%RAML 1.0
 title: Agent Authorisation
-version: 0.0
+version: 1.0
 protocols: [ HTTPS ]
 baseUri: https://api.service.hmrc.gov.uk/
 mediaType: [ application/json, application/hal+json ]
@@ -36,10 +36,10 @@ traits:
             type: types.errorResponse
             examples:
               noPermissionOnAgency:
-                description: The logged in user is not permitted to access invitations for the specified agency.
+                description: The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
                 value:
                   code: NO_PERMISSION_ON_AGENCY
-                  message: The account used to sign in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+                  message: The account that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
 
   mustBeAnAgent:
     responses:
@@ -49,7 +49,7 @@ traits:
             type: types.errorResponse
             examples:
               notAnAgent:
-                description: The logged in user is not an agent.
+                description: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
                 value:
                   code: NOT_AN_AGENT
                   message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
@@ -62,7 +62,7 @@ traits:
             type: types.errorResponse
             examples:
               agentNotSubscribed:
-                description: The Agent is not subscribed to Agent Services.
+                description: This agent needs to create an agent services account before they can use this service.
                 value:
                   code: AGENT_NOT_SUBSCRIBED
                   message: This agent needs to create an agent services account before they can use this service.
@@ -75,7 +75,7 @@ traits:
             type: types.errorResponse
             examples:
               clientRegistrationNotFound:
-                description: The Client's registration was not found.
+                description: The details provided for this client do not match HMRC's records.
                 value:
                   code: CLIENT_REGISTRATION_NOT_FOUND
                   message: The details provided for this client do not match HMRC's records.
@@ -88,7 +88,7 @@ traits:
             type: types.errorResponse
             examples:
               invalidInvitationStatus:
-                description: The requested state transition is not permitted given the invitation's current status.
+                description: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
                 value:
                   code: INVALID_INVITATION_STATUS
                   message: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
@@ -101,7 +101,7 @@ traits:
             type: types.errorResponse
             examples:
               invitationNotFound:
-                description: The specified invitation was not found.
+                description: The authorisation request cannot be found.
                 value:
                   code: INVITATION_NOT_FOUND
                   message: The authorisation request cannot be found.
@@ -114,7 +114,7 @@ traits:
               type: types.errorResponse
               examples:
                 invitationNotFound:
-                  description: The specified service is not supported.
+                  description: The service requested is not supported. Check the API documentation to find which services are supported.
                   value:
                     code: SERVICE_NOT_SUPPORTED
                     message: The service requested is not supported. Check the API documentation to find which services are supported.
@@ -127,27 +127,27 @@ traits:
               type: types.errorResponse
               examples:
                 invalidClientId:
-                  description: The submitted clientId does not match the expected format.
+                  description: Client identifier must be in the correct format. Check the API documentation to find the correct format.
                   value:
                     code: CLIENT_ID_FORMAT_INVALID
                     message: Client identifier must be in the correct format. Check the API documentation to find the correct format.
                 clientIdMatchesService:
-                  description: The specified client identifier does not match the requested service. Check the API documentation to find the correct format.
+                  description: The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use.
                   value:
                     code: CLIENT_ID_DOES_NOT_MATCH_SERVICE
                     message: The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use.
                 invalidPostcode:
-                  description: The submitted postcode does not match the expected format.
+                  description: Postcode must be in the correct format. Check the API documentation to find the correct format.
                   value:
                     code: POSTCODE_FORMAT_INVALID
                     message: Postcode must be in the correct format. Check the API documentation to find the correct format.
                 invalidVatRegistrationDate:
-                  description: The submitted VAT registration date does not match the expected format.
+                  description: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
                   value:
                     code: VAT_REG_DATE_FORMAT_INVALID
                     message: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
 #                invalidCompanyTaxUniqueTaxpayerReference:
-#                  description: The submitted CT UTR does not match the expected format.
+#                  description: Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format.
 #                  value:
 #                    code: CT_UTR_FORMAT_INVALID
 #                    message: Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format.
@@ -160,20 +160,20 @@ traits:
               type: types.errorResponse
               examples:
                 postcodeDoesNotMatch:
-                  description: The submitted postcode did not match the client's postcode as held by HMRC.
+                  description: The postcode provided does not match HMRC's record for the client.
                   value:
                     code: POSTCODE_DOES_NOT_MATCH
-                    message: The submitted postcode did not match the client's postcode as held by HMRC.
+                    message: The postcode provided does not match HMRC's record for the client.
                 vatRegistrationDateDoesNotMatch:
-                  description: The submitted VAT registration date did not match HMRC record for the client.
+                  description: The VAT registration date provided does not match HMRC's record for the client.
                   value:
                     code: VAT_REG_DATE_DOES_NOT_MATCH
-                    message: The submitted VAT registration date did not match HMRC record for the client.
+                    message: The VAT registration date provided does not match HMRC's record for the client.
 #                ctUtrDoesNotMatch:
-#                  description: The submitted CT UTR did not match HMRC record for the client.
+#                  description: The Corporation Tax Unique Taxpayer Reference provided does not match HMRC's record for the client.
 #                  value:
 #                    code: CT_UTR_DOES_NOT_MATCH
-#                    message: The submitted CT UTR did not match HMRC record for the client.
+#                    message: The Corporation Tax Unique Taxpayer Reference provided does not match HMRC's record for the client.
 
   relationshipNotFound:
     responses:
@@ -183,7 +183,7 @@ traits:
             type: types.errorResponse
             examples:
               notfoundrelationship:
-                description: Relationship is inactive. Agent does not have delegated authorisation for the client.
+                description: Relationship is inactive. Agent is not authorised to act for this client.
                 value:
                   code: RELATIONSHIP_NOT_FOUND
                   message: Relationship is inactive. Agent is not authorised to act for this client.
@@ -193,12 +193,12 @@ traits:
     is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired]
     uriParameters:
       arn:
-        description: The MTD platform Agent Reference Number.
+        description: The Making Tax Digital (MTD) platform Agent Reference Number.
         type: string
         example: AARN9999999
     post:
       is: [serviceSpecified, clientIdSpecified, clientRegistrationRequired, knownFactMatches]
-      displayName: Create a new invitation
+      displayName: Create a new authorisation
       (annotations.scope): "write:sent-invitations"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
       body:
@@ -215,17 +215,17 @@ traits:
 
       responses:
         204:
-          description: The invitation was successfully created.
+          description: The authorisation request was created successfully.
           headers:
             Location:
               example: /agents/AARN9999999/invitations/CS5AK7O8FPC43
-              description: Location of the invitation that was created.
+              description: Location of the authorisation request that was created.
 
     /{invitationId}:
       is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
       uriParameters:
         invitationId:
-          description: A unique invitation id
+          description: A unique authorisation request ID
           type: string
           example: CS5AK7O8FPC43
       get:
@@ -236,7 +236,7 @@ traits:
           200:
             body:
               application/json:
-                description: Returns the invitation.
+                description: Returns the authorisation request.
                 type: !include schemas/invitation.json
                 examples:
                   pending: !include examples/get-agency-invitation-pending-example.json
@@ -248,13 +248,13 @@ traits:
         securedBy: [ sec.oauth_2_0: { scopes: [ "write:cancel-invitations" ] } ]
         responses:
           204:
-            description: The invitation has been successfully cancelled
+            description: The authorisation request has been cancelled successfully.
 
   /relationships:
     is: [headers.acceptHeader, clientRegistrationRequired, knownFactMatches, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound, serviceSpecified, clientIdSpecified]
     uriParameters:
       arn:
-        description: The MTD platform Agent Registration Number.
+        description: The Making Tax Digital (MTD) platform Agent Reference Number.
         type: string
         example: AARN9999999
     post:
@@ -263,7 +263,7 @@ traits:
       securedBy: [ sec.oauth_2_0: { scopes: [ "read:check-relationship" ] } ]
       body:
         application/json:
-          description: Check Relationship based on details received.
+          description: Check Relationship based on the details received.
           type: !include schemas/create-invitation.json
           examples:
             example-1:
@@ -274,4 +274,4 @@ traits:
 #              value: !include examples/post-agency-invitations-crn-example.json
       responses:
         204:
-          description: Relationship is active. Agent has delegated authorisation for the client.
+          description: Relationship is active. Agent is authorised to act for the client.
