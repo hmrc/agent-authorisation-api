@@ -33,7 +33,7 @@ The aim is for the API to mirror the current process that happens through the Ag
 * The agent can check if they have been authorised by a client.
 
 ### Upcoming Feature
-The following feature is currently not available but it is expected to be available in a future release.
+The following feature is currently not available but it may be available in a future release.
 
 Request Body:
 

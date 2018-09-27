@@ -3,13 +3,15 @@
   "properties": {
     "_links": {
       "type": "object",
+      "description": "No description available.",
       "properties": {
         "self": {
           "type": "object",
-          "description": "A link to the current resource",
+          "description": "A link to the current resource.",
           "properties": {
             "href": {
-              "type": "string"
+              "type": "string",
+              "description": "No description available."
             }
           },
           "required": [

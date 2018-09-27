@@ -1,4 +1,4 @@
-The following feature is currently not available but it is expected to be available in a future release.
+The following feature is currently not available but it may be available in a future release.
 
 Request Body:
 
