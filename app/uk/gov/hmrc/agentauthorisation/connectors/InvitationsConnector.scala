@@ -20,18 +20,19 @@ import java.net.URL
 
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{ Inject, Named, Singleton }
+import javax.inject.{Inject, Named, Singleton}
 import org.joda.time.LocalDate
+import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, StoredInvitation }
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class InvitationsConnector @Inject() (
@@ -41,6 +42,8 @@ class InvitationsConnector @Inject() (
   extends HttpAPIMonitor {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
+
+  private val dateFormatter = ISODateTimeFormat.date()
 
   private[connectors] def createInvitationUrl(arn: Arn): URL =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
@@ -58,6 +61,13 @@ class InvitationsConnector @Inject() (
 
   private[connectors] def cancelInvitationUrl(arn: Arn, invitationId: InvitationId) =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
+
+  private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
+    new URL(
+      baseUrl,
+      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?createdOnOrAfter=${dateFormatter
+        .print(createdOnOrAfter)}"
+    )
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
@@ -105,5 +115,15 @@ class InvitationsConnector @Inject() (
       case _: NotFoundException => Some(404)
       case ex: Upstream4xxResponse if ex.message.contains("INVALID_INVITATION_STATUS") => Some(500)
       case _ => Some(403)
+    }
+
+  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Seq[StoredInvitation]] =
+    monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
+      val url = getAgencyInvitationsUrl(arn, createdOnOrAfter)
+      http
+        .GET[JsObject](url.toString)
+        .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
     }
 }

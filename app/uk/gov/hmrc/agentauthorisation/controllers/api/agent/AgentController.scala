@@ -266,6 +266,13 @@ class AgentController @Inject() (
       }
     }
   }
+
+  def getAgentInvitations(givenArn: Arn): Action[AnyContent] = Action.async {
+
+
+
+    Future successful NotImplemented
+  }
 }
 
 object AgentController {
