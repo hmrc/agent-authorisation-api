@@ -20,19 +20,19 @@ import java.net.URL
 
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{ Inject, Named, Singleton }
 import org.joda.time.LocalDate
 import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
+import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, StoredInvitation }
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class InvitationsConnector @Inject() (

@@ -7,7 +7,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentauthorisation._
-import uk.gov.hmrc.agentauthorisation.models.{ Invitation, PendingInvitation, RespondedInvitation, StoredInvitation }
+import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId }
 import uk.gov.hmrc.http.SessionKeys
 import play.api.libs.json.Json._
@@ -76,6 +76,46 @@ class AgentControllerISpec extends BaseISpec {
     Arn("TARN0000001"),
     "MTD-VAT",
     "Accepted")
+
+  val gettingPendingInvitations = Seq(
+    PendingOrRespondedInvitation(
+    s"/agents/${arn.value}/invitations/foo1",
+    "2017-10-31T23:22:50.971Z",
+    arn,
+    "MTD-IT",
+    "Pending",
+    Some("2017-12-18T00:00:00.000"),
+    Some("http://localhost:9448/invitations/foo1"),
+    None),
+    PendingOrRespondedInvitation(
+      s"/agents/${arn.value}/invitations/foo2",
+      "2017-10-31T23:22:50.971Z",
+      arn,
+      "MTD-VAT",
+      "Pending",
+      Some("2017-12-18T00:00:00.000"),
+      Some("http://localhost:9448/invitations/foo2"),
+      None))
+
+  val gettingRespondedInvitations = Seq(
+    PendingOrRespondedInvitation(
+    s"/agents/${arn.value}/invitations/foo4",
+    "2017-10-31T23:22:50.971Z",
+    arn,
+    "MTD-IT",
+    "Accepted",
+    None,
+    None,
+    Some("2018-09-11T21:02:00.000Z")),
+    PendingOrRespondedInvitation(
+      s"/agents/${arn.value}/invitations/foo2",
+      "2017-10-31T23:22:50.971Z",
+      arn,
+      "MTD-VAT",
+      "Rejected",
+      None,
+      None,
+      Some("2018-09-11T21:02:00.000Z")))
 
   "/agents/:arn/invitations" should {
 
@@ -738,6 +778,47 @@ class AgentControllerISpec extends BaseISpec {
         status(result) shouldBe 403
         await(result) shouldBe NoPermissionOnAgency
         verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      }
+    }
+
+    "GET /agents/:arn/invitations/" when {
+
+      "requesting a sequence of ITSA and VAT invitations" should {
+
+        val getInvitations = controller.getInvitationsApi(arn)
+        val request = FakeRequest("GET", s"/agents/${arn.value}/invitations")
+
+        implicit val timeout: Timeout = Timeout(Duration.Zero)
+
+        "return 200 and a json body of a pending invitation filtering out PIR relationships" in {
+          givenAllInvitationsPendingStub(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          status(result) shouldBe 200
+          contentAsJson(result) shouldBe toJson(gettingPendingInvitations)
+        }
+
+        "return 200 and a json body of a responded invitation filtering out PIR relationships" in {
+          givenAllInvitationsRespondedStub(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          status(result) shouldBe 200
+          contentAsJson(result) shouldBe toJson(gettingRespondedInvitations)
+        }
+
+        "return NoRelationshipsFound if there are no relationships for the agent" in {
+          givenAllInvitationsEmptyStub(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          await(result) shouldBe NoInvitationsFound
+        }
+
+        "return NoRelationshipsFound if there are only PIR relationships for the agent" in {
+          givenAllInvitationsPirStub(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          await(result) shouldBe NoInvitationsFound
+        }
       }
     }
   }

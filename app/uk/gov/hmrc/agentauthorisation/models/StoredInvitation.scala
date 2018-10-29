@@ -40,6 +40,7 @@ object StoredInvitation {
   val serviceByMtdService: String => String = {
     case "HMRC-MTD-IT" => "MTD-IT"
     case "HMRC-MTD-VAT" => "MTD-VAT"
+    case "PERSONAL-INCOME-RECORD" => "PERSONAL-INCOME-RECORD"
     case _ => throw new IllegalArgumentException
   }
 
@@ -53,6 +54,44 @@ object StoredInvitation {
       (JsPath \ "status").read[String])(
         (selfLink, created, expiresOn, updated, arn, service, status) =>
           StoredInvitation(selfLink, created, expiresOn.toString(), updated, arn, service, status))
+  }
+}
+
+case class PendingOrRespondedInvitation(
+  href: String,
+  created: String,
+  arn: Arn,
+  service: String,
+  status: String,
+  expiresOn: Option[String],
+  clientActionUrl: Option[String],
+  updated: Option[String]) extends Invitation
+
+object PendingOrRespondedInvitation {
+
+  implicit val reads: Reads[PendingOrRespondedInvitation] = {
+    ((JsPath \ "_links" \ "self" \ "href").read[String] and
+      (JsPath \ "created").read[String] and
+      (JsPath \ "arn").read[Arn] and
+      (JsPath \ "service").read[String] and
+      (JsPath \ "status").read[String] and
+      (JsPath \ "expiresOn").readNullable[String] and
+      (JsPath \ "updated").readNullable[String] and
+      (JsPath \ "clientActionUrl").readNullable[String])(
+        (selfLink, created, arn, service, status, expiresOn, updated, clientActionUrl) =>
+          PendingOrRespondedInvitation(selfLink, created, arn, service, status, expiresOn, updated, clientActionUrl))
+  }
+
+  implicit val writes: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
+    override def writes(o: PendingOrRespondedInvitation): JsValue = Json.obj(
+      "_links" -> Json.obj("self" -> Json.obj("href" -> o.href)),
+      "created" -> o.created,
+      "arn" -> o.arn.value,
+      "service" -> o.service,
+      "status" -> o.status,
+      "expiresOn" -> o.expiresOn,
+      "updated" -> o.updated,
+      "clientActionUrl" -> o.clientActionUrl)
   }
 }
 

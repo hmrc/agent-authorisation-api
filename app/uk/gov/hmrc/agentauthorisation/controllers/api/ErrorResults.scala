@@ -111,4 +111,10 @@ object ErrorResults {
       ErrorBody(
         "RELATIONSHIP_NOT_FOUND",
         "Relationship is inactive. Agent is not authorised to act for this client.")))
+
+  val NoInvitationsFound = NotFound(
+    toJson(
+      ErrorBody(
+        "NO_INVITATIONS_FOUND",
+        "This agent has no authorisation requests.")))
 }

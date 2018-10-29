@@ -1,8 +1,8 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import org.joda.time.LocalDate
+import org.joda.time.{DateTimeZone, LocalDate}
 import uk.gov.hmrc.agentauthorisation._
-import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, StoredInvitation }
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
@@ -28,6 +28,23 @@ class InvitationsConnectorISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"), "MTD-VAT", "Pending")
+
+  val storedInvitations = Seq(
+    StoredInvitation(s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/foo1",
+    "2017-10-31T23:22:50.971Z",
+    "2017-12-18T00:00:00.000",
+    "2018-09-11T21:02:00.000Z",
+    Arn("TARN0000001"), "MTD-IT", "Pending"),
+    StoredInvitation(s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/foo2",
+    "2017-10-31T23:22:50.971Z",
+    "2017-12-18T00:00:00.000",
+    "2018-09-11T21:02:00.000Z",
+    Arn("TARN0000001"), "MTD-VAT", "Pending"),
+    StoredInvitation(s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/foo3",
+      "2017-10-31T23:22:50.971Z",
+      "2017-12-18T00:00:00.000",
+      "2018-09-11T21:02:00.000Z",
+      Arn("TARN0000001"), "PERSONAL-INCOME-RECORD", "Pending"))
 
   "createInvitation" should {
 
@@ -142,6 +159,22 @@ class InvitationsConnectorISpec extends BaseISpec {
       val result = await(connector.cancelInvitation(arn, invitationIdITSA))
 
       result shouldBe Some(403)
+    }
+  }
+
+  "getAllInvitations" should {
+    "return a sequence of stored invitations" in {
+      givenAllInvitationsPendingStub(arn)
+      val result = await(connector.getAllInvitations(arn, LocalDate.now(DateTimeZone.UTC).minusDays(30)))
+
+      result shouldBe storedInvitations
+    }
+
+    "return a empty sequence of stored invitations" in {
+      givenAllInvitationsEmptyStub(arn)
+      val result = await(connector.getAllInvitations(arn, LocalDate.now(DateTimeZone.UTC).minusDays(30)))
+
+      result shouldBe Seq.empty[StoredInvitation]
     }
   }
 }

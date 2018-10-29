@@ -16,26 +16,25 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-import javax.inject.{ Inject, Named, Singleton }
-import org.joda.time.LocalDate
+import javax.inject.{Inject, Named, Singleton}
 import org.joda.time.format.DateTimeFormat
+import org.joda.time.{DateTimeZone, LocalDate}
 import play.api.Logger
-import play.api.libs.json.JsObject
-import play.api.mvc.{ Action, AnyContent, Request, Result }
+import play.api.libs.json.Json._
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, Request, Result}
+import uk.gov.hmrc.agentauthorisation.audit.AuditService
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
-import uk.gov.hmrc.agentauthorisation.models.AgentInvitationReceived
+import uk.gov.hmrc.agentauthorisation.connectors.{DesConnector, InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
-import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, PendingInvitation, RespondedInvitation }
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, MtdItId, Vrn }
+import uk.gov.hmrc.agentauthorisation.models._
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import play.api.libs.json.Json._
-import uk.gov.hmrc.agentauthorisation.audit.AuditService
-import uk.gov.hmrc.agentauthorisation.connectors.{ DesConnector, InvitationsConnector, RelationshipsConnector }
 
 import scala.concurrent.Future
 
@@ -82,7 +81,7 @@ class AgentController @Inject() (
       forThisAgency(givenArn) {
         invitationsConnector.getInvitation(arn, invitationId)
           .map {
-            case pendingInv @ Some(PendingInvitation(pendingInvitation)) =>
+            case pendingInv @ Some(PendingInvitation(pendingInvitation)) if supportedServices.contains(pendingInvitation.service) =>
               auditService.sendAgentGetInvitation(arn, invitationId.value, "Success", invitation = Some(pendingInvitation))
               val id = pendingInv.get.href.toString.split("/").toStream.last
               val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
@@ -90,11 +89,19 @@ class AgentController @Inject() (
                 .copy(clientActionUrl = s"$invitationFrontendUrl" + s"${invitationId.value}")
                 .copy(href = newInvitationUrl))
                 .as[JsObject])
-            case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
+            case Some(PendingInvitation(pendingInvitation)) =>
+              auditService.sendAgentGetInvitation(arn, invitationId.value, "Fail", failure = Some("SERVICE_NOT_SUPPORTED"))
+              Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
+              UnsupportedService
+            case respondedInv @ Some(RespondedInvitation(respondedInvitation)) if supportedServices.contains(respondedInvitation.service) =>
               auditService.sendAgentGetInvitation(arn, invitationId.value, "Success", invitation = Some(respondedInvitation))
               val id = respondedInv.get.href.toString.split("/").toStream.last
               val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
               Ok(toJson(respondedInvitation.copy(href = newInvitationUrl)).as[JsObject])
+            case Some(RespondedInvitation(respondedInvitation)) =>
+              auditService.sendAgentGetInvitation(arn, invitationId.value, "Fail", failure = Some("SERVICE_NOT_SUPPORTED"))
+              Logger(getClass).warn(s"Service ${respondedInvitation.service} Not Supported")
+              UnsupportedService
             case _ =>
               auditService.sendAgentGetInvitation(arn, invitationId.value, "Fail", failure = Some("INVITATION_NOT_FOUND"))
               Logger(getClass).warn(s"Invitation ${invitationId.value} Not Found")
@@ -267,17 +274,40 @@ class AgentController @Inject() (
     }
   }
 
-  def getAgentInvitations(givenArn: Arn): Action[AnyContent] = Action.async {
+  def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
+    withAuthorisedAsAgent { (arn, _) =>
+      implicit val loggedInArn: Arn = arn
+      forThisAgency(givenArn) {
+        val date30DaysAgo = LocalDate.now(DateTimeZone.UTC).minusDays(30)
+        invitationsConnector.getAllInvitations(arn, date30DaysAgo)
+          .map(invitations => invitations.map {
 
+            case pendingInv @ PendingInvitation(_) =>
+              val id = pendingInv.href.toString.split("/").toStream.last
+              val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+              PendingOrRespondedInvitation(newInvitationUrl, pendingInv.created, pendingInv.arn, pendingInv.service, pendingInv.status, Some(pendingInv.expiresOn), Some(s"$invitationFrontendUrl" + s"$id"), None)
 
+            case respondedInv @ RespondedInvitation(_) =>
+              val id = respondedInv.href.toString.split("/").toStream.last
+              val newInvitationUrl = s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+              PendingOrRespondedInvitation(newInvitationUrl, respondedInv.created, respondedInv.arn, respondedInv.service, respondedInv.status, None, None, Some(respondedInv.updated))
 
-    Future successful NotImplemented
+          }).map(r => {
+            if (r.exists(inv => supportedServices.contains(inv.service)))
+              Ok(Json.toJson(r.filter(inv => supportedServices.contains(inv.service))))
+            else NoInvitationsFound
+          })
+      }
+    }
   }
+
 }
 
 object AgentController {
 
   private val postcodeRegex = "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
+
+  private val supportedServices = Seq("MTD-IT", "MTD-VAT")
 
   private def validateNino(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (Nino.isValid(agentInvitation.clientId)) body
