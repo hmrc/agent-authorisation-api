@@ -32,6 +32,9 @@ The aim is for the API to mirror the current process that happens through the Ag
 * The agent accesses the link and signs in using their a Government Gateway login details to accept the agent's request
 * The agent can check if they have been authorised by a client.
 
+The detailed guide how to create required client data in the External Tests (Sandbox) environment 
+can be found at <https://test-www.tax.service.gov.uk/agents-external-stubs/help/agent-authorisation-api>
+
 ### Upcoming Feature
 The following feature is currently not available but it may be available in a future release.
 
@@ -88,7 +91,7 @@ We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documenta
 * in the 500 to 599 range if it didn't succeed because of an error on our server
 
 Errors specific to each API are shown in its own Resources section, under Response. 
-See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
+See our [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors.
 
 ---
 
@@ -144,12 +147,6 @@ The authorisation request was created successfully.
 
 #### errorResponse (application/json) 
 
-```
-{
-  "code": "SERVICE_NOT_SUPPORTED",
-  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
-}
-```
 ```
 {
   "code": "CLIENT_ID_FORMAT_INVALID",
@@ -227,6 +224,100 @@ The authorisation request was created successfully.
 | code |  string |  | true |  |
 
 ---
+#### **GET** *(secured)*:
+
+###### Headers
+
+| Name | Type | Description | Required | Examples |
+|:-----|:----:|:------------|:--------:|---------:|
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+
+### Response code: 200
+
+#### application/json (application/json) 
+Returns all authorisation requests for the last 30 days.
+
+```
+[{
+  "_links": {
+    "self": {
+      "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
+    }
+  },
+  "created": "2017-01-25T15:20:14.917Z",
+  "arn": "AARN9999999",
+  "service": ["MTD-IT"],
+  "status": "Pending",
+  "expiresOn": "2017-02-04T00:00:00:000Z",
+  "updated": null,
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
+},
+  {
+    "_links": {
+      "self": {
+        "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
+      }
+    },
+    "created": "2017-01-25T15:20:14.917Z",
+    "arn": "AARN9999999",
+    "service": ["MTD-IT"],
+    "status": "Accepted",
+    "expiresOn": null,
+    "updated": "2017-01-25T15:20:14.917Z",
+    "clientActionUrl": null
+  }
+]
+```
+
+##### *application/json*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+
+### Response code: 403
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "NOT_AN_AGENT",
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
+}
+```
+```
+{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "This agent needs to create an agent services account before they can use this service."
+}
+```
+```
+{
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 404
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "NO_INVITATIONS_FOUND",
+  "message": "This agent has no authorisation requests."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+---
 
 ### /agents/{arn}/invitations/{invitationId}
 
@@ -241,7 +332,7 @@ The authorisation request was created successfully.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
 
@@ -333,7 +424,7 @@ Returns the authorisation request.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 204
 The authorisation request has been cancelled successfully.
@@ -403,7 +494,7 @@ The authorisation request has been cancelled successfully.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
 Check Relationship based on the details received.
@@ -436,12 +527,6 @@ Relationship is active. Agent is authorised to act for the client.
 
 #### errorResponse (application/json) 
 
-```
-{
-  "code": "SERVICE_NOT_SUPPORTED",
-  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
-}
-```
 ```
 {
   "code": "CLIENT_ID_FORMAT_INVALID",
