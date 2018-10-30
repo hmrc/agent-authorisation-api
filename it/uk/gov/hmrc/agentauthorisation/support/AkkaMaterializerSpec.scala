@@ -18,14 +18,14 @@ package uk.gov.hmrc.agentauthorisation.support
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.{ BeforeAndAfterAll, Suite }
 import uk.gov.hmrc.play.test.UnitSpec
 
 /**
-  * Provides an implicit Materializer for use in tests. Note that if your test
-  * is starting an app (e.g. via OneAppPerSuite or OneAppPerTest) then you
-  * should probably use the app's Materializer instead.
-  */
+ * Provides an implicit Materializer for use in tests. Note that if your test
+ * is starting an app (e.g. via OneAppPerSuite or OneAppPerTest) then you
+ * should probably use the app's Materializer instead.
+ */
 trait AkkaMaterializerSpec extends UnitSpec with BeforeAndAfterAll { this: Suite =>
 
   implicit lazy val actorSystem = ActorSystem()

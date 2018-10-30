@@ -1,13 +1,13 @@
 package uk.gov.hmrc.agentauthorisation.support
 
-import play.api.http.{HeaderNames, MimeTypes}
-import play.api.libs.ws.{WS, WSClient, WSRequest, WSResponse}
+import play.api.http.{ HeaderNames, MimeTypes }
+import play.api.libs.ws.{ WS, WSClient, WSRequest, WSResponse }
 import play.api.mvc.Results
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.http.ws.WSHttpResponse
 
-import scala.concurrent.duration.{Duration, SECONDS, _}
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.{ Duration, SECONDS, _ }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 object Http {
 
@@ -17,7 +17,8 @@ object Http {
   }
 
   def post(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(
-    implicit hc: HeaderCarrier,
+    implicit
+    hc: HeaderCarrier,
     ec: ExecutionContext,
     ws: WSClient): HttpResponse = perform(url) { request =>
     request.withHeaders(headers: _*).post(body)
@@ -41,7 +42,8 @@ object Http {
   }
 
   private def perform(url: String)(fun: WSRequest => Future[WSResponse])(
-    implicit hc: HeaderCarrier,
+    implicit
+    hc: HeaderCarrier,
     ec: ExecutionContext,
     ws: WSClient): WSHttpResponse =
     await(

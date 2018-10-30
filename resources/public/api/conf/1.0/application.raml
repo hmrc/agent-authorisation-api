@@ -106,20 +106,32 @@ traits:
                   code: INVITATION_NOT_FOUND
                   message: The authorisation request cannot be found.
 
-
-
-  invitationsSpecified:
+  serviceSpecified:
       responses:
-        404:
+        400:
           body:
             application/json:
               type: types.errorResponse
               examples:
-                invitationsNotFound:
-                  description: This agent has no authorisation requests.
+                invitationNotFound:
+                  description: The service requested is not supported. Check the API documentation to find which services are supported.
                   value:
-                    code: NO_INVITATIONS_FOUND
-                    message: This agent has no authorisation requests.
+                    code: SERVICE_NOT_SUPPORTED
+                    message: The service requested is not supported. Check the API documentation to find which services are supported.
+
+  validatePayload:
+        responses:
+          400:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  invitationNotFound:
+                    description: The payload is invalid.
+                    value:
+                      code: INVALID_PAYLOAD
+                      message: The payload is invalid.
+
 
   clientIdSpecified:
     responses:
@@ -199,7 +211,7 @@ traits:
         type: string
         example: AARN9999999
     post:
-      is: [serviceSpecified, clientIdSpecified, clientRegistrationRequired, knownFactMatches]
+      is: [serviceSpecified, clientIdSpecified, clientRegistrationRequired, knownFactMatches, validatePayload]
       displayName: Create a new authorisation
       (annotations.scope): "write:sent-invitations"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]

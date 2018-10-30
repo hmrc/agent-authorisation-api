@@ -31,8 +31,7 @@ trait AuthStubs {
          |    {"key":"${enrolment.identifierName}", "value": "${enrolment.identifierValue}"}
          |  ]}
          |]}
-          """.stripMargin
-    )
+          """.stripMargin)
     request.withSession(SessionKeys.authToken -> "Bearer XYZ")
   }
 

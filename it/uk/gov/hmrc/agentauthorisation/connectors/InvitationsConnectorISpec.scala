@@ -1,8 +1,8 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import org.joda.time.{DateTimeZone, LocalDate}
+import org.joda.time.{ DateTimeZone, LocalDate }
 import uk.gov.hmrc.agentauthorisation._
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, StoredInvitation }
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
@@ -22,8 +22,7 @@ class InvitationsConnectorISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
     "MTD-IT",
-    "Pending"
-  )
+    "Pending")
 
   val storedVatInvitation = StoredInvitation(
     s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/CZTW1KY6RTAAT",
@@ -32,8 +31,7 @@ class InvitationsConnectorISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
     "MTD-VAT",
-    "Pending"
-  )
+    "Pending")
 
   val storedInvitations = Seq(
     StoredInvitation(
@@ -43,8 +41,7 @@ class InvitationsConnectorISpec extends BaseISpec {
       "2018-09-11T21:02:00.000Z",
       Arn("TARN0000001"),
       "MTD-IT",
-      "Pending"
-    ),
+      "Pending"),
     StoredInvitation(
       s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/foo2",
       "2017-10-31T23:22:50.971Z",
@@ -52,8 +49,7 @@ class InvitationsConnectorISpec extends BaseISpec {
       "2018-09-11T21:02:00.000Z",
       Arn("TARN0000001"),
       "MTD-VAT",
-      "Pending"
-    ),
+      "Pending"),
     StoredInvitation(
       s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/foo3",
       "2017-10-31T23:22:50.971Z",
@@ -61,9 +57,7 @@ class InvitationsConnectorISpec extends BaseISpec {
       "2018-09-11T21:02:00.000Z",
       Arn("TARN0000001"),
       "PERSONAL-INCOME-RECORD",
-      "Pending"
-    )
-  )
+      "Pending"))
 
   "createInvitation" should {
 

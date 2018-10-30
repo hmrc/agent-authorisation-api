@@ -2,7 +2,7 @@ package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
-import uk.gov.hmrc.agentmtdidentifiers.model.{MtdItId, Vrn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{ MtdItId, Vrn }
 
 trait ACRStubs {
   me: WireMockSupport =>

@@ -22,14 +22,14 @@ import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.mockito.MockitoSugar
 import play.api.mvc.Results.Ok
-import play.api.test.{FakeApplication, FakeRequest}
-import play.api.{Configuration, Environment, Mode, Play}
+import play.api.test.{ FakeApplication, FakeRequest }
+import play.api.{ Configuration, Environment, Mode, Play }
 import uk.gov.hmrc.agentauthorisation.support.AkkaMaterializerSpec
-import uk.gov.hmrc.auth.otac.{Authorised, OtacAuthConnector, Unauthorised}
-import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
+import uk.gov.hmrc.auth.otac.{ Authorised, OtacAuthConnector, Unauthorised }
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.test.UnitSpec
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class PasscodeVerificationISpec extends UnitSpec with MockitoSugar with AkkaMaterializerSpec with BeforeAndAfterAll {
 

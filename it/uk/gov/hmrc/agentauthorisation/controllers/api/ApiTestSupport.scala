@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.ExecutionContext
 import scala.util.Try
-import scala.xml.{Elem, XML}
+import scala.xml.{ Elem, XML }
 
 object ApiTestSupport {
 

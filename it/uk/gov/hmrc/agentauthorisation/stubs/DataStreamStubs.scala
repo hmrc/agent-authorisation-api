@@ -2,7 +2,7 @@ package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.time.{ Millis, Seconds, Span }
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
@@ -35,8 +35,7 @@ trait DataStreamStubs extends Eventually {
           |  "auditType": "$event",
           |  "tags": ${Json.toJson(tags)},
           |  "detail": ${Json.toJson(detail)}
-          |}"""))
-      )
+          |}""")))
     }
 
   def verifyAuditRequestNotSent(event: AgentAuthorisationEvent): Unit =
@@ -47,8 +46,7 @@ trait DataStreamStubs extends Eventually {
           .withRequestBody(similarToJson(s"""{
           |  "auditSource": "agent-authorisation-api",
           |  "auditType": "$event"
-          |}"""))
-      )
+          |}""")))
     }
 
 }
