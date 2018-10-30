@@ -39,7 +39,7 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
-    "MTD-IT",
+    List("MTD-IT"),
     "Pending",
     s"http://localhost:9448/invitations/${invitationIdITSA.value}")
 
@@ -48,7 +48,7 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
-    "MTD-IT",
+    List("MTD-IT"),
     "Accepted")
 
   val storedVatInvitation = StoredInvitation(
@@ -65,7 +65,7 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
-    "MTD-VAT",
+    List("MTD-VAT"),
     "Pending",
     s"http://localhost:9448/invitations/${invitationIdVAT.value}")
 
@@ -74,24 +74,24 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
-    "MTD-VAT",
+    List("MTD-VAT"),
     "Accepted")
 
   val gettingPendingInvitations = Seq(
     PendingOrRespondedInvitation(
-    s"/agents/${arn.value}/invitations/foo1",
-    "2017-10-31T23:22:50.971Z",
-    arn,
-    "MTD-IT",
-    "Pending",
-    Some("2017-12-18T00:00:00.000"),
-    Some("http://localhost:9448/invitations/foo1"),
-    None),
+      s"/agents/${arn.value}/invitations/foo1",
+      "2017-10-31T23:22:50.971Z",
+      arn,
+      List("MTD-IT"),
+      "Pending",
+      Some("2017-12-18T00:00:00.000"),
+      Some("http://localhost:9448/invitations/foo1"),
+      None),
     PendingOrRespondedInvitation(
       s"/agents/${arn.value}/invitations/foo2",
       "2017-10-31T23:22:50.971Z",
       arn,
-      "MTD-VAT",
+      List("MTD-VAT"),
       "Pending",
       Some("2017-12-18T00:00:00.000"),
       Some("http://localhost:9448/invitations/foo2"),
@@ -99,19 +99,19 @@ class AgentControllerISpec extends BaseISpec {
 
   val gettingRespondedInvitations = Seq(
     PendingOrRespondedInvitation(
-    s"/agents/${arn.value}/invitations/foo4",
-    "2017-10-31T23:22:50.971Z",
-    arn,
-    "MTD-IT",
-    "Accepted",
-    None,
-    None,
-    Some("2018-09-11T21:02:00.000Z")),
+      s"/agents/${arn.value}/invitations/foo4",
+      "2017-10-31T23:22:50.971Z",
+      arn,
+      List("MTD-IT"),
+      "Accepted",
+      None,
+      None,
+      Some("2018-09-11T21:02:00.000Z")),
     PendingOrRespondedInvitation(
       s"/agents/${arn.value}/invitations/foo2",
       "2017-10-31T23:22:50.971Z",
       arn,
-      "MTD-VAT",
+      List("MTD-VAT"),
       "Rejected",
       None,
       None,
@@ -314,7 +314,6 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         contentAsJson(result) shouldBe toJson(pendingItsaInvitation).as[JsObject]
-        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some(pendingItsaInvitation))
       }
 
       "return 200 and a json body of a responded invitation" in {
@@ -323,7 +322,6 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
-        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some(respondedItsaInvitation))
       }
 
       "return 403 for Not An Agent" in {
@@ -806,18 +804,18 @@ class AgentControllerISpec extends BaseISpec {
           contentAsJson(result) shouldBe toJson(gettingRespondedInvitations)
         }
 
-        "return NoRelationshipsFound if there are no relationships for the agent" in {
+        "return 204 if there are no relationships for the agent" in {
           givenAllInvitationsEmptyStub(arn)
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
-          await(result) shouldBe NoInvitationsFound
+          status(result) shouldBe 204
         }
 
-        "return NoRelationshipsFound if there are only PIR relationships for the agent" in {
+        "return 204 if there are only PIR relationships for the agent" in {
           givenAllInvitationsPirStub(arn)
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
-          await(result) shouldBe NoInvitationsFound
+          status(result) shouldBe 204
         }
       }
     }
@@ -840,24 +838,6 @@ class AgentControllerISpec extends BaseISpec {
         "service" -> service).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
       tags = Map(
         "transactionName" -> "Agent created invitation through third party software"))
-
-  def verifyAgentGetInvitationEvent(
-    arn: String,
-    invitationId: String,
-    result: String,
-    invitation: Option[Invitation] = None,
-    failure: Option[String] = None): Unit =
-    verifyAuditRequestSent(
-      1,
-      AgentAuthorisationEvent.AgentGetInvitationApi,
-      detail = Map(
-        "result" -> result,
-        "invitationId" -> invitationId,
-        "agentReferenceNumber" -> arn).filter(_._2.nonEmpty) ++
-        invitation.map(i => Seq("service" -> i.service, "status" -> i.status)).getOrElse(Seq.empty) ++
-        failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map(
-        "transactionName" -> "Agent retrieved invitation through third party software"))
 
   def verifyAgentClientInvitationCancelledEvent(
     arn: String,

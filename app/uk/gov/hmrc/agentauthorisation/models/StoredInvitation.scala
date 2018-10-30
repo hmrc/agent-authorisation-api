@@ -22,7 +22,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import play.api.libs.functional.syntax._
 
 trait Invitation {
-  val service: String
+  val service: List[String]
   val status: String
 }
 
@@ -61,7 +61,7 @@ case class PendingOrRespondedInvitation(
   href: String,
   created: String,
   arn: Arn,
-  service: String,
+  service: List[String],
   status: String,
   expiresOn: Option[String],
   clientActionUrl: Option[String],
@@ -79,7 +79,7 @@ object PendingOrRespondedInvitation {
       (JsPath \ "updated").readNullable[String] and
       (JsPath \ "clientActionUrl").readNullable[String])(
         (selfLink, created, arn, service, status, expiresOn, updated, clientActionUrl) =>
-          PendingOrRespondedInvitation(selfLink, created, arn, service, status, expiresOn, updated, clientActionUrl))
+          PendingOrRespondedInvitation(selfLink, created, arn, List(service), status, expiresOn, updated, clientActionUrl))
   }
 
   implicit val writes: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
@@ -100,7 +100,7 @@ case class PendingInvitation(
   created: String,
   expiresOn: String,
   arn: Arn,
-  service: String,
+  service: List[String],
   status: String,
   clientActionUrl: String) extends Invitation
 
@@ -108,7 +108,7 @@ object PendingInvitation {
 
   def unapply(arg: StoredInvitation): Option[PendingInvitation] = arg match {
     case StoredInvitation(href, created, expiredOn, _, arn, service, status) if status == "Pending" =>
-      Some(PendingInvitation(href, created, expiredOn, arn, service, status, ""))
+      Some(PendingInvitation(href, created, expiredOn, arn, List(service), status, ""))
     case _ => None
   }
 
@@ -121,7 +121,7 @@ object PendingInvitation {
       (JsPath \ "status").read[String] and
       (JsPath \ "clientActionUrl").read[String])(
         (selfLink, created, expiresOn, arn, service, status, clientActionUrl) =>
-          PendingInvitation(selfLink, created, expiresOn, arn, service, status, clientActionUrl))
+          PendingInvitation(selfLink, created, expiresOn, arn, List(service), status, clientActionUrl))
   }
 
   implicit val writes: Writes[PendingInvitation] = new Writes[PendingInvitation] {
@@ -141,14 +141,14 @@ case class RespondedInvitation(
   created: String,
   updated: String,
   arn: Arn,
-  service: String,
+  service: List[String],
   status: String) extends Invitation
 
 object RespondedInvitation {
 
   def unapply(arg: StoredInvitation): Option[RespondedInvitation] = arg match {
     case StoredInvitation(href, created, _, updated, arn, service, status) if status != "Pending" =>
-      Some(RespondedInvitation(href, created, updated, arn, service, status))
+      Some(RespondedInvitation(href, created, updated, arn, List(service), status))
     case _ => None
   }
 
@@ -160,7 +160,7 @@ object RespondedInvitation {
       (JsPath \ "service").read[String] and
       (JsPath \ "status").read[String])(
         (href, created, updated, arn, service, status) =>
-          RespondedInvitation(href, created, updated, arn, service, status))
+          RespondedInvitation(href, created, updated, arn, List(service), status))
   }
 
   implicit val writes: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {

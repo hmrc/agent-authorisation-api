@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.http.HttpErrorHandler
 import play.api.libs.json.Json
@@ -30,17 +30,22 @@ object ApiAccess {
 }
 
 @Singleton
-class DocumentationController @Inject() (errorHandler: HttpErrorHandler, configuration: Configuration)
-  extends uk.gov.hmrc.api.controllers.DocumentationController(errorHandler = errorHandler) {
+class DocumentationController @Inject()(errorHandler: HttpErrorHandler,
+                                        configuration: Configuration)
+    extends uk.gov.hmrc.api.controllers.DocumentationController(
+      errorHandler = errorHandler) {
 
   private lazy val apiAccess = {
     val accessConfig = configuration.getConfig("api.access")
     val accessType = accessConfig.get.getString("type").getOrElse("PRIVATE")
-    val whiteList = accessConfig.get.getStringSeq("white-list.applicationIds").getOrElse(Seq())
+    val whiteList = accessConfig.get
+      .getStringSeq("white-list.applicationIds")
+      .getOrElse(Seq())
     ApiAccess(accessType, whiteList)
   }
 
   override def definition(): Action[AnyContent] = Action {
-    Ok(txt.definition(apiAccess)).withHeaders("Content-Type" -> "application/json")
+    Ok(txt.definition(apiAccess))
+      .withHeaders("Content-Type" -> "application/json")
   }
 }

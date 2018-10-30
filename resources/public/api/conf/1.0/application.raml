@@ -238,6 +238,9 @@ traits:
               examples:
                 pending and responded: !include examples/get-agency-invitations-example.json
 
+        204:
+          description: The agent has no authorisation requests for the last 30 days.
+
     /{invitationId}:
       is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]
       uriParameters:

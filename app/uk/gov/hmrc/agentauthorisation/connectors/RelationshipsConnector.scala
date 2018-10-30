@@ -20,44 +20,52 @@ import java.net.URL
 
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{ Inject, Named, Singleton }
+import javax.inject.{Inject, Named, Singleton}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, MtdItId, Vrn }
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, MtdItId, Vrn}
 import uk.gov.hmrc.http._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RelationshipsConnector @Inject() (
-  @Named("agent-client-relationships-baseUrl") baseUrl: URL,
-  http: HttpPost with HttpGet with HttpPut,
-  metrics: Metrics)
-  extends HttpAPIMonitor {
+class RelationshipsConnector @Inject()(
+    @Named("agent-client-relationships-baseUrl") baseUrl: URL,
+    http: HttpPost with HttpGet with HttpPut,
+    metrics: Metrics)
+    extends HttpAPIMonitor {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  private[connectors] def checkItsaRelationshipUrl(arn: Arn, mtdItId: MtdItId): URL =
-    new URL(baseUrl, s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-IT/client/MTDITID/${mtdItId.value}")
+  private[connectors] def checkItsaRelationshipUrl(arn: Arn,
+                                                   mtdItId: MtdItId): URL =
+    new URL(
+      baseUrl,
+      s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-IT/client/MTDITID/${mtdItId.value}")
 
   private[connectors] def checkVatRelationshipUrl(arn: Arn, vrn: Vrn): URL =
-    new URL(baseUrl, s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
+    new URL(
+      baseUrl,
+      s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
 
   def checkItsaRelationship(arn: Arn, mtdItId: MtdItId)(
-    implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Boolean] =
+      implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaRelationship-GET") {
-      http.GET[HttpResponse](checkItsaRelationshipUrl(arn, mtdItId).toString) map (_ => true)
+      http.GET[HttpResponse](checkItsaRelationshipUrl(arn, mtdItId).toString) map (
+          _ => true)
     }.recover {
       case notFound: NotFoundException => false
     }
 
   def checkVatRelationship(arn: Arn, vrn: Vrn)(
-    implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Boolean] =
+      implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-VatRelationship-GET") {
-      http.GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString).map(_ => true)
+      http
+        .GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString)
+        .map(_ => true)
     }.recover {
       case notFound: NotFoundException => false
     }
