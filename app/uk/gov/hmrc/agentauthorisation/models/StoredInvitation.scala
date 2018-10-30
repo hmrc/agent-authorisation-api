@@ -69,18 +69,7 @@ case class PendingOrRespondedInvitation(
 
 object PendingOrRespondedInvitation {
 
-  implicit val reads: Reads[PendingOrRespondedInvitation] = {
-    ((JsPath \ "_links" \ "self" \ "href").read[String] and
-      (JsPath \ "created").read[String] and
-      (JsPath \ "arn").read[Arn] and
-      (JsPath \ "service").read[String] and
-      (JsPath \ "status").read[String] and
-      (JsPath \ "expiresOn").readNullable[String] and
-      (JsPath \ "updated").readNullable[String] and
-      (JsPath \ "clientActionUrl").readNullable[String])(
-        (selfLink, created, arn, service, status, expiresOn, updated, clientActionUrl) =>
-          PendingOrRespondedInvitation(selfLink, created, arn, List(service), status, expiresOn, updated, clientActionUrl))
-  }
+  implicit val reads: Reads[PendingOrRespondedInvitation] = Json.reads[PendingOrRespondedInvitation]
 
   implicit val writes: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
     override def writes(o: PendingOrRespondedInvitation): JsValue = Json.obj(
