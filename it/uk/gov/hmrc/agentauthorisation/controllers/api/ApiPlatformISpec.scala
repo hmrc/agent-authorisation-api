@@ -51,7 +51,6 @@ class ApiPlatformISpec extends UnitSpec with OneServerPerSuite {
 
     forAllApiVersions(ramlByVersion) {
       case (version, raml) =>
-
         info(s"Checking API RAML documentation for version[$version] of the API")
 
         withClue("RAML does not contain a valid RAML 1.0 version header") {

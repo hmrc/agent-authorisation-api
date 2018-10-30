@@ -17,10 +17,10 @@
 import java.net.URL
 
 import com.google.inject.AbstractModule
-import com.google.inject.name.{Named, Names}
-import javax.inject.{Inject, Provider, Singleton}
+import com.google.inject.name.{ Named, Names }
+import javax.inject.{ Inject, Provider, Singleton }
 import org.slf4j.MDC
-import play.api.{Configuration, Environment, Logger}
+import play.api.{ Configuration, Environment, Logger }
 import uk.gov.hmrc.agentauthorisation.ApplicationRegistration
 import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.agentauthorisation.controllers.api.{
@@ -40,10 +40,11 @@ import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.ws.WSHttp
 
-class MicroserviceModule(val environment: Environment,
-                         val configuration: Configuration)
-    extends AbstractModule
-    with ServicesConfig {
+class MicroserviceModule(
+  val environment: Environment,
+  val configuration: Configuration)
+  extends AbstractModule
+  with ServicesConfig {
 
   override val runModeConfiguration: Configuration = configuration
   override protected def mode = environment.mode
@@ -90,11 +91,12 @@ class MicroserviceModule(val environment: Environment,
       .toProvider(new ServicePropertyProvider(propertyName))
 
   private class ServicePropertyProvider(propertyName: String)
-      extends Provider[String] {
+    extends Provider[String] {
     override lazy val get =
-      getConfString(propertyName,
-                    throw new RuntimeException(
-                      s"No configuration value found for '$propertyName'"))
+      getConfString(
+        propertyName,
+        throw new RuntimeException(
+          s"No configuration value found for '$propertyName'"))
   }
 
   private def bindServiceBooleanProperty(propertyName: String) =
@@ -103,11 +105,12 @@ class MicroserviceModule(val environment: Environment,
       .toProvider(new ServiceBooleanPropertyProvider(propertyName))
 
   private class ServiceBooleanPropertyProvider(propertyName: String)
-      extends Provider[Boolean] {
+    extends Provider[Boolean] {
     override lazy val get =
-      getConfBool(propertyName,
-                  throw new RuntimeException(
-                    s"No configuration value found for '$propertyName'"))
+      getConfBool(
+        propertyName,
+        throw new RuntimeException(
+          s"No configuration value found for '$propertyName'"))
   }
 
   private def bindBaseUrl(serviceName: String) =
@@ -138,11 +141,12 @@ class MicroserviceModule(val environment: Environment,
       .toProvider(new PropertyProvider2param(propertyName))
 
   private class PropertyProvider2param(confKey: String)
-      extends Provider[String] {
+    extends Provider[String] {
     override lazy val get =
-      getConfString(confKey,
-                    throw new IllegalStateException(
-                      s"No value found for configuration property $confKey"))
+      getConfString(
+        confKey,
+        throw new IllegalStateException(
+          s"No value found for configuration property $confKey"))
   }
 
   private def bindIntegerProperty(propertyName: String) =
@@ -161,14 +165,15 @@ class MicroserviceModule(val environment: Environment,
 }
 
 @Singleton
-class HttpVerbs @Inject()(val auditConnector: AuditConnector,
-                          @Named("appName") val appName: String)
-    extends HttpGet
-    with HttpPost
-    with HttpPut
-    with HttpPatch
-    with HttpDelete
-    with WSHttp
-    with HttpAuditing {
+class HttpVerbs @Inject() (
+  val auditConnector: AuditConnector,
+  @Named("appName") val appName: String)
+  extends HttpGet
+  with HttpPost
+  with HttpPut
+  with HttpPatch
+  with HttpDelete
+  with WSHttp
+  with HttpAuditing {
   override val hooks = Seq(AuditingHook)
 }

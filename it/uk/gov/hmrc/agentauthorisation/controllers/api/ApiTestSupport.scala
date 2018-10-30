@@ -25,14 +25,11 @@ import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.ExecutionContext
 import scala.util.Try
-import scala.xml.{ Elem, XML }
+import scala.xml.{Elem, XML}
 
 object ApiTestSupport {
 
-  case class Endpoint(
-    uriPattern: String,
-    endPointName: String,
-    version: String)
+  case class Endpoint(uriPattern: String, endPointName: String, version: String)
 
 }
 
@@ -67,7 +64,7 @@ abstract class ApiTestSupport(implicit ws: WSClient, ec: ExecutionContext) {
     apiVersion -> response
   }
 
-  def forAllApiVersions[T](generator: (JsValue) => T, versions: List[JsValue] = DefinitionsFileApiVersions)(fn: T => Unit): Unit = {
+  def forAllApiVersions[T](generator: (JsValue) => T, versions: List[JsValue] = DefinitionsFileApiVersions)(
+    fn: T => Unit): Unit =
     versions.foreach(version => fn(generator(version)))
-  }
 }

@@ -16,7 +16,7 @@
 
 package binders
 
-import uk.gov.hmrc.agentauthorisation.binders.{ErrorConstants, UrlBinders}
+import uk.gov.hmrc.agentauthorisation.binders.{ ErrorConstants, UrlBinders }
 import uk.gov.hmrc.agentmtdidentifiers.model.InvitationId
 import uk.gov.hmrc.play.test.UnitSpec
 
@@ -26,13 +26,13 @@ class BindersSpec extends UnitSpec {
     "return a successful invitationId when the invitationId is valid" in {
       UrlBinders.getInvitationIdBinder
         .bind("invitationId", "ABERULMHCKKW3") shouldBe Right(
-        InvitationId("ABERULMHCKKW3"))
+          InvitationId("ABERULMHCKKW3"))
     }
 
     "return an error when the invitationId is invalid" in {
       UrlBinders.getInvitationIdBinder
         .bind("invitationId", "foo") shouldBe Left(
-        ErrorConstants.InvitationIdNotFound)
+          ErrorConstants.InvitationIdNotFound)
     }
   }
 

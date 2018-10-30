@@ -81,19 +81,27 @@ Http Error Code: 403
 Specific versions are requested by providing an Accept header. When
 backwards-incompatible API changes are made, a new version will be released.
 Backwards-compatible changes are released in the current version without the
-need to change your Accept header.  See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) for more on
+need to change your Accept header.  See our [reference guide](/api-documentation/docs/reference-guide#versioning) for more on
 versioning.
 
 ### Errors
-We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
+We use standard [HTTP status codes](/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
 * in the 200 to 299 range if it succeeded; including code 202 if it was accepted by an API that needs to wait for further action
 * in the 400 to 499 range if it didn't succeed because of a client error by your application
 * in the 500 to 599 range if it didn't succeed because of an error on our server
 
 Errors specific to each API are shown in its own Resources section, under Response. 
-See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
+See our [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors.
 
 ---
+
+## /agents/{arn}
+
+#### Available endpoints
+
+* [/agents/{arn}/invitations](#agentsarninvitations)* [/agents/{arn}/invitations/{invitationId}](#agentsarninvitationsinvitationid)
+
+* [/agents/{arn}/relationships](#agentsarnrelationships)
 
 ### /agents/{arn}/invitations
 
@@ -108,7 +116,7 @@ See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
 Create a new authorisation request.
@@ -230,7 +238,7 @@ The authorisation request was created successfully.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
 
@@ -335,7 +343,7 @@ The agent has no authorisation requests for the last 30 days.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
 
@@ -427,7 +435,7 @@ Returns the authorisation request.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 204
 The authorisation request has been cancelled successfully.
@@ -497,7 +505,7 @@ The authorisation request has been cancelled successfully.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
 Check Relationship based on the details received.

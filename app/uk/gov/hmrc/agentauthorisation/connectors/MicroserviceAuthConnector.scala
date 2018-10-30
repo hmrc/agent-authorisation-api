@@ -18,16 +18,16 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import java.net.URL
 
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{ Inject, Named, Singleton }
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.otac.PlayOtacAuthConnector
-import uk.gov.hmrc.http.{HttpGet, HttpPost}
-import uk.gov.hmrc.play.http.ws.{WSGet, WSPost}
+import uk.gov.hmrc.http.{ HttpGet, HttpPost }
+import uk.gov.hmrc.play.http.ws.{ WSGet, WSPost }
 
 @Singleton
-class MicroserviceAuthConnector @Inject()(@Named("auth-baseUrl") baseUrl: URL)
-    extends PlayAuthConnector
-    with PlayOtacAuthConnector {
+class MicroserviceAuthConnector @Inject() (@Named("auth-baseUrl") baseUrl: URL)
+  extends PlayAuthConnector
+  with PlayOtacAuthConnector {
 
   override val serviceUrl = baseUrl.toString
 

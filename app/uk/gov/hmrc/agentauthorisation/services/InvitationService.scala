@@ -16,24 +16,24 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import org.joda.time.LocalDate
 import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
 
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
+class InvitationService @Inject() (invitationsConnector: InvitationsConnector) {
 
   def createInvitationService(arn: Arn, agentInvitation: AgentInvitation)(
-      implicit
-      headerCarrier: HeaderCarrier,
-      executionContext: ExecutionContext): Future[String] = {
+    implicit
+    headerCarrier: HeaderCarrier,
+    executionContext: ExecutionContext): Future[String] = {
     invitationsConnector
       .createInvitation(arn, agentInvitation)
       .map(
@@ -42,28 +42,28 @@ class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
   }
 
   def checkPostcodeMatches(nino: Nino, postcode: String)(
-      implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[Boolean]] =
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[Boolean]] =
     invitationsConnector.checkPostcodeForClient(nino, postcode)
 
   def checkVatRegDateMatches(vrn: Vrn, vatRegDate: LocalDate)(
-      implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Option[Boolean]] =
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[Boolean]] =
     invitationsConnector.checkVatRegDateForClient(vrn, vatRegDate)
 
   def getInvitationService(arn: Arn, invitationId: InvitationId)(
-      implicit
-      headerCarrier: HeaderCarrier,
-      executionContext: ExecutionContext): Future[Option[StoredInvitation]] = {
+    implicit
+    headerCarrier: HeaderCarrier,
+    executionContext: ExecutionContext): Future[Option[StoredInvitation]] = {
     invitationsConnector.getInvitation(arn, invitationId)
   }
 
   def cancelInvitationService(arn: Arn, invitationId: InvitationId)(
-      implicit
-      headerCarrier: HeaderCarrier,
-      executionContext: ExecutionContext): Future[Option[Int]] = {
+    implicit
+    headerCarrier: HeaderCarrier,
+    executionContext: ExecutionContext): Future[Option[Int]] = {
     invitationsConnector.cancelInvitation(arn, invitationId)
   }
 

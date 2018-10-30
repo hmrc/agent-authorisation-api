@@ -2,7 +2,7 @@ package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
@@ -30,14 +30,13 @@ trait DataStreamStubs extends Eventually {
       verify(
         1,
         postRequestedFor(urlPathEqualTo(auditUrl))
-          .withRequestBody(
-            similarToJson(
-              s"""{
-                 |  "auditSource": "agent-authorisation-api",
-                 |  "auditType": "$event",
-                 |  "tags": ${Json.toJson(tags)},
-                 |  "detail": ${Json.toJson(detail)}
-                 |}""")))
+          .withRequestBody(similarToJson(s"""{
+          |  "auditSource": "agent-authorisation-api",
+          |  "auditType": "$event",
+          |  "tags": ${Json.toJson(tags)},
+          |  "detail": ${Json.toJson(detail)}
+          |}"""))
+      )
     }
 
   def verifyAuditRequestNotSent(event: AgentAuthorisationEvent): Unit =
@@ -45,12 +44,11 @@ trait DataStreamStubs extends Eventually {
       verify(
         0,
         postRequestedFor(urlPathEqualTo(auditUrl))
-          .withRequestBody(
-            similarToJson(
-              s"""{
-                 |  "auditSource": "agent-authorisation-api",
-                 |  "auditType": "$event"
-                 |}""")))
+          .withRequestBody(similarToJson(s"""{
+          |  "auditSource": "agent-authorisation-api",
+          |  "auditType": "$event"
+          |}"""))
+      )
     }
 
 }
