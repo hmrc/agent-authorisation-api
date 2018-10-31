@@ -28,7 +28,8 @@ class ApplicationRegistration @Inject() (
   @Named("service-locator.enabled") serviceLocator: Boolean,
   serviceLocatorConnector: ServiceLocatorConnector,
   environment: Environment,
-  application: Application) extends ServiceLocatorConfig {
+  application: Application)
+  extends ServiceLocatorConfig {
 
   override val mode: Mode = environment.mode
   override val runModeConfiguration: Configuration = application.configuration

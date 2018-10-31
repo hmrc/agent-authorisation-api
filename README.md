@@ -32,6 +32,9 @@ The aim is for the API to mirror the current process that happens through the Ag
 * The agent accesses the link and signs in using their a Government Gateway login details to accept the agent's request
 * The agent can check if they have been authorised by a client.
 
+The detailed guide how to create required client data in the External Tests (Sandbox) environment 
+can be found at <https://test-www.tax.service.gov.uk/agents-external-stubs/help/agent-authorisation-api>
+
 ### Upcoming Feature
 The following feature is currently not available but it may be available in a future release.
 
@@ -146,12 +149,6 @@ The authorisation request was created successfully.
 
 ```
 {
-  "code": "SERVICE_NOT_SUPPORTED",
-  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
-}
-```
-```
-{
   "code": "CLIENT_ID_FORMAT_INVALID",
   "message": "Client identifier must be in the correct format. Check the API documentation to find the correct format."
 }
@@ -218,6 +215,103 @@ The authorisation request was created successfully.
 {
   "code": "NO_PERMISSION_ON_AGENCY",
   "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+---
+#### **GET** *(secured)*:
+
+###### Headers
+
+| Name | Type | Description | Required | Examples |
+|:-----|:----:|:------------|:--------:|---------:|
+| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+
+### Response code: 200
+
+#### application/json (application/json) 
+Returns all authorisation requests for the last 30 days.
+
+```
+[{
+  "_links": {
+    "self": {
+      "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
+    }
+  },
+  "created": "2017-01-25T15:20:14.917Z",
+  "arn": "AARN9999999",
+  "service": ["MTD-IT"],
+  "status": "Pending",
+  "expiresOn": "2017-02-04T00:00:00:000Z",
+  "updated": null,
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
+},
+  {
+    "_links": {
+      "self": {
+        "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
+      }
+    },
+    "created": "2017-01-25T15:20:14.917Z",
+    "arn": "AARN9999999",
+    "service": ["MTD-IT"],
+    "status": "Accepted",
+    "expiresOn": null,
+    "updated": "2017-01-25T15:20:14.917Z",
+    "clientActionUrl": null
+  }
+]
+```
+
+##### *application/json*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+
+### Response code: 204
+The agent has no authorisation requests for the last 30 days.
+
+### Response code: 403
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "NOT_AN_AGENT",
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
+}
+```
+```
+{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "This agent needs to create an agent services account before they can use this service."
+}
+```
+```
+{
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 404
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "NO_INVITATIONS_FOUND",
+  "message": "This agent has no authorisation requests."
 }
 ```
 
@@ -436,12 +530,6 @@ Relationship is active. Agent is authorised to act for the client.
 
 #### errorResponse (application/json) 
 
-```
-{
-  "code": "SERVICE_NOT_SUPPORTED",
-  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
-}
-```
 ```
 {
   "code": "CLIENT_ID_FORMAT_INVALID",

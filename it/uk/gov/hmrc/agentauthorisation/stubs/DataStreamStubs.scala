@@ -30,14 +30,12 @@ trait DataStreamStubs extends Eventually {
       verify(
         1,
         postRequestedFor(urlPathEqualTo(auditUrl))
-          .withRequestBody(
-            similarToJson(
-              s"""{
-                 |  "auditSource": "agent-authorisation-api",
-                 |  "auditType": "$event",
-                 |  "tags": ${Json.toJson(tags)},
-                 |  "detail": ${Json.toJson(detail)}
-                 |}""")))
+          .withRequestBody(similarToJson(s"""{
+          |  "auditSource": "agent-authorisation-api",
+          |  "auditType": "$event",
+          |  "tags": ${Json.toJson(tags)},
+          |  "detail": ${Json.toJson(detail)}
+          |}""")))
     }
 
   def verifyAuditRequestNotSent(event: AgentAuthorisationEvent): Unit =
@@ -45,12 +43,10 @@ trait DataStreamStubs extends Eventually {
       verify(
         0,
         postRequestedFor(urlPathEqualTo(auditUrl))
-          .withRequestBody(
-            similarToJson(
-              s"""{
-                 |  "auditSource": "agent-authorisation-api",
-                 |  "auditType": "$event"
-                 |}""")))
+          .withRequestBody(similarToJson(s"""{
+          |  "auditSource": "agent-authorisation-api",
+          |  "auditType": "$event"
+          |}""")))
     }
 
 }

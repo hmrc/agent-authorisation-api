@@ -7,7 +7,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentauthorisation._
-import uk.gov.hmrc.agentauthorisation.models.{ Invitation, PendingInvitation, RespondedInvitation, StoredInvitation }
+import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId }
 import uk.gov.hmrc.http.SessionKeys
 import play.api.libs.json.Json._
@@ -39,7 +39,7 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
-    "MTD-IT",
+    List("MTD-IT"),
     "Pending",
     s"http://localhost:9448/invitations/${invitationIdITSA.value}")
 
@@ -48,7 +48,7 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
-    "MTD-IT",
+    List("MTD-IT"),
     "Accepted")
 
   val storedVatInvitation = StoredInvitation(
@@ -65,7 +65,7 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
-    "MTD-VAT",
+    List("MTD-VAT"),
     "Pending",
     s"http://localhost:9448/invitations/${invitationIdVAT.value}")
 
@@ -74,8 +74,48 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
-    "MTD-VAT",
+    List("MTD-VAT"),
     "Accepted")
+
+  val gettingPendingInvitations = Seq(
+    PendingOrRespondedInvitation(
+      s"/agents/${arn.value}/invitations/foo1",
+      "2017-10-31T23:22:50.971Z",
+      arn,
+      List("MTD-IT"),
+      "Pending",
+      Some("2017-12-18T00:00:00.000"),
+      Some("http://localhost:9448/invitations/foo1"),
+      None),
+    PendingOrRespondedInvitation(
+      s"/agents/${arn.value}/invitations/foo2",
+      "2017-10-31T23:22:50.971Z",
+      arn,
+      List("MTD-VAT"),
+      "Pending",
+      Some("2017-12-18T00:00:00.000"),
+      Some("http://localhost:9448/invitations/foo2"),
+      None))
+
+  val gettingRespondedInvitations = Seq(
+    PendingOrRespondedInvitation(
+      s"/agents/${arn.value}/invitations/foo4",
+      "2017-10-31T23:22:50.971Z",
+      arn,
+      List("MTD-IT"),
+      "Accepted",
+      None,
+      None,
+      Some("2018-09-11T21:02:00.000Z")),
+    PendingOrRespondedInvitation(
+      s"/agents/${arn.value}/invitations/foo2",
+      "2017-10-31T23:22:50.971Z",
+      arn,
+      List("MTD-VAT"),
+      "Rejected",
+      None,
+      None,
+      Some("2018-09-11T21:02:00.000Z")))
 
   "/agents/:arn/invitations" should {
 
@@ -84,7 +124,15 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 204 when invitation is successfully created for ITSA" in {
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
-      createInvitationStub(arn, validNino.value, invitationIdITSA, validNino.value, "ni", "HMRC-MTD-IT", "MTDITID", validPostcode)
+      createInvitationStub(
+        arn,
+        validNino.value,
+        invitationIdITSA,
+        validNino.value,
+        "ni",
+        "HMRC-MTD-IT",
+        "MTDITID",
+        validPostcode)
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
       status(result) shouldBe 204
@@ -94,7 +142,15 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 204 when invitation is successfully created for VAT" in {
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
-      createInvitationStub(arn, validVrn.value, invitationIdVAT, validVrn.value, "vrn", "HMRC-MTD-VAT", "VRN", validVatRegDate)
+      createInvitationStub(
+        arn,
+        validVrn.value,
+        invitationIdVAT,
+        validVrn.value,
+        "vrn",
+        "HMRC-MTD-VAT",
+        "VRN",
+        validVatRegDate)
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
 
       status(result) shouldBe 204
@@ -161,7 +217,8 @@ class AgentControllerISpec extends BaseISpec {
       val jsonBodyClientIdNotMatchService = Json.parse(
         s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
+      val result =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
 
       status(result) shouldBe 400
       await(result) shouldBe ClientIdDoesNotMatchService
@@ -172,7 +229,8 @@ class AgentControllerISpec extends BaseISpec {
       val jsonBodyClientIdNotMatchService = Json.parse(
         s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}""")
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
+      val result =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
 
       status(result) shouldBe 400
       await(result) shouldBe ClientIdDoesNotMatchService
@@ -185,7 +243,13 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe ClientRegistrationNotFound
-      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+      verifyAgentClientInvitationSubmittedEvent(
+        arn.value,
+        validNino.value,
+        "ni",
+        "Fail",
+        "HMRC-MTD-IT",
+        Some("CLIENT_REGISTRATION_NOT_FOUND"))
     }
 
     "return 403 CLIENT_REGISTRATION_NOT_FOUND when the VAT registration date returns nothing" in {
@@ -194,7 +258,13 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe ClientRegistrationNotFound
-      verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+      verifyAgentClientInvitationSubmittedEvent(
+        arn.value,
+        validVrn.value,
+        "vrn",
+        "Fail",
+        "HMRC-MTD-VAT",
+        Some("CLIENT_REGISTRATION_NOT_FOUND"))
     }
 
     "return 403 POSTCODE_DOES_NOT_MATCH when the postcode and clientId do not match" in {
@@ -203,7 +273,13 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe PostcodeDoesNotMatch
-      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("POSTCODE_DOES_NOT_MATCH"))
+      verifyAgentClientInvitationSubmittedEvent(
+        arn.value,
+        validNino.value,
+        "ni",
+        "Fail",
+        "HMRC-MTD-IT",
+        Some("POSTCODE_DOES_NOT_MATCH"))
     }
 
     "return 403 VAT_REG_DATE_DOES_NOT_MATCH when the VAT registration date and clientId do not match" in {
@@ -212,7 +288,13 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe VatRegDateDoesNotMatch
-      verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+      verifyAgentClientInvitationSubmittedEvent(
+        arn.value,
+        validVrn.value,
+        "vrn",
+        "Fail",
+        "HMRC-MTD-VAT",
+        Some("VAT_REG_DATE_DOES_NOT_MATCH"))
     }
 
     "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
@@ -225,7 +307,15 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 403 NOT_PERMISSION_ON_AGENCY when the logged in user does not have an HMRC-AS-AGENT enrolment" in {
-      createInvitationStub(arn, validNino.value, invitationIdITSA, validNino.value, "ni", "HMRC-MTD-IT", "MTDITID", validPostcode)
+      createInvitationStub(
+        arn,
+        validNino.value,
+        invitationIdITSA,
+        validNino.value,
+        "ni",
+        "HMRC-MTD-IT",
+        "MTDITID",
+        validPostcode)
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn2.value))
 
       status(result) shouldBe 403
@@ -241,8 +331,14 @@ class AgentControllerISpec extends BaseISpec {
       an[Exception] shouldBe thrownBy {
         await(result)
       }
-      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT",
-        Some(s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''"))
+      verifyAgentClientInvitationSubmittedEvent(
+        arn.value,
+        validNino.value,
+        "ni",
+        "Fail",
+        "HMRC-MTD-IT",
+        Some(
+          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''"))
 
     }
 
@@ -254,8 +350,14 @@ class AgentControllerISpec extends BaseISpec {
       an[Exception] shouldBe thrownBy {
         await(result)
       }
-      verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT",
-        Some(s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''"))
+      verifyAgentClientInvitationSubmittedEvent(
+        arn.value,
+        validVrn.value,
+        "vrn",
+        "Fail",
+        "HMRC-MTD-VAT",
+        Some(
+          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''"))
     }
   }
 
@@ -274,7 +376,6 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         contentAsJson(result) shouldBe toJson(pendingItsaInvitation).as[JsObject]
-        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some(pendingItsaInvitation))
       }
 
       "return 200 and a json body of a responded invitation" in {
@@ -283,7 +384,6 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
-        verifyAgentGetInvitationEvent(arn.value, invitationIdITSA.value, "Success", Some(respondedItsaInvitation))
       }
 
       "return 403 for Not An Agent" in {
@@ -606,7 +706,8 @@ class AgentControllerISpec extends BaseISpec {
         val jsonBodyInvalidService = Json.parse(
           s"""{"service": ["foo"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}""")
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
+        val result =
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value))
 
         status(result) shouldBe 400
         await(result) shouldBe UnsupportedService
@@ -617,7 +718,8 @@ class AgentControllerISpec extends BaseISpec {
         val jsonBodyInvalidClientId = Json.parse(
           s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "foo", "knownFact": "$validPostcode"}""")
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
+        val result =
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
 
         status(result) shouldBe 400
         await(result) shouldBe ClientIdInvalidFormat
@@ -629,7 +731,8 @@ class AgentControllerISpec extends BaseISpec {
         val jsonBodyInvalidClientId = Json.parse(
           s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "foo", "knownFact": "$validVatRegDate"}""")
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
+        val result =
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidClientId), arn.value))
 
         status(result) shouldBe 400
         await(result) shouldBe ClientIdInvalidFormat
@@ -640,7 +743,8 @@ class AgentControllerISpec extends BaseISpec {
         val jsonBodyInvalidPostcode = Json.parse(
           s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "foo"}""")
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidPostcode), arn.value))
+        val result =
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidPostcode), arn.value))
 
         status(result) shouldBe 400
         await(result) shouldBe PostcodeFormatInvalid
@@ -652,7 +756,8 @@ class AgentControllerISpec extends BaseISpec {
         val jsonBodyInvalidVatRegDate = Json.parse(
           s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidVatRegDate), arn.value))
+        val result =
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidVatRegDate), arn.value))
 
         status(result) shouldBe 400
         await(result) shouldBe VatRegDateFormatInvalid
@@ -664,7 +769,8 @@ class AgentControllerISpec extends BaseISpec {
         val jsonBodyClientIdNotMatchService = Json.parse(
           s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validVrn.value}", "knownFact": "foo"}""")
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
+        val result =
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
 
         status(result) shouldBe 400
         await(result) shouldBe ClientIdDoesNotMatchService
@@ -676,7 +782,8 @@ class AgentControllerISpec extends BaseISpec {
         val jsonBodyClientIdNotMatchService = Json.parse(
           s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}""")
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
+        val result =
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
 
         status(result) shouldBe 400
         await(result) shouldBe ClientIdDoesNotMatchService
@@ -690,7 +797,13 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe ClientRegistrationNotFound
-        verifyAgentCheckRelationshipStatusEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+        verifyAgentCheckRelationshipStatusEvent(
+          arn.value,
+          validNino.value,
+          "ni",
+          "Fail",
+          "HMRC-MTD-IT",
+          Some("CLIENT_REGISTRATION_NOT_FOUND"))
       }
 
       "return 403 CLIENT_REGISTRATION_NOT_FOUND when the VAT registration date returns nothing" in {
@@ -699,7 +812,13 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe ClientRegistrationNotFound
-        verifyAgentCheckRelationshipStatusEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+        verifyAgentCheckRelationshipStatusEvent(
+          arn.value,
+          validVrn.value,
+          "vrn",
+          "Fail",
+          "HMRC-MTD-VAT",
+          Some("CLIENT_REGISTRATION_NOT_FOUND"))
       }
 
       "return 403 POSTCODE_DOES_NOT_MATCH when the postcode and clientId do not match" in {
@@ -709,7 +828,13 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe PostcodeDoesNotMatch
-        verifyAgentCheckRelationshipStatusEvent(arn.value, validNino.value, "ni", "Fail", "HMRC-MTD-IT", Some("POSTCODE_DOES_NOT_MATCH"))
+        verifyAgentCheckRelationshipStatusEvent(
+          arn.value,
+          validNino.value,
+          "ni",
+          "Fail",
+          "HMRC-MTD-IT",
+          Some("POSTCODE_DOES_NOT_MATCH"))
       }
 
       "return 403 VAT_REG_DATE_DOES_NOT_MATCH when the VAT registration date and clientId do not match" in {
@@ -718,7 +843,13 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe VatRegDateDoesNotMatch
-        verifyAgentCheckRelationshipStatusEvent(arn.value, validVrn.value, "vrn", "Fail", "HMRC-MTD-VAT", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+        verifyAgentCheckRelationshipStatusEvent(
+          arn.value,
+          validVrn.value,
+          "vrn",
+          "Fail",
+          "HMRC-MTD-VAT",
+          Some("VAT_REG_DATE_DOES_NOT_MATCH"))
       }
 
       "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
@@ -732,12 +863,61 @@ class AgentControllerISpec extends BaseISpec {
       }
 
       "return 403 NOT_PERMISSION_ON_AGENCY when the logged in user does not have an HMRC-AS-AGENT enrolment" in {
-        createInvitationStub(arn, validNino.value, invitationIdITSA, validNino.value, "ni", "HMRC-MTD-IT", "MTDITID", validPostcode)
+        createInvitationStub(
+          arn,
+          validNino.value,
+          invitationIdITSA,
+          validNino.value,
+          "ni",
+          "HMRC-MTD-IT",
+          "MTDITID",
+          validPostcode)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn2.value))
 
         status(result) shouldBe 403
         await(result) shouldBe NoPermissionOnAgency
         verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      }
+    }
+
+    "GET /agents/:arn/invitations/" when {
+
+      "requesting a sequence of ITSA and VAT invitations" should {
+
+        val getInvitations = controller.getInvitationsApi(arn)
+        val request = FakeRequest("GET", s"/agents/${arn.value}/invitations")
+
+        implicit val timeout: Timeout = Timeout(Duration.Zero)
+
+        "return 200 and a json body of a pending invitation filtering out PIR relationships" in {
+          givenAllInvitationsPendingStub(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          status(result) shouldBe 200
+          contentAsJson(result) shouldBe toJson(gettingPendingInvitations)
+        }
+
+        "return 200 and a json body of a responded invitation filtering out PIR relationships" in {
+          givenAllInvitationsRespondedStub(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          status(result) shouldBe 200
+          contentAsJson(result) shouldBe toJson(gettingRespondedInvitations)
+        }
+
+        "return 204 if there are no relationships for the agent" in {
+          givenAllInvitationsEmptyStub(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          status(result) shouldBe 204
+        }
+
+        "return 204 if there are only PIR relationships for the agent" in {
+          givenAllInvitationsPirStub(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          status(result) shouldBe 204
+        }
       }
     }
   }
@@ -747,7 +927,8 @@ class AgentControllerISpec extends BaseISpec {
     clientId: String,
     clientIdType: String,
     result: String,
-    service: String, failure: Option[String] = None): Unit =
+    service: String,
+    failure: Option[String] = None): Unit =
     verifyAuditRequestSent(
       1,
       AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi,
@@ -756,27 +937,9 @@ class AgentControllerISpec extends BaseISpec {
         "agentReferenceNumber" -> arn,
         "clientIdType" -> clientIdType,
         "clientId" -> clientId,
-        "service" -> service).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map(
-        "transactionName" -> "Agent created invitation through third party software"))
-
-  def verifyAgentGetInvitationEvent(
-    arn: String,
-    invitationId: String,
-    result: String,
-    invitation: Option[Invitation] = None,
-    failure: Option[String] = None): Unit =
-    verifyAuditRequestSent(
-      1,
-      AgentAuthorisationEvent.AgentGetInvitationApi,
-      detail = Map(
-        "result" -> result,
-        "invitationId" -> invitationId,
-        "agentReferenceNumber" -> arn).filter(_._2.nonEmpty) ++
-        invitation.map(i => Seq("service" -> i.service, "status" -> i.status)).getOrElse(Seq.empty) ++
-        failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map(
-        "transactionName" -> "Agent retrieved invitation through third party software"))
+        "service" -> service)
+        .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
+      tags = Map("transactionName" -> "Agent created invitation through third party software"))
 
   def verifyAgentClientInvitationCancelledEvent(
     arn: String,
@@ -785,18 +948,17 @@ class AgentControllerISpec extends BaseISpec {
     verifyAuditRequestSent(
       1,
       AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi,
-      detail = Map(
-        "invitationId" -> invitationId.value,
-        "agentReferenceNumber" -> arn).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map(
-        "transactionName" -> "Agent cancelled invitation through third party software"))
+      detail = Map("invitationId" -> invitationId.value, "agentReferenceNumber" -> arn)
+        .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
+      tags = Map("transactionName" -> "Agent cancelled invitation through third party software"))
 
   def verifyAgentCheckRelationshipStatusEvent(
     arn: String,
     clientId: String,
     clientIdType: String,
     result: String,
-    service: String, failure: Option[String] = None): Unit =
+    service: String,
+    failure: Option[String] = None): Unit =
     verifyAuditRequestSent(
       1,
       AgentAuthorisationEvent.AgentCheckRelationshipStatusApi,
@@ -805,7 +967,7 @@ class AgentControllerISpec extends BaseISpec {
         "agentReferenceNumber" -> arn,
         "clientIdType" -> clientIdType,
         "clientId" -> clientId,
-        "service" -> service).filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map(
-        "transactionName" -> "Agent checked status of relationship through third party software"))
+        "service" -> service)
+        .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
+      tags = Map("transactionName" -> "Agent checked status of relationship through third party software"))
 }

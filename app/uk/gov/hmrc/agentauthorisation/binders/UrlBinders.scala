@@ -21,22 +21,28 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId }
 
 object UrlBinders {
 
-  implicit val invitationIdBinder: PathBindable[InvitationId] = getInvitationIdBinder
+  implicit val invitationIdBinder: PathBindable[InvitationId] =
+    getInvitationIdBinder
   implicit object ArnBinder extends SimpleObjectBinder[Arn](Arn.apply, _.value)
 
-  def getInvitationIdBinder(implicit stringBinder: PathBindable[String]) = new PathBindable[InvitationId] {
+  def getInvitationIdBinder(implicit stringBinder: PathBindable[String]) =
+    new PathBindable[InvitationId] {
 
-    override def bind(key: String, value: String): Either[String, InvitationId] = {
-      val isValidPrefix = value.headOption.fold(false)(Seq('A', 'B', 'C').contains)
+      override def bind(
+        key: String,
+        value: String): Either[String, InvitationId] = {
+        val isValidPrefix =
+          value.headOption.fold(false)(Seq('A', 'B', 'C').contains)
 
-      if (isValidPrefix && InvitationId.isValid(value))
-        Right(InvitationId(value))
-      else
-        Left(ErrorConstants.InvitationIdNotFound)
+        if (isValidPrefix && InvitationId.isValid(value))
+          Right(InvitationId(value))
+        else
+          Left(ErrorConstants.InvitationIdNotFound)
+      }
+
+      override def unbind(key: String, id: InvitationId): String =
+        stringBinder.unbind(key, id.value)
     }
-
-    override def unbind(key: String, id: InvitationId): String = stringBinder.unbind(key, id.value)
-  }
 }
 
 object ErrorConstants {

@@ -28,11 +28,17 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class InvitationService @Inject() (
-  invitationsConnector: InvitationsConnector) {
+class InvitationService @Inject() (invitationsConnector: InvitationsConnector) {
 
-  def createInvitationService(arn: Arn, agentInvitation: AgentInvitation)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[String] = {
-    invitationsConnector.createInvitation(arn, agentInvitation).map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
+  def createInvitationService(arn: Arn, agentInvitation: AgentInvitation)(
+    implicit
+    headerCarrier: HeaderCarrier,
+    executionContext: ExecutionContext): Future[String] = {
+    invitationsConnector
+      .createInvitation(arn, agentInvitation)
+      .map(
+        _.getOrElse(
+          throw new Exception("Invitation location expected but missing.")))
   }
 
   def checkPostcodeMatches(nino: Nino, postcode: String)(
@@ -47,11 +53,17 @@ class InvitationService @Inject() (
     ec: ExecutionContext): Future[Option[Boolean]] =
     invitationsConnector.checkVatRegDateForClient(vrn, vatRegDate)
 
-  def getInvitationService(arn: Arn, invitationId: InvitationId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[StoredInvitation]] = {
+  def getInvitationService(arn: Arn, invitationId: InvitationId)(
+    implicit
+    headerCarrier: HeaderCarrier,
+    executionContext: ExecutionContext): Future[Option[StoredInvitation]] = {
     invitationsConnector.getInvitation(arn, invitationId)
   }
 
-  def cancelInvitationService(arn: Arn, invitationId: InvitationId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Int]] = {
+  def cancelInvitationService(arn: Arn, invitationId: InvitationId)(
+    implicit
+    headerCarrier: HeaderCarrier,
+    executionContext: ExecutionContext): Future[Option[Int]] = {
     invitationsConnector.cancelInvitation(arn, invitationId)
   }
 

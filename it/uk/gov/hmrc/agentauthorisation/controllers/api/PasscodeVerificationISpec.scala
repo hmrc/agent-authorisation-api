@@ -69,10 +69,7 @@ class PasscodeVerificationISpec extends UnitSpec with MockitoSugar with AkkaMate
 
       "execute function with 'false' if not otac param nor session key present" in {
         val otacAuthConnector = mock[OtacAuthConnector]
-        val withMaybePasscode = new FrontendPasscodeVerification(
-          configuration,
-          environment,
-          otacAuthConnector)
+        val withMaybePasscode = new FrontendPasscodeVerification(configuration, environment, otacAuthConnector)
         val request = FakeRequest("GET", "/")
         val result = await(withMaybePasscode(body)(request, hc, ec))
         status(result) shouldBe 200
@@ -80,10 +77,7 @@ class PasscodeVerificationISpec extends UnitSpec with MockitoSugar with AkkaMate
       }
       "redirect to otac verification if otac param present" in {
         val otacAuthConnector = mock[OtacAuthConnector]
-        val withMaybePasscode = new FrontendPasscodeVerification(
-          configuration,
-          environment,
-          otacAuthConnector)
+        val withMaybePasscode = new FrontendPasscodeVerification(configuration, environment, otacAuthConnector)
         val request = FakeRequest("GET", "/foo/bar/?p=otac123")
         val result = await(withMaybePasscode(body)(request, hc, ec))
         status(result) shouldBe 303
@@ -91,10 +85,7 @@ class PasscodeVerificationISpec extends UnitSpec with MockitoSugar with AkkaMate
       }
       "call auth service if otac session key present and execute body with true if authorised" in {
         val otacAuthConnector = mock[OtacAuthConnector]
-        val withMaybePasscode = new FrontendPasscodeVerification(
-          configuration,
-          environment,
-          otacAuthConnector)
+        val withMaybePasscode = new FrontendPasscodeVerification(configuration, environment, otacAuthConnector)
         when(otacAuthConnector.authorise("fooRegime", hc, Some("fooOTACToken")))
           .thenReturn(Authorised)
         val request = FakeRequest("GET", "/foo/bar/").withSession((SessionKeys.otacToken, "fooOTACToken"))
@@ -104,10 +95,7 @@ class PasscodeVerificationISpec extends UnitSpec with MockitoSugar with AkkaMate
       }
       "call auth service if otac session key present and execute body with false if unauthorised" in {
         val otacAuthConnector = mock[OtacAuthConnector]
-        val withMaybePasscode = new FrontendPasscodeVerification(
-          configuration,
-          environment,
-          otacAuthConnector)
+        val withMaybePasscode = new FrontendPasscodeVerification(configuration, environment, otacAuthConnector)
         when(otacAuthConnector.authorise("fooRegime", hc, Some("fooOTACToken")))
           .thenReturn(Unauthorised)
         val request = FakeRequest("GET", "/foo/bar/").withSession((SessionKeys.otacToken, "fooOTACToken"))

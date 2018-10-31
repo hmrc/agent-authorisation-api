@@ -119,6 +119,20 @@ traits:
                     code: SERVICE_NOT_SUPPORTED
                     message: The service requested is not supported. Check the API documentation to find which services are supported.
 
+  validatePayload:
+        responses:
+          400:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  invitationNotFound:
+                    description: The payload is invalid.
+                    value:
+                      code: INVALID_PAYLOAD
+                      message: The payload is invalid.
+
+
   clientIdSpecified:
     responses:
         400:
@@ -197,7 +211,7 @@ traits:
         type: string
         example: AARN9999999
     post:
-      is: [serviceSpecified, clientIdSpecified, clientRegistrationRequired, knownFactMatches]
+      is: [serviceSpecified, clientIdSpecified, clientRegistrationRequired, knownFactMatches, validatePayload]
       displayName: Create a new authorisation
       (annotations.scope): "write:sent-invitations"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
@@ -220,6 +234,24 @@ traits:
             Location:
               example: /agents/AARN9999999/invitations/CS5AK7O8FPC43
               description: Location of the authorisation request that was created.
+
+    get:
+      is: [invitationsSpecified]
+      displayName: Get all authorisation requests for the last 30 days
+      (annotations.scope): "read:sent-invitations"
+      securedBy: [ sec.oauth_2_0: { scopes: [ "read:sent-invitations" ] } ]
+
+      responses:
+        200:
+          body:
+            application/json:
+              description: Returns all authorisation requests for the last 30 days.
+              type: !include schemas/invitation.json
+              examples:
+                pending and responded: !include examples/get-agency-invitations-example.json
+
+        204:
+          description: The agent has no authorisation requests for the last 30 days.
 
     /{invitationId}:
       is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified]

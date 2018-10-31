@@ -42,12 +42,14 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       val service = new AuditService(mockConnector)
 
       val hc = HeaderCarrier(
-        authorization = Some(Authorization("dummy bearer token")),
+        authorization =
+        Some(Authorization("dummy bearer token")),
         sessionId = Some(SessionId("dummy session id")),
         requestId = Some(RequestId("dummy request id")))
 
       val arn: Arn = Arn("HX2345")
-      val agentInvitation: AgentInvitation = AgentInvitation("HMRC-MTD-IT", "ni", "AB123456A", "DH14EJ")
+      val agentInvitation: AgentInvitation =
+        AgentInvitation("HMRC-MTD-IT", "ni", "AB123456A", "DH14EJ")
       val invitationId: String = "1"
       val result: String = "Success"
 
@@ -60,7 +62,9 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
-        verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
+        verify(mockConnector).sendEvent(captor.capture())(
+          any[HeaderCarrier],
+          any[ExecutionContext])
         val sentEvent = captor.getValue.asInstanceOf[DataEvent]
 
         sentEvent.auditType shouldBe "AgentAuthorisationCreatedViaApi"
@@ -87,12 +91,14 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       val service = new AuditService(mockConnector)
 
       val hc = HeaderCarrier(
-        authorization = Some(Authorization("dummy bearer token")),
+        authorization =
+        Some(Authorization("dummy bearer token")),
         sessionId = Some(SessionId("dummy session id")),
         requestId = Some(RequestId("dummy request id")))
 
       val arn: Arn = Arn("HX2345")
-      val agentInvitation: AgentInvitation = AgentInvitation("HMRC-MTD-VAT", "vrn", "101747641", "2008-08-08")
+      val agentInvitation: AgentInvitation =
+        AgentInvitation("HMRC-MTD-VAT", "vrn", "101747641", "2008-08-08")
       val invitationId: String = "1"
       val result: String = "Success"
 
@@ -105,7 +111,9 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
-        verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
+        verify(mockConnector).sendEvent(captor.capture())(
+          any[HeaderCarrier],
+          any[ExecutionContext])
         val sentEvent = captor.getValue.asInstanceOf[DataEvent]
 
         sentEvent.auditType shouldBe "AgentAuthorisationCreatedViaApi"
@@ -127,51 +135,13 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       }
     }
 
-    "send an AgentGetInvitationApi Event for ITSA" in {
-      val mockConnector = mock[AuditConnector]
-      val service = new AuditService(mockConnector)
-
-      val hc = HeaderCarrier(
-        authorization = Some(Authorization("dummy bearer token")),
-        sessionId = Some(SessionId("dummy session id")),
-        requestId = Some(RequestId("dummy request id")))
-
-      val arn: Arn = Arn("HX2345")
-      val invitationId: String = "1"
-      val result: String = "Success"
-
-      await(
-        service.sendAgentGetInvitation(
-          arn,
-          invitationId,
-          result)(hc, FakeRequest("GET", "/path")))
-
-      eventually {
-        val captor = ArgumentCaptor.forClass(classOf[DataEvent])
-        verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
-        val sentEvent = captor.getValue.asInstanceOf[DataEvent]
-
-        sentEvent.auditType shouldBe "AgentGetInvitationApi"
-        sentEvent.auditSource shouldBe "agent-authorisation-api"
-        sentEvent.detail("invitationId") shouldBe "1"
-        sentEvent.detail("agentReferenceNumber") shouldBe "HX2345"
-
-        sentEvent.tags.contains("Authorization") shouldBe false
-        sentEvent.detail("Authorization") shouldBe "dummy bearer token"
-
-        sentEvent.tags("transactionName") shouldBe "Agent retrieved invitation through third party software"
-        sentEvent.tags("path") shouldBe "/path"
-        sentEvent.tags("X-Session-ID") shouldBe "dummy session id"
-        sentEvent.tags("X-Request-ID") shouldBe "dummy request id"
-      }
-    }
-
     "send an AgentAuthorisedCancelledViaApi Event for ITSA" in {
       val mockConnector = mock[AuditConnector]
       val service = new AuditService(mockConnector)
 
       val hc = HeaderCarrier(
-        authorization = Some(Authorization("dummy bearer token")),
+        authorization =
+        Some(Authorization("dummy bearer token")),
         sessionId = Some(SessionId("dummy session id")),
         requestId = Some(RequestId("dummy request id")))
 
@@ -180,14 +150,15 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       val result: String = "Success"
 
       await(
-        service.sendAgentInvitationCancelled(
-          arn,
-          invitationId,
-          result)(hc, FakeRequest("GET", "/path")))
+        service.sendAgentInvitationCancelled(arn, invitationId, result)(
+          hc,
+          FakeRequest("GET", "/path")))
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
-        verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
+        verify(mockConnector).sendEvent(captor.capture())(
+          any[HeaderCarrier],
+          any[ExecutionContext])
         val sentEvent = captor.getValue.asInstanceOf[DataEvent]
 
         sentEvent.auditType shouldBe "AgentAuthorisedCancelledViaApi"
@@ -210,23 +181,26 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       val service = new AuditService(mockConnector)
 
       val hc = HeaderCarrier(
-        authorization = Some(Authorization("dummy bearer token")),
+        authorization =
+        Some(Authorization("dummy bearer token")),
         sessionId = Some(SessionId("dummy session id")),
         requestId = Some(RequestId("dummy request id")))
 
       val arn: Arn = Arn("HX2345")
-      val agentInvitation: AgentInvitation = AgentInvitation("HMRC-MTD-IT", "ni", "AB123456A", "DH14EJ")
+      val agentInvitation: AgentInvitation =
+        AgentInvitation("HMRC-MTD-IT", "ni", "AB123456A", "DH14EJ")
       val result: String = "Success"
 
       await(
-        service.sendAgentCheckRelationshipStatus(
-          arn,
-          agentInvitation,
-          result)(hc, FakeRequest("POST", "/path")))
+        service.sendAgentCheckRelationshipStatus(arn, agentInvitation, result)(
+          hc,
+          FakeRequest("POST", "/path")))
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
-        verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
+        verify(mockConnector).sendEvent(captor.capture())(
+          any[HeaderCarrier],
+          any[ExecutionContext])
         val sentEvent = captor.getValue.asInstanceOf[DataEvent]
 
         sentEvent.auditType shouldBe "AgentCheckRelationshipStatusApi"

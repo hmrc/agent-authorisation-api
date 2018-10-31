@@ -49,13 +49,21 @@ class DesConnector @Inject() (
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def getMtdIdFor(nino: Nino)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[Boolean, MtdItId]] = {
-    val url = new URL(baseUrl, s"/registration/business-details/nino/${encodePathSegment(nino.value)}")
-    getWithDesHeaders[MtdItIdBusinessDetails]("GetRegistrationBusinessDetailsByNino", url).map(record => Right(record.mtdbsa)).recover {
-      case e: NotFoundException =>
-        Logger(getClass).error(s"MtdItId not found for given Nino. Error: ${e.getMessage}")
-        Left(false)
-    }
+  def getMtdIdFor(nino: Nino)(
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Either[Boolean, MtdItId]] = {
+    val url = new URL(
+      baseUrl,
+      s"/registration/business-details/nino/${encodePathSegment(nino.value)}")
+    getWithDesHeaders[MtdItIdBusinessDetails](
+      "GetRegistrationBusinessDetailsByNino",
+      url).map(record => Right(record.mtdbsa)).recover {
+        case e: NotFoundException =>
+          Logger(getClass).error(
+            s"MtdItId not found for given Nino. Error: ${e.getMessage}")
+          Left(false)
+      }
   }
 
   private def getWithDesHeaders[A: HttpReads](apiName: String, url: URL)(

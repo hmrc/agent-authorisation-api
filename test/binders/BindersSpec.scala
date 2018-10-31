@@ -24,17 +24,23 @@ class BindersSpec extends UnitSpec {
 
   "getInvitationIdBinder.bind" should {
     "return a successful invitationId when the invitationId is valid" in {
-      UrlBinders.getInvitationIdBinder.bind("invitationId", "ABERULMHCKKW3") shouldBe Right(InvitationId("ABERULMHCKKW3"))
+      UrlBinders.getInvitationIdBinder
+        .bind("invitationId", "ABERULMHCKKW3") shouldBe Right(
+          InvitationId("ABERULMHCKKW3"))
     }
 
     "return an error when the invitationId is invalid" in {
-      UrlBinders.getInvitationIdBinder.bind("invitationId", "foo") shouldBe Left(ErrorConstants.InvitationIdNotFound)
+      UrlBinders.getInvitationIdBinder
+        .bind("invitationId", "foo") shouldBe Left(
+          ErrorConstants.InvitationIdNotFound)
     }
   }
 
   "getInvitationIdBinder.unbind" should {
     "return the invitationId string" in {
-      UrlBinders.getInvitationIdBinder.unbind("invitationId", InvitationId("ABERULMHCKKW3")) shouldBe "ABERULMHCKKW3"
+      UrlBinders.getInvitationIdBinder.unbind(
+        "invitationId",
+        InvitationId("ABERULMHCKKW3")) shouldBe "ABERULMHCKKW3"
     }
   }
 

@@ -25,7 +25,8 @@ object ErrorResults {
   case class ErrorBody(code: String, message: String)
 
   implicit val errorBodyWrites = new Writes[ErrorBody] {
-    override def writes(body: ErrorBody): JsValue = Json.obj("code" -> body.code, "message" -> body.message)
+    override def writes(body: ErrorBody): JsValue =
+      Json.obj("code" -> body.code, "message" -> body.message)
   }
 
   val UnsupportedService = BadRequest(
@@ -53,16 +54,12 @@ object ErrorResults {
         "Postcode must be in the correct format. Check the API documentation to find the correct format.")))
 
   val VatRegDateFormatInvalid = BadRequest(
-    toJson(
-      ErrorBody(
-        "VAT_REG_DATE_FORMAT_INVALID",
-        "VAT registration date must be in the correct format. Check the API documentation to find the correct format.")))
+    toJson(ErrorBody(
+      "VAT_REG_DATE_FORMAT_INVALID",
+      "VAT registration date must be in the correct format. Check the API documentation to find the correct format.")))
 
   val PostcodeDoesNotMatch = Forbidden(
-    toJson(
-      ErrorBody(
-        "POSTCODE_DOES_NOT_MATCH",
-        "The postcode provided does not match HMRC's record for this client.")))
+    toJson(ErrorBody("POSTCODE_DOES_NOT_MATCH", "The postcode provided does not match HMRC's record for this client.")))
 
   val VatRegDateDoesNotMatch = Forbidden(
     toJson(
@@ -72,9 +69,7 @@ object ErrorResults {
 
   val ClientRegistrationNotFound = Forbidden(
     toJson(
-      ErrorBody(
-        "CLIENT_REGISTRATION_NOT_FOUND",
-        "The details provided for this client do not match HMRC's records.")))
+      ErrorBody("CLIENT_REGISTRATION_NOT_FOUND", "The details provided for this client do not match HMRC's records.")))
 
   val NoPermissionOnAgency = Forbidden(
     toJson(
@@ -95,10 +90,7 @@ object ErrorResults {
         "This agent needs to create an agent services account before they can use this service.")))
 
   val InvitationNotFound = NotFound(
-    toJson(
-      ErrorBody(
-        "INVITATION_NOT_FOUND",
-        "The authorisation request cannot be found.")))
+    toJson(ErrorBody("INVITATION_NOT_FOUND", "The authorisation request cannot be found.")))
 
   val InvalidInvitationStatus = Forbidden(
     toJson(
@@ -108,7 +100,7 @@ object ErrorResults {
 
   val RelationshipNotFound = NotFound(
     toJson(
-      ErrorBody(
-        "RELATIONSHIP_NOT_FOUND",
-        "Relationship is inactive. Agent is not authorised to act for this client.")))
+      ErrorBody("RELATIONSHIP_NOT_FOUND", "Relationship is inactive. Agent is not authorised to act for this client.")))
+
+  val InvalidPayload = BadRequest(toJson(ErrorBody("INVALID_PAYLOAD", "The payload is invalid.")))
 }
