@@ -1,0 +1,86 @@
+{
+  "type": "array",
+  "items": {
+  "type": "object",
+  "properties": {
+    "_links": {
+      "type": "object",
+      "description": "No description available.",
+      "properties": {
+        "self": {
+          "type": "object",
+          "description": "A link to the current resource.",
+          "properties": {
+            "href": {
+              "type": "string",
+              "description": "No description available."
+            }
+          },
+          "required": [
+            "href"
+          ]
+        }
+      },
+      "required": [
+        "self"
+      ]
+    },
+    "service": {
+      "$ref": "service.json"
+    },
+    "arn": {
+      "type": "string",
+      "description": "The Agent Registration Number for the calling agency"
+    },
+    "created": {
+      "type": "string",
+      "description": "Creation time of the request (RFC3339 / ISO8601 format)"
+    },
+    "updated": {
+      "type": "string",
+      "description": "Update time of the request (RFC3339 / ISO8601 format)"
+    },
+    "expiresOn": {
+      "type": "string",
+      "description": "Expiration time of the request (RFC3339 / ISO8601 format)"
+    },
+    "status": {
+      "type": "string",
+      "description" : "The current status of the invitation",
+      "oneOf": [
+        {
+          "enum": [ "Pending" ],
+          "description": "The invitation has been created, it has not been accepted or rejected by the client. Only the service can set this status."
+        },
+        {
+          "enum": [ "Accepted" ],
+          "description": "The client has accepted the invitation. Only the client can set this status."
+        },
+        {
+          "enum": [ "Rejected" ],
+          "description": "The client has rejected the invitation. Only the client can set this status."
+        },
+        {
+          "enum": [ "Cancelled" ],
+          "description": "The agency has cancelled the invitation. Only the agency can set this status."
+        },
+        {
+          "enum": [ "Expired" ],
+          "description": "Client did not respond to the Agent's Invitation within 10 days. Only the service can set this status."
+        }
+      ]
+    },
+    "clientActionUrl": {
+      "type": "string",
+      "description": "Link for the client to authorise/reject this agent's invitation."
+    }
+  },
+  "required": [
+    "_links",
+    "service",
+    "arn",
+    "created",
+    "status"
+  ]
+}
+}

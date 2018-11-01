@@ -19,12 +19,12 @@ package uk.gov.hmrc.agentauthorisation.controllers.api
 import javax.inject.Inject
 
 import play.api.mvc.Results._
-import play.api.mvc.{ Request, Result }
-import play.api.{ Configuration, Environment, Mode }
-import uk.gov.hmrc.auth.otac.{ Authorised, OtacAuthConnector }
-import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
+import play.api.mvc.{Request, Result}
+import play.api.{Configuration, Environment, Mode}
+import uk.gov.hmrc.auth.otac.{Authorised, OtacAuthConnector}
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class PasscodeVerificationException(msg: String) extends RuntimeException(msg)
 
@@ -36,11 +36,11 @@ trait PasscodeVerification {
     ec: ExecutionContext): Future[Result]
 }
 
-class FrontendPasscodeVerification @Inject() (
+class FrontendPasscodeVerification @Inject()(
   configuration: Configuration,
   environment: Environment,
   otacAuthConnector: OtacAuthConnector)
-  extends PasscodeVerification {
+    extends PasscodeVerification {
 
   val tokenParam = "p"
   val passcodeEnabledKey = "passcodeAuthentication.enabled"
@@ -67,8 +67,7 @@ class FrontendPasscodeVerification @Inject() (
     s"$verificationURL/otac/login$queryParam"
 
   def throwConfigNotFound(configKey: String) =
-    throw new PasscodeVerificationException(
-      s"The value for the key '$configKey' should be setup in the config file.")
+    throw new PasscodeVerificationException(s"The value for the key '$configKey' should be setup in the config file.")
 
   def addRedirectUrl[A](token: String)(
     implicit
@@ -94,8 +93,7 @@ class FrontendPasscodeVerification @Inject() (
           case Some(token) => {
             val queryParam = s"?$tokenParam=$token"
             Future
-              .successful(Redirect(loginUrl(queryParam))) map addRedirectUrl(
-                token)(request)
+              .successful(Redirect(loginUrl(queryParam))) map addRedirectUrl(token)(request)
           }
           case _ => body(false)
         }) { otacToken =>
@@ -103,7 +101,7 @@ class FrontendPasscodeVerification @Inject() (
             .authorise(passcodeRegime, headerCarrier, Option(otacToken))
             .flatMap {
               case Authorised => body(true)
-              case _ => body(false)
+              case _          => body(false)
             }
         }
     } else {

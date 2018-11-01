@@ -38,10 +38,10 @@ case class StoredInvitation(
 object StoredInvitation {
 
   val serviceByMtdService: String => String = {
-    case "HMRC-MTD-IT" => "MTD-IT"
-    case "HMRC-MTD-VAT" => "MTD-VAT"
+    case "HMRC-MTD-IT"            => "MTD-IT"
+    case "HMRC-MTD-VAT"           => "MTD-VAT"
     case "PERSONAL-INCOME-RECORD" => "PERSONAL-INCOME-RECORD"
-    case _ => throw new IllegalArgumentException
+    case _                        => throw new IllegalArgumentException
   }
 
   implicit val reads: Reads[StoredInvitation] = {
@@ -51,37 +51,55 @@ object StoredInvitation {
       (JsPath \ "lastUpdated").read[String] and
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "service").read[String].map(serviceByMtdService) and
-      (JsPath \ "status").read[String])(
-        (selfLink, created, expiresOn, updated, arn, service, status) =>
-          StoredInvitation(selfLink, created, expiresOn.toString(), updated, arn, service, status))
+      (JsPath \ "status").read[String])((selfLink, created, expiresOn, updated, arn, service, status) =>
+      StoredInvitation(selfLink, created, expiresOn.toString(), updated, arn, service, status))
   }
 }
 
+case class Links(self: Option[Href])
+
+object Links {
+
+  def apply(self: String): Links = Links(self = Some(Href(self)))
+
+  implicit val format: OFormat[Links] = Json.format[Links]
+}
+
+case class Href(href: String)
+
+object Href {
+  implicit val format: OFormat[Href] = Json.format[Href]
+}
+
 case class PendingOrRespondedInvitation(
-  href: String,
+  _links: Links,
   created: String,
   arn: Arn,
   service: List[String],
   status: String,
   expiresOn: Option[String],
   clientActionUrl: Option[String],
-  updated: Option[String]) extends Invitation
+  updated: Option[String])
+    extends Invitation
 
 object PendingOrRespondedInvitation {
 
   implicit val reads: Reads[PendingOrRespondedInvitation] = Json.reads[PendingOrRespondedInvitation]
 
-  implicit val writes: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
-    override def writes(o: PendingOrRespondedInvitation): JsValue = Json.obj(
-      "_links" -> Json.obj("self" -> Json.obj("href" -> o.href)),
-      "created" -> o.created,
-      "arn" -> o.arn.value,
-      "service" -> o.service,
-      "status" -> o.status,
-      "expiresOn" -> o.expiresOn,
-      "updated" -> o.updated,
-      "clientActionUrl" -> o.clientActionUrl)
-  }
+  implicit val writes: Writes[PendingOrRespondedInvitation] = Json.writes[PendingOrRespondedInvitation]
+
+  /*implicit val writes: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
+    override def writes(o: PendingOrRespondedInvitation): JsValue =
+      Json.obj(
+        "_links" -> Json.obj("self" -> Json.obj("href" -> o.href)),
+        "created" -> o.created,
+        "arn" -> o.arn.value,
+        "service" -> o.service,
+        "status" -> o.status,
+        if(o.expiresOn.isDefined) "expiresOn" -> o.expiresOn else ,
+        "updated" -> o.updated,
+        "clientActionUrl" -> o.clientActionUrl)
+  }*/
 }
 
 case class PendingInvitation(
@@ -91,7 +109,8 @@ case class PendingInvitation(
   arn: Arn,
   service: List[String],
   status: String,
-  clientActionUrl: String) extends Invitation
+  clientActionUrl: String)
+    extends Invitation
 
 object PendingInvitation {
 
@@ -108,20 +127,22 @@ object PendingInvitation {
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "service").read[String] and
       (JsPath \ "status").read[String] and
-      (JsPath \ "clientActionUrl").read[String])(
-        (selfLink, created, expiresOn, arn, service, status, clientActionUrl) =>
-          PendingInvitation(selfLink, created, expiresOn, arn, List(service), status, clientActionUrl))
+      (JsPath \ "clientActionUrl")
+        .read[String])((selfLink, created, expiresOn, arn, service, status, clientActionUrl) =>
+      PendingInvitation(selfLink, created, expiresOn, arn, List(service), status, clientActionUrl))
   }
 
   implicit val writes: Writes[PendingInvitation] = new Writes[PendingInvitation] {
-    override def writes(o: PendingInvitation): JsValue = Json.obj(
-      "_links" -> Json.obj("self" -> Json.obj("href" -> o.href)),
-      "created" -> o.created,
-      "expiresOn" -> o.expiresOn,
-      "arn" -> o.arn.value,
-      "service" -> o.service,
-      "status" -> o.status,
-      "clientActionUrl" -> o.clientActionUrl)
+    override def writes(o: PendingInvitation): JsValue =
+      Json.obj(
+        "_links"          -> Json.obj("self" -> Json.obj("href" -> o.href)),
+        "created"         -> o.created,
+        "expiresOn"       -> o.expiresOn,
+        "arn"             -> o.arn.value,
+        "service"         -> o.service,
+        "status"          -> o.status,
+        "clientActionUrl" -> o.clientActionUrl
+      )
   }
 }
 
@@ -131,7 +152,8 @@ case class RespondedInvitation(
   updated: String,
   arn: Arn,
   service: List[String],
-  status: String) extends Invitation
+  status: String)
+    extends Invitation
 
 object RespondedInvitation {
 
@@ -147,19 +169,19 @@ object RespondedInvitation {
       (JsPath \ "updated").read[String] and
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "service").read[String] and
-      (JsPath \ "status").read[String])(
-        (href, created, updated, arn, service, status) =>
-          RespondedInvitation(href, created, updated, arn, List(service), status))
+      (JsPath \ "status").read[String])((href, created, updated, arn, service, status) =>
+      RespondedInvitation(href, created, updated, arn, List(service), status))
   }
 
   implicit val writes: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
-    override def writes(o: RespondedInvitation): JsValue = Json.obj(
-      "_links" -> Json.obj("self" -> Json.obj("href" -> o.href)),
-      "created" -> o.created,
-      "updated" -> o.updated,
-      "arn" -> o.arn.value,
-      "service" -> o.service,
-      "status" -> o.status)
+    override def writes(o: RespondedInvitation): JsValue =
+      Json.obj(
+        "_links"  -> Json.obj("self" -> Json.obj("href" -> o.href)),
+        "created" -> o.created,
+        "updated" -> o.updated,
+        "arn"     -> o.arn.value,
+        "service" -> o.service,
+        "status"  -> o.status
+      )
   }
 }
-
