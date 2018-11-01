@@ -9,7 +9,6 @@
   "service": ["MTD-IT"],
   "status": "Pending",
   "expiresOn": "2017-02-04T00:00:00:000Z",
-  "updated": null,
   "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
 },
   {
@@ -22,8 +21,6 @@
     "arn": "AARN9999999",
     "service": ["MTD-IT"],
     "status": "Accepted",
-    "expiresOn": null,
-    "updated": "2017-01-25T15:20:14.917Z",
-    "clientActionUrl": null
+    "updated": "2017-01-25T15:20:14.917Z"
   }
 ]

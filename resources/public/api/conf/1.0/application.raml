@@ -236,7 +236,6 @@ traits:
               description: Location of the authorisation request that was created.
 
     get:
-      is: [invitationsSpecified]
       displayName: Get all authorisation requests for the last 30 days
       (annotations.scope): "read:sent-invitations"
       securedBy: [ sec.oauth_2_0: { scopes: [ "read:sent-invitations" ] } ]
@@ -246,7 +245,7 @@ traits:
           body:
             application/json:
               description: Returns all authorisation requests for the last 30 days.
-              type: !include schemas/invitation.json
+              type: !include schemas/invitations.json
               examples:
                 pending and responded: !include examples/get-agency-invitations-example.json
 

@@ -79,7 +79,7 @@ class AgentControllerISpec extends BaseISpec {
 
   val gettingPendingInvitations = Seq(
     PendingOrRespondedInvitation(
-      s"/agents/${arn.value}/invitations/foo1",
+      Links(s"/agents/${arn.value}/invitations/foo1"),
       "2017-10-31T23:22:50.971Z",
       arn,
       List("MTD-IT"),
@@ -88,7 +88,7 @@ class AgentControllerISpec extends BaseISpec {
       Some("http://localhost:9448/invitations/foo1"),
       None),
     PendingOrRespondedInvitation(
-      s"/agents/${arn.value}/invitations/foo2",
+      Links(s"/agents/${arn.value}/invitations/foo2"),
       "2017-10-31T23:22:50.971Z",
       arn,
       List("MTD-VAT"),
@@ -99,7 +99,7 @@ class AgentControllerISpec extends BaseISpec {
 
   val gettingRespondedInvitations = Seq(
     PendingOrRespondedInvitation(
-      s"/agents/${arn.value}/invitations/foo4",
+      Links(s"/agents/${arn.value}/invitations/foo4"),
       "2017-10-31T23:22:50.971Z",
       arn,
       List("MTD-IT"),
@@ -108,7 +108,7 @@ class AgentControllerISpec extends BaseISpec {
       None,
       Some("2018-09-11T21:02:00.000Z")),
     PendingOrRespondedInvitation(
-      s"/agents/${arn.value}/invitations/foo2",
+      Links(s"/agents/${arn.value}/invitations/foo2"),
       "2017-10-31T23:22:50.971Z",
       arn,
       List("MTD-VAT"),
