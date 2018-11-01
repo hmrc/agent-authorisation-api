@@ -87,19 +87,6 @@ object PendingOrRespondedInvitation {
   implicit val reads: Reads[PendingOrRespondedInvitation] = Json.reads[PendingOrRespondedInvitation]
 
   implicit val writes: Writes[PendingOrRespondedInvitation] = Json.writes[PendingOrRespondedInvitation]
-
-  /*implicit val writes: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
-    override def writes(o: PendingOrRespondedInvitation): JsValue =
-      Json.obj(
-        "_links" -> Json.obj("self" -> Json.obj("href" -> o.href)),
-        "created" -> o.created,
-        "arn" -> o.arn.value,
-        "service" -> o.service,
-        "status" -> o.status,
-        if(o.expiresOn.isDefined) "expiresOn" -> o.expiresOn else ,
-        "updated" -> o.updated,
-        "clientActionUrl" -> o.clientActionUrl)
-  }*/
 }
 
 case class PendingInvitation(
