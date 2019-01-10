@@ -29,7 +29,7 @@ The aim is for the API to mirror the current process that happens through the Ag
 * The API returns a link for the client to follow to authorise the agent and the date when the authorisation request will expire
 * The agent sends the link to the client they wish to act on behalf of
 * If the agent changes their mind, they can cancel the authorisation request as long as the client has not responded to it
-* The agent accesses the link and signs in using their a Government Gateway login details to accept the agent's request
+* The client accesses the link and signs in using their a Government Gateway login details to accept the agent's request
 * The agent can check if they have been authorised by a client.
 
 The detailed guide how to create required client data in the External Tests (Sandbox) environment 
