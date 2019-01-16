@@ -20,7 +20,7 @@ import java.net.URL
 
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{ Inject, Named, Singleton }
 import play.api.Logger
 import play.api.libs.json.Json
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
@@ -29,7 +29,7 @@ import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 
 case class MtdItIdBusinessDetails(mtdbsa: MtdItId)
@@ -39,39 +39,34 @@ object MtdItIdBusinessDetails {
 }
 
 @Singleton
-class DesConnector @Inject()(
-    @Named("des-baseUrl") baseUrl: URL,
-    @Named("des.authorizationToken") authorizationToken: String,
-    @Named("des.environment") environment: String,
-    http: HttpPost with HttpGet with HttpPut,
-    metrics: Metrics)
-    extends HttpAPIMonitor {
+class DesConnector @Inject() (
+  @Named("des-baseUrl") baseUrl: URL,
+  @Named("des.authorizationToken") authorizationToken: String,
+  @Named("des.environment") environment: String,
+  http: HttpPost with HttpGet with HttpPut,
+  metrics: Metrics)
+  extends HttpAPIMonitor {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   def getMtdIdFor(nino: Nino)(
-      implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Either[Boolean, MtdItId]] = {
-    val url = new URL(
-      baseUrl,
-      s"/registration/business-details/nino/${encodePathSegment(nino.value)}")
-    getWithDesHeaders[MtdItIdBusinessDetails](
-      "GetRegistrationBusinessDetailsByNino",
-      url)
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Either[Boolean, MtdItId]] = {
+    val url = new URL(baseUrl, s"/registration/business-details/nino/${encodePathSegment(nino.value)}")
+    getWithDesHeaders[MtdItIdBusinessDetails]("GetRegistrationBusinessDetailsByNino", url)
       .map(record => Right(record.mtdbsa))
       .recover {
         case e: NotFoundException =>
-          Logger(getClass).error(
-            s"MtdItId not found for given Nino. Error: ${e.getMessage}")
+          Logger(getClass).error(s"MtdItId not found for given Nino. Error: ${e.getMessage}")
           Left(false)
       }
   }
 
   private def getWithDesHeaders[A: HttpReads](apiName: String, url: URL)(
-      implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[A] = {
+    implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[A] = {
     val desHeaderCarrier = hc.copy(
       authorization = Some(Authorization(s"Bearer $authorizationToken")),
       extraHeaders = hc.extraHeaders :+ "Environment" -> environment)

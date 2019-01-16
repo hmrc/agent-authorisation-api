@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
 import play.api.libs.json.Json.toJson
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{ JsValue, Json, Writes }
 import play.api.mvc.Results._
 
 object ErrorResults {
@@ -30,26 +30,28 @@ object ErrorResults {
   }
 
   val UnsupportedService = BadRequest(
-    toJson(ErrorBody(
-      "SERVICE_NOT_SUPPORTED",
-      "The service requested is not supported. Check the API documentation to find which services are supported.")))
+    toJson(
+      ErrorBody(
+        "SERVICE_NOT_SUPPORTED",
+        "The service requested is not supported. Check the API documentation to find which services are supported.")))
 
   val ClientIdDoesNotMatchService = BadRequest(
     toJson(
       ErrorBody(
         "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
-        "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
-      )))
+        "The specified client identifier does not match the requested service. Check the API documentation to find the correct format.")))
 
   val ClientIdInvalidFormat = BadRequest(
-    toJson(ErrorBody(
-      "CLIENT_ID_FORMAT_INVALID",
-      "Client identifier must be in the correct format. Check the API documentation to find the correct format.")))
+    toJson(
+      ErrorBody(
+        "CLIENT_ID_FORMAT_INVALID",
+        "Client identifier must be in the correct format. Check the API documentation to find the correct format.")))
 
   val PostcodeFormatInvalid = BadRequest(
-    toJson(ErrorBody(
-      "POSTCODE_FORMAT_INVALID",
-      "Postcode must be in the correct format. Check the API documentation to find the correct format.")))
+    toJson(
+      ErrorBody(
+        "POSTCODE_FORMAT_INVALID",
+        "Postcode must be in the correct format. Check the API documentation to find the correct format.")))
 
   val VatRegDateFormatInvalid = BadRequest(
     toJson(ErrorBody(
@@ -57,57 +59,48 @@ object ErrorResults {
       "VAT registration date must be in the correct format. Check the API documentation to find the correct format.")))
 
   val PostcodeDoesNotMatch = Forbidden(
-    toJson(
-      ErrorBody(
-        "POSTCODE_DOES_NOT_MATCH",
-        "The postcode provided does not match HMRC's record for this client.")))
+    toJson(ErrorBody("POSTCODE_DOES_NOT_MATCH", "The postcode provided does not match HMRC's record for this client.")))
 
   val VatRegDateDoesNotMatch = Forbidden(
-    toJson(ErrorBody(
-      "VAT_REG_DATE_DOES_NOT_MATCH",
-      "The VAT registration date provided does not match HMRC's record for this client.")))
+    toJson(
+      ErrorBody(
+        "VAT_REG_DATE_DOES_NOT_MATCH",
+        "The VAT registration date provided does not match HMRC's record for this client.")))
 
   val ClientRegistrationNotFound = Forbidden(
     toJson(
-      ErrorBody(
-        "CLIENT_REGISTRATION_NOT_FOUND",
-        "The details provided for this client do not match HMRC's records.")))
+      ErrorBody("CLIENT_REGISTRATION_NOT_FOUND", "The details provided for this client do not match HMRC's records.")))
 
   val NoPermissionOnAgency = Forbidden(
     toJson(
       ErrorBody(
         "NO_PERMISSION_ON_AGENCY",
-        "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
-      )))
+        "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.")))
 
   val NotAnAgent = Forbidden(
     toJson(
       ErrorBody(
         "NOT_AN_AGENT",
-        "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
-      )))
+        "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.")))
 
   val AgentNotSubscribed = Forbidden(
-    toJson(ErrorBody(
-      "AGENT_NOT_SUBSCRIBED",
-      "This agent needs to create an agent services account before they can use this service.")))
+    toJson(
+      ErrorBody(
+        "AGENT_NOT_SUBSCRIBED",
+        "This agent needs to create an agent services account before they can use this service.")))
 
   val InvitationNotFound = NotFound(
-    toJson(
-      ErrorBody("INVITATION_NOT_FOUND",
-                "The authorisation request cannot be found.")))
+    toJson(ErrorBody("INVITATION_NOT_FOUND", "The authorisation request cannot be found.")))
 
   val InvalidInvitationStatus = Forbidden(
     toJson(
       ErrorBody(
         "INVALID_INVITATION_STATUS",
-        "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired."
-      )))
+        "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.")))
 
-  val RelationshipNotFound = NotFound(toJson(ErrorBody(
-    "RELATIONSHIP_NOT_FOUND",
-    "Relationship is inactive. Agent is not authorised to act for this client.")))
+  val RelationshipNotFound = NotFound(
+    toJson(
+      ErrorBody("RELATIONSHIP_NOT_FOUND", "Relationship is inactive. Agent is not authorised to act for this client.")))
 
-  val InvalidPayload = BadRequest(
-    toJson(ErrorBody("INVALID_PAYLOAD", "The payload is invalid.")))
+  val InvalidPayload = BadRequest(toJson(ErrorBody("INVALID_PAYLOAD", "The payload is invalid.")))
 }
