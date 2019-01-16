@@ -16,16 +16,49 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 case class AgentInvitationReceived(service: List[String], clientIdType: String, clientId: String, knownFact: String)
 
 case class AgentInvitation(service: String, clientIdType: String, clientId: String, knownFact: String)
 
 object AgentInvitationReceived {
-  implicit val format = Json.format[AgentInvitationReceived]
+
+  implicit val reads: Reads[AgentInvitationReceived] = {
+    ((JsPath \ "service").read[List[String]] and
+      (JsPath \ "clientIdType").read[String] and
+      (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
+      (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>
+        AgentInvitationReceived(service, clientIdType, clientId, knownFact))
+  }
+
+  implicit val writes: Writes[AgentInvitationReceived] = new Writes[AgentInvitationReceived] {
+    override def writes(o: AgentInvitationReceived): JsValue =
+      Json.obj(
+        "service" -> o.service,
+        "clientIdType" -> o.clientIdType,
+        "clientId" -> o.clientId.replaceAll(" ", ""),
+        "knownFact" -> o.knownFact)
+  }
 }
 
 object AgentInvitation {
-  implicit val format = Json.format[AgentInvitation]
+
+  implicit val reads: Reads[AgentInvitation] = {
+    ((JsPath \ "service").read[String] and
+      (JsPath \ "clientIdType").read[String] and
+      (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
+      (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>
+        AgentInvitation(service, clientIdType, clientId, knownFact))
+  }
+
+  implicit val writes: Writes[AgentInvitation] = new Writes[AgentInvitation] {
+    override def writes(o: AgentInvitation): JsValue =
+      Json.obj(
+        "service" -> o.service,
+        "clientIdType" -> o.clientIdType,
+        "clientId" -> o.clientId.replaceAll(" ", ""),
+        "knownFact" -> o.knownFact)
+  }
 }
