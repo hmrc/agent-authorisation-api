@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
 class ApplicationRegistration @Inject()(
-  @Named("service-locator.enabled") serviceLocator: Boolean,
-  serviceLocatorConnector: ServiceLocatorConnector,
-  environment: Environment,
-  application: Application)
+    @Named("service-locator.enabled") serviceLocator: Boolean,
+    serviceLocatorConnector: ServiceLocatorConnector,
+    environment: Environment,
+    application: Application)
     extends ServiceLocatorConfig {
 
   override val mode: Mode = environment.mode

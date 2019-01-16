@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,10 @@ object ApiAccess {
 }
 
 @Singleton
-class DocumentationController @Inject()(errorHandler: HttpErrorHandler, configuration: Configuration)
-    extends uk.gov.hmrc.api.controllers.DocumentationController(errorHandler = errorHandler) {
+class DocumentationController @Inject()(errorHandler: HttpErrorHandler,
+                                        configuration: Configuration)
+    extends uk.gov.hmrc.api.controllers.DocumentationController(
+      errorHandler = errorHandler) {
 
   private lazy val apiAccess = {
     val accessConfig = configuration.getConfig("api.access")

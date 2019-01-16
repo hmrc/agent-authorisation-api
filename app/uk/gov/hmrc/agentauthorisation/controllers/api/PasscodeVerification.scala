@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,16 @@ class PasscodeVerificationException(msg: String) extends RuntimeException(msg)
 
 trait PasscodeVerification {
   def apply[A](body: Boolean => Future[Result])(
-    implicit
-    request: Request[A],
-    headerCarrier: HeaderCarrier,
-    ec: ExecutionContext): Future[Result]
+      implicit
+      request: Request[A],
+      headerCarrier: HeaderCarrier,
+      ec: ExecutionContext): Future[Result]
 }
 
 class FrontendPasscodeVerification @Inject()(
-  configuration: Configuration,
-  environment: Environment,
-  otacAuthConnector: OtacAuthConnector)
+    configuration: Configuration,
+    environment: Environment,
+    otacAuthConnector: OtacAuthConnector)
     extends PasscodeVerification {
 
   val tokenParam = "p"
@@ -67,11 +67,11 @@ class FrontendPasscodeVerification @Inject()(
     s"$verificationURL/otac/login$queryParam"
 
   def throwConfigNotFound(configKey: String) =
-    throw new PasscodeVerificationException(s"The value for the key '$configKey' should be setup in the config file.")
+    throw new PasscodeVerificationException(
+      s"The value for the key '$configKey' should be setup in the config file.")
 
-  def addRedirectUrl[A](token: String)(
-    implicit
-    request: Request[A]): Result => Result =
+  def addRedirectUrl[A](token: String)(implicit
+                                       request: Request[A]): Result => Result =
     e =>
       e.addingToSession(SessionKeys.redirect -> buildRedirectUrl(request))
         .addingToSession("otacTokenParam" -> token)
@@ -82,10 +82,10 @@ class FrontendPasscodeVerification @Inject()(
     else req.path
 
   def apply[A](body: Boolean => Future[Result])(
-    implicit
-    request: Request[A],
-    headerCarrier: HeaderCarrier,
-    ec: ExecutionContext): Future[Result] =
+      implicit
+      request: Request[A],
+      headerCarrier: HeaderCarrier,
+      ec: ExecutionContext): Future[Result] =
     if (passcodeEnabled) {
       request.session
         .get(SessionKeys.otacToken)
@@ -93,7 +93,8 @@ class FrontendPasscodeVerification @Inject()(
           case Some(token) => {
             val queryParam = s"?$tokenParam=$token"
             Future
-              .successful(Redirect(loginUrl(queryParam))) map addRedirectUrl(token)(request)
+              .successful(Redirect(loginUrl(queryParam))) map addRedirectUrl(
+              token)(request)
           }
           case _ => body(false)
         }) { otacToken =>

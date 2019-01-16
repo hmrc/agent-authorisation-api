@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ import javax.inject.{Inject, Singleton}
 import play.api.http.HttpErrorHandler
 
 @Singleton
-class RamlController @Inject()(errorHandler: HttpErrorHandler) extends AssetsBuilder(errorHandler) {
+class RamlController @Inject()(errorHandler: HttpErrorHandler)
+    extends AssetsBuilder(errorHandler) {
 
   def raml(version: String, file: String) =
     super.at(s"/public/api/conf/$version", file)

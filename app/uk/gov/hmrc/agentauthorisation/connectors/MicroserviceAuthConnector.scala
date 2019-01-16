@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ import uk.gov.hmrc.play.http.ws.{WSGet, WSPost}
 
 @Singleton
 class MicroserviceAuthConnector @Inject()(@Named("auth-baseUrl") baseUrl: URL)
-    extends PlayAuthConnector with PlayOtacAuthConnector {
+    extends PlayAuthConnector
+    with PlayOtacAuthConnector {
 
   override val serviceUrl = baseUrl.toString
 

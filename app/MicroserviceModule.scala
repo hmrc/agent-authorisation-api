@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,14 @@ import org.slf4j.MDC
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.agentauthorisation.ApplicationRegistration
 import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
-import uk.gov.hmrc.agentauthorisation.controllers.api.{FrontendPasscodeVerification, PasscodeVerification}
-import uk.gov.hmrc.api.connector.{ApiServiceLocatorConnector, ServiceLocatorConnector}
+import uk.gov.hmrc.agentauthorisation.controllers.api.{
+  FrontendPasscodeVerification,
+  PasscodeVerification
+}
+import uk.gov.hmrc.api.connector.{
+  ApiServiceLocatorConnector,
+  ServiceLocatorConnector
+}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.otac.OtacAuthConnector
 import uk.gov.hmrc.http._
@@ -34,8 +40,10 @@ import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.ws.WSHttp
 
-class MicroserviceModule(val environment: Environment, val configuration: Configuration)
-    extends AbstractModule with ServicesConfig {
+class MicroserviceModule(val environment: Environment,
+                         val configuration: Configuration)
+    extends AbstractModule
+    with ServicesConfig {
 
   override val runModeConfiguration: Configuration = configuration
   override protected def mode = environment.mode
@@ -45,7 +53,8 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
 
     val loggerDateFormat: Option[String] =
       configuration.getString("logger.json.dateformat")
-    Logger.info(s"Starting microservice : $appName : in mode : ${environment.mode}")
+    Logger.info(
+      s"Starting microservice : $appName : in mode : ${environment.mode}")
     MDC.put("appName", appName)
     loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
 
@@ -80,9 +89,12 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
       .annotatedWith(Names.named(s"$propertyName"))
       .toProvider(new ServicePropertyProvider(propertyName))
 
-  private class ServicePropertyProvider(propertyName: String) extends Provider[String] {
+  private class ServicePropertyProvider(propertyName: String)
+      extends Provider[String] {
     override lazy val get =
-      getConfString(propertyName, throw new RuntimeException(s"No configuration value found for '$propertyName'"))
+      getConfString(propertyName,
+                    throw new RuntimeException(
+                      s"No configuration value found for '$propertyName'"))
   }
 
   private def bindServiceBooleanProperty(propertyName: String) =
@@ -90,9 +102,12 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
       .annotatedWith(Names.named(s"$propertyName"))
       .toProvider(new ServiceBooleanPropertyProvider(propertyName))
 
-  private class ServiceBooleanPropertyProvider(propertyName: String) extends Provider[Boolean] {
+  private class ServiceBooleanPropertyProvider(propertyName: String)
+      extends Provider[Boolean] {
     override lazy val get =
-      getConfBool(propertyName, throw new RuntimeException(s"No configuration value found for '$propertyName'"))
+      getConfBool(propertyName,
+                  throw new RuntimeException(
+                    s"No configuration value found for '$propertyName'"))
   }
 
   private def bindBaseUrl(serviceName: String) =
@@ -112,7 +127,9 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
   private class PropertyProvider(confKey: String) extends Provider[String] {
     override lazy val get = configuration
       .getString(confKey)
-      .getOrElse(throw new IllegalStateException(s"No value found for configuration property $confKey"))
+      .getOrElse(
+        throw new IllegalStateException(
+          s"No value found for configuration property $confKey"))
   }
 
   private def bindProperty2param(objectName: String, propertyName: String) =
@@ -120,9 +137,12 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
       .annotatedWith(Names.named(objectName))
       .toProvider(new PropertyProvider2param(propertyName))
 
-  private class PropertyProvider2param(confKey: String) extends Provider[String] {
+  private class PropertyProvider2param(confKey: String)
+      extends Provider[String] {
     override lazy val get =
-      getConfString(confKey, throw new IllegalStateException(s"No value found for configuration property $confKey"))
+      getConfString(confKey,
+                    throw new IllegalStateException(
+                      s"No value found for configuration property $confKey"))
   }
 
   private def bindIntegerProperty(propertyName: String) =
@@ -133,13 +153,22 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
   private class IntegerPropertyProvider(confKey: String) extends Provider[Int] {
     override lazy val get: Int = configuration
       .getInt(confKey)
-      .getOrElse(throw new IllegalStateException(s"No value found for configuration property $confKey"))
+      .getOrElse(
+        throw new IllegalStateException(
+          s"No value found for configuration property $confKey"))
   }
 
 }
 
 @Singleton
-class HttpVerbs @Inject()(val auditConnector: AuditConnector, @Named("appName") val appName: String)
-    extends HttpGet with HttpPost with HttpPut with HttpPatch with HttpDelete with WSHttp with HttpAuditing {
+class HttpVerbs @Inject()(val auditConnector: AuditConnector,
+                          @Named("appName") val appName: String)
+    extends HttpGet
+    with HttpPost
+    with HttpPut
+    with HttpPatch
+    with HttpDelete
+    with WSHttp
+    with HttpAuditing {
   override val hooks = Seq(AuditingHook)
 }
