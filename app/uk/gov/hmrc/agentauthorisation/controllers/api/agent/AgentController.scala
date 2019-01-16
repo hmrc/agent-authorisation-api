@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,20 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{ Inject, Named, Singleton }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTimeZone, LocalDate}
+import org.joda.time.{ DateTimeZone, LocalDate }
 import play.api.Logger
 import play.api.libs.json.Json._
-import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.libs.json.{ JsError, JsObject, JsSuccess, Json }
+import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.agentauthorisation.audit.AuditService
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
-import uk.gov.hmrc.agentauthorisation.connectors.{DesConnector, InvitationsConnector, RelationshipsConnector}
+import uk.gov.hmrc.agentauthorisation.connectors.{ DesConnector, InvitationsConnector, RelationshipsConnector }
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
@@ -39,7 +39,7 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import scala.concurrent.Future
 
 @Singleton
-class AgentController @Inject()(
+class AgentController @Inject() (
   @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
   @Named("get-requests-show-last-days") val getRequestsShowLastDays: Int,
   invitationsConnector: InvitationsConnector,
@@ -48,7 +48,7 @@ class AgentController @Inject()(
   auditService: AuditService,
   val authConnector: AuthConnector,
   val withVerifiedPasscode: PasscodeVerification)
-    extends BaseController with AuthActions {
+  extends BaseController with AuthActions {
 
   import AgentController._
 
@@ -88,8 +88,7 @@ class AgentController @Inject()(
           invitationsConnector
             .getInvitation(arn, invitationId)
             .map {
-              case pendingInv @ Some(PendingInvitation(pendingInvitation))
-                  if supportedServices.exists(pendingInvitation.service.contains) =>
+              case pendingInv @ Some(PendingInvitation(pendingInvitation)) if supportedServices.exists(pendingInvitation.service.contains) =>
                 val id = pendingInv.get.href.toString.split("/").toStream.last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
@@ -102,8 +101,7 @@ class AgentController @Inject()(
               case Some(PendingInvitation(pendingInvitation)) =>
                 Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
                 UnsupportedService
-              case respondedInv @ Some(RespondedInvitation(respondedInvitation))
-                  if supportedServices.exists(respondedInvitation.service.contains) =>
+              case respondedInv @ Some(RespondedInvitation(respondedInvitation)) if supportedServices.exists(respondedInvitation.service.contains) =>
                 val id = respondedInv.get.href.toString.split("/").toStream.last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
@@ -163,7 +161,7 @@ class AgentController @Inject()(
       forThisAgency(givenArn) {
         val invitationResponse = request.body.asJson match {
           case Some(json) => json.as[AgentInvitationReceived]
-          case None       => AgentInvitationReceived(List.empty, "", "", "")
+          case None => AgentInvitationReceived(List.empty, "", "", "")
         }
         invitationResponse match {
           case ItsaInvitation(invitation) =>
@@ -190,20 +188,20 @@ class AgentController @Inject()(
       for {
         hasKnownFact <- checkKnownFactMatches(agentInvitation)
         result <- hasKnownFact match {
-                   case Some(true) => checkRelationship(agentInvitation, arn)
-                   case Some(false) =>
-                     knownFactNotMatchedAudit(agentInvitation, arn, "checkRelationship")
-                     Logger(getClass).warn(s"Postcode does not match for ${agentInvitation.service}")
-                     Future successful knownFactDoesNotMatch(agentInvitation.service)
-                   case _ =>
-                     auditService.sendAgentCheckRelationshipStatus(
-                       arn,
-                       agentInvitation,
-                       "Fail",
-                       Some("CLIENT_REGISTRATION_NOT_FOUND"))
-                     Logger(getClass).warn(s"Client Registration Not Found")
-                     Future successful ClientRegistrationNotFound
-                 }
+          case Some(true) => checkRelationship(agentInvitation, arn)
+          case Some(false) =>
+            knownFactNotMatchedAudit(agentInvitation, arn, "checkRelationship")
+            Logger(getClass).warn(s"Postcode does not match for ${agentInvitation.service}")
+            Future successful knownFactDoesNotMatch(agentInvitation.service)
+          case _ =>
+            auditService.sendAgentCheckRelationshipStatus(
+              arn,
+              agentInvitation,
+              "Fail",
+              Some("CLIENT_REGISTRATION_NOT_FOUND"))
+            Logger(getClass).warn(s"Client Registration Not Found")
+            Future successful ClientRegistrationNotFound
+        }
       } yield result
     } else {
       Logger(getClass).warn(s"Invalid Format for supplied Known Fact")
@@ -218,41 +216,41 @@ class AgentController @Inject()(
       for {
         hasKnownFact <- checkKnownFactMatches(agentInvitation)
         result <- hasKnownFact match {
-                   case Some(true) =>
-                     invitationsConnector
-                       .createInvitation(arn, agentInvitation)
-                       .flatMap { invitationUrl =>
-                         val id = invitationUrl
-                           .getOrElse(throw new Exception("Invitation location expected but missing."))
-                           .toString
-                           .split("/")
-                           .toStream
-                           .last
-                         val newInvitationUrl =
-                           s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
-                         auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
-                         Future successful NoContent.withHeaders(LOCATION -> newInvitationUrl)
-                       }
-                       .recoverWith {
-                         case e =>
-                           Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
-                           auditService
-                             .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
-                           Future.failed(e)
-                       }
-                   case Some(false) =>
-                     knownFactNotMatchedAudit(agentInvitation, arn, "createInvitation")
-                     Future successful knownFactDoesNotMatch(agentInvitation.service)
-                   case _ =>
-                     auditService.sendAgentInvitationSubmitted(
-                       arn,
-                       "",
-                       agentInvitation,
-                       "Fail",
-                       Some("CLIENT_REGISTRATION_NOT_FOUND"))
-                     Logger(getClass).warn(s"Client Registration Not Found")
-                     Future successful ClientRegistrationNotFound
-                 }
+          case Some(true) =>
+            invitationsConnector
+              .createInvitation(arn, agentInvitation)
+              .flatMap { invitationUrl =>
+                val id = invitationUrl
+                  .getOrElse(throw new Exception("Invitation location expected but missing."))
+                  .toString
+                  .split("/")
+                  .toStream
+                  .last
+                val newInvitationUrl =
+                  s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+                auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
+                Future successful NoContent.withHeaders(LOCATION -> newInvitationUrl)
+              }
+              .recoverWith {
+                case e =>
+                  Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
+                  auditService
+                    .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
+                  Future.failed(e)
+              }
+          case Some(false) =>
+            knownFactNotMatchedAudit(agentInvitation, arn, "createInvitation")
+            Future successful knownFactDoesNotMatch(agentInvitation.service)
+          case _ =>
+            auditService.sendAgentInvitationSubmitted(
+              arn,
+              "",
+              agentInvitation,
+              "Fail",
+              Some("CLIENT_REGISTRATION_NOT_FOUND"))
+            Logger(getClass).warn(s"Client Registration Not Found")
+            Future successful ClientRegistrationNotFound
+        }
       } yield result
     } else {
       Logger(getClass).warn(s"Invalid Format for supplied Known Fact")
@@ -310,10 +308,10 @@ class AgentController @Inject()(
         val res = for {
           mtdItId <- desConnector.getMtdIdFor(Nino(agentInvitation.clientId))
           result <- mtdItId match {
-                     case Right(id) =>
-                       relationshipsConnector.checkItsaRelationship(arn, id)
-                     case Left(_) => Future successful false
-                   }
+            case Right(id) =>
+              relationshipsConnector.checkItsaRelationship(arn, id)
+            case Left(_) => Future successful false
+          }
         } yield result
         res.map {
           case true =>
@@ -368,8 +366,7 @@ class AgentController @Inject()(
                     pendingInv.status,
                     Some(pendingInv.expiresOn),
                     Some(s"$invitationFrontendUrl" + s"$id"),
-                    None
-                  )
+                    None)
 
                 case respondedInv @ RespondedInvitation(_) =>
                   val id = respondedInv.href.toString.split("/").toStream.last
@@ -389,7 +386,7 @@ class AgentController @Inject()(
           })
           .map {
             case s if s.isEmpty => NoContent
-            case s              => Ok(Json.toJson(s))
+            case s => Ok(Json.toJson(s))
           }
       }
     }
@@ -447,13 +444,13 @@ object AgentController {
 
   private def knownFactDoesNotMatch(service: String) =
     service match {
-      case "HMRC-MTD-IT"  => PostcodeDoesNotMatch
+      case "HMRC-MTD-IT" => PostcodeDoesNotMatch
       case "HMRC-MTD-VAT" => VatRegDateDoesNotMatch
     }
 
   private def knownFactFormatInvalid(service: String) =
     service match {
-      case "HMRC-MTD-IT"  => PostcodeFormatInvalid
+      case "HMRC-MTD-IT" => PostcodeFormatInvalid
       case "HMRC-MTD-VAT" => VatRegDateFormatInvalid
     }
 

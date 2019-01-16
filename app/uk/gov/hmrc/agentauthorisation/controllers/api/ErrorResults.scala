@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
 import play.api.libs.json.Json.toJson
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{ JsValue, Json, Writes }
 import play.api.mvc.Results._
 
 object ErrorResults {
@@ -39,8 +39,7 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
-        "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
-      )))
+        "The specified client identifier does not match the requested service. Check the API documentation to find the correct format.")))
 
   val ClientIdInvalidFormat = BadRequest(
     toJson(
@@ -76,15 +75,13 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "NO_PERMISSION_ON_AGENCY",
-        "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
-      )))
+        "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.")))
 
   val NotAnAgent = Forbidden(
     toJson(
       ErrorBody(
         "NOT_AN_AGENT",
-        "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
-      )))
+        "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.")))
 
   val AgentNotSubscribed = Forbidden(
     toJson(
@@ -99,8 +96,7 @@ object ErrorResults {
     toJson(
       ErrorBody(
         "INVALID_INVITATION_STATUS",
-        "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired."
-      )))
+        "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.")))
 
   val RelationshipNotFound = NotFound(
     toJson(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.agentauthorisation.audit
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import play.api.mvc.Request
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, Invitation}
+import uk.gov.hmrc.agentauthorisation.models.{ AgentInvitation, Invitation }
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -36,7 +36,7 @@ object AgentAuthorisationEvent extends Enumeration {
 }
 
 @Singleton
-class AuditService @Inject()(val auditConnector: AuditConnector) {
+class AuditService @Inject() (val auditConnector: AuditConnector) {
 
   private[audit] def auditEvent(
     event: AgentAuthorisationEvent,
@@ -60,16 +60,14 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
       AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi,
       "Agent created invitation through third party software",
       Seq(
-        "factCheck"            -> result,
-        "invitationId"         -> invitationId,
+        "factCheck" -> result,
+        "invitationId" -> invitationId,
         "agentReferenceNumber" -> arn.value,
-        "clientIdType"         -> agentInvitation.clientIdType,
-        "clientId"             -> agentInvitation.clientId,
-        "service"              -> agentInvitation.service
-      ).filter(_._2.nonEmpty) ++ failure
+        "clientIdType" -> agentInvitation.clientIdType,
+        "clientId" -> agentInvitation.clientId,
+        "service" -> agentInvitation.service).filter(_._2.nonEmpty) ++ failure
         .map(e => Seq("failureDescription" -> e))
-        .getOrElse(Seq.empty)
-    )
+        .getOrElse(Seq.empty))
 
   def sendAgentInvitationCancelled(arn: Arn, invitationId: String, result: String, failure: Option[String] = None)(
     implicit
@@ -81,8 +79,7 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
       Seq("result" -> result, "invitationId" -> invitationId, "agentReferenceNumber" -> arn.value)
         .filter(_._2.nonEmpty) ++ failure
         .map(e => Seq("failureDescription" -> e))
-        .getOrElse(Seq.empty)
-    )
+        .getOrElse(Seq.empty))
 
   def sendAgentCheckRelationshipStatus(
     arn: Arn,
@@ -96,15 +93,13 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
       AgentAuthorisationEvent.AgentCheckRelationshipStatusApi,
       "Agent checked status of relationship through third party software",
       Seq(
-        "result"               -> result,
+        "result" -> result,
         "agentReferenceNumber" -> arn.value,
-        "service"              -> agentInvitation.service,
-        "clientId"             -> agentInvitation.clientId,
-        "clientIdType"         -> agentInvitation.clientIdType
-      ).filter(_._2.nonEmpty) ++ failure
+        "service" -> agentInvitation.service,
+        "clientId" -> agentInvitation.clientId,
+        "clientIdType" -> agentInvitation.clientIdType).filter(_._2.nonEmpty) ++ failure
         .map(e => Seq("failureDescription" -> e))
-        .getOrElse(Seq.empty)
-    )
+        .getOrElse(Seq.empty))
 
   private def createEvent(event: AgentAuthorisationEvent, transactionName: String, details: (String, Any)*)(
     implicit
@@ -117,9 +112,7 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
     DataEvent(auditSource = "agent-authorisation-api", auditType = event.toString, tags = tags, detail = detail)
   }
 
-  private def send(events: DataEvent*)(
-    implicit
-    hc: HeaderCarrier): Future[Unit] =
+  private def send(events: DataEvent*)(implicit hc: HeaderCarrier): Future[Unit] =
     Future {
       events.foreach { event =>
         Try(auditConnector.sendEvent(event))

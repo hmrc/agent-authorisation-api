@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.binders
 
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId }
 
 object UrlBinders {
 

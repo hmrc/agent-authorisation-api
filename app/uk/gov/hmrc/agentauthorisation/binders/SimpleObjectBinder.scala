@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import scala.util.control.NonFatal
 class SimpleObjectBinder[T](bind: String => T, unbind: T => String)(
   implicit
   m: Manifest[T])
-    extends PathBindable[T] {
+  extends PathBindable[T] {
   override def bind(key: String, value: String): Either[String, T] =
     try {
       Right(bind(value))

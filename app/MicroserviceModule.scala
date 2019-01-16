@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 import java.net.URL
 
 import com.google.inject.AbstractModule
-import com.google.inject.name.{Named, Names}
-import javax.inject.{Inject, Provider, Singleton}
+import com.google.inject.name.{ Named, Names }
+import javax.inject.{ Inject, Provider, Singleton }
 import org.slf4j.MDC
-import play.api.{Configuration, Environment, Logger}
+import play.api.{ Configuration, Environment, Logger }
 import uk.gov.hmrc.agentauthorisation.ApplicationRegistration
 import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
-import uk.gov.hmrc.agentauthorisation.controllers.api.{FrontendPasscodeVerification, PasscodeVerification}
-import uk.gov.hmrc.api.connector.{ApiServiceLocatorConnector, ServiceLocatorConnector}
+import uk.gov.hmrc.agentauthorisation.controllers.api.{ FrontendPasscodeVerification, PasscodeVerification }
+import uk.gov.hmrc.api.connector.{ ApiServiceLocatorConnector, ServiceLocatorConnector }
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.otac.OtacAuthConnector
 import uk.gov.hmrc.http._
@@ -35,7 +35,7 @@ import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.ws.WSHttp
 
 class MicroserviceModule(val environment: Environment, val configuration: Configuration)
-    extends AbstractModule with ServicesConfig {
+  extends AbstractModule with ServicesConfig {
 
   override val runModeConfiguration: Configuration = configuration
   override protected def mode = environment.mode
@@ -139,7 +139,7 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
 }
 
 @Singleton
-class HttpVerbs @Inject()(val auditConnector: AuditConnector, @Named("appName") val appName: String)
-    extends HttpGet with HttpPost with HttpPut with HttpPatch with HttpDelete with WSHttp with HttpAuditing {
+class HttpVerbs @Inject() (val auditConnector: AuditConnector, @Named("appName") val appName: String)
+  extends HttpGet with HttpPost with HttpPut with HttpPatch with HttpDelete with WSHttp with HttpAuditing {
   override val hooks = Seq(AuditingHook)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,20 @@
 
 package uk.gov.hmrc.agentauthorisation
 
-import javax.inject.{Inject, Named, Singleton}
-import play.api.{Application, Configuration, Environment, Logger}
+import javax.inject.{ Inject, Named, Singleton }
+import play.api.{ Application, Configuration, Environment, Logger }
 import play.api.Mode.Mode
 import uk.gov.hmrc.api.config.ServiceLocatorConfig
 import uk.gov.hmrc.api.connector.ServiceLocatorConnector
 import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
-class ApplicationRegistration @Inject()(
+class ApplicationRegistration @Inject() (
   @Named("service-locator.enabled") serviceLocator: Boolean,
   serviceLocatorConnector: ServiceLocatorConnector,
   environment: Environment,
   application: Application)
-    extends ServiceLocatorConfig {
+  extends ServiceLocatorConfig {
 
   override val mode: Mode = environment.mode
   override val runModeConfiguration: Configuration = application.configuration
