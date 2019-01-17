@@ -64,9 +64,10 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindIntegerProperty("get-requests-show-last-days")
 
     bind(classOf[CorePost]).to(classOf[DefaultHttpClient])
-    bind(classOf[HttpGet]).to(classOf[HttpVerbs])
-    bind(classOf[HttpPost]).to(classOf[HttpVerbs])
-    bind(classOf[HttpPut]).to(classOf[HttpVerbs])
+    bind(classOf[HttpGet]).to(classOf[DefaultHttpClient])
+    bind(classOf[HttpPost]).to(classOf[DefaultHttpClient])
+    bind(classOf[HttpPut]).to(classOf[DefaultHttpClient])
+
     bind(classOf[ServiceLocatorConnector])
       .to(classOf[ApiServiceLocatorConnector])
     bind(classOf[AuthConnector]).to(classOf[MicroserviceAuthConnector])
@@ -138,15 +139,4 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
       .getOrElse(throw new IllegalStateException(s"No value found for configuration property $confKey"))
   }
 
-}
-
-@Singleton
-class HttpVerbs @Inject()(
-  val auditConnector: AuditConnector,
-  @Named("appName") val appName: String,
-  config: Configuration,
-  val actorSystem: ActorSystem)
-    extends HttpGet with HttpPost with HttpPut with HttpPatch with HttpDelete with WSHttp with HttpAuditing {
-  override val hooks = Seq(AuditingHook)
-  override lazy val configuration: Option[Config] = Some(config.underlying)
 }
