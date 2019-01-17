@@ -18,19 +18,29 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import java.net.URL
 
-import javax.inject.{ Inject, Named, Singleton }
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
+import javax.inject.{Inject, Named, Singleton}
+import play.api.Configuration
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.otac.PlayOtacAuthConnector
-import uk.gov.hmrc.http.{ HttpGet, HttpPost }
-import uk.gov.hmrc.play.http.ws.{ WSGet, WSPost }
+import uk.gov.hmrc.http.{HttpGet, HttpPost}
+import uk.gov.hmrc.play.http.ws.{WSGet, WSPost}
 
 @Singleton
-class MicroserviceAuthConnector @Inject() (@Named("auth-baseUrl") baseUrl: URL)
-  extends PlayAuthConnector with PlayOtacAuthConnector {
+class MicroserviceAuthConnector @Inject()(
+  @Named("auth-baseUrl") baseUrl: URL,
+  config: Configuration,
+  val _actorSystem: ActorSystem)
+    extends PlayAuthConnector with PlayOtacAuthConnector {
 
   override val serviceUrl = baseUrl.toString
 
   override def http = new HttpPost with HttpGet with WSPost with WSGet {
     override val hooks = NoneRequired
+
+    override protected def actorSystem: ActorSystem = _actorSystem
+
+    override protected def configuration: Option[Config] = Some(config.underlying)
   }
 }

@@ -2,13 +2,13 @@ package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import akka.util.Timeout
 import org.joda.time.LocalDate
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentauthorisation._
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId }
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.SessionKeys
 import play.api.libs.json.Json._
 import play.api.test.Helpers.contentAsJson
@@ -32,7 +32,8 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
     "MTD-IT",
-    "Pending")
+    "Pending"
+  )
 
   val pendingItsaInvitation = PendingInvitation(
     s"/agents/TARN0000001/invitations/ABERULMHCKKW3",
@@ -41,7 +42,8 @@ class AgentControllerISpec extends BaseISpec {
     Arn("TARN0000001"),
     List("MTD-IT"),
     "Pending",
-    s"http://localhost:9448/invitations/${invitationIdITSA.value}")
+    s"http://localhost:9448/invitations/${invitationIdITSA.value}"
+  )
 
   val respondedItsaInvitation = RespondedInvitation(
     s"/agents/TARN0000001/invitations/ABERULMHCKKW3",
@@ -58,7 +60,8 @@ class AgentControllerISpec extends BaseISpec {
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
     "MTD-VAT",
-    "Pending")
+    "Pending"
+  )
 
   val pendingVatInvitation = PendingInvitation(
     s"/agents/TARN0000001/invitations/CZTW1KY6RTAAT",
@@ -67,7 +70,8 @@ class AgentControllerISpec extends BaseISpec {
     Arn("TARN0000001"),
     List("MTD-VAT"),
     "Pending",
-    s"http://localhost:9448/invitations/${invitationIdVAT.value}")
+    s"http://localhost:9448/invitations/${invitationIdVAT.value}"
+  )
 
   val respondedVatInvitation = RespondedInvitation(
     s"/agents/TARN0000001/invitations/CZTW1KY6RTAAT",
@@ -86,7 +90,8 @@ class AgentControllerISpec extends BaseISpec {
       "Pending",
       Some("2017-12-18T00:00:00.000"),
       Some("http://localhost:9448/invitations/foo1"),
-      None),
+      None
+    ),
     PendingOrRespondedInvitation(
       Links(s"/agents/${arn.value}/invitations/foo2"),
       "2017-10-31T23:22:50.971Z",
@@ -95,7 +100,9 @@ class AgentControllerISpec extends BaseISpec {
       "Pending",
       Some("2017-12-18T00:00:00.000"),
       Some("http://localhost:9448/invitations/foo2"),
-      None))
+      None
+    )
+  )
 
   val gettingRespondedInvitations = Seq(
     PendingOrRespondedInvitation(
@@ -115,7 +122,8 @@ class AgentControllerISpec extends BaseISpec {
       "Rejected",
       None,
       None,
-      Some("2018-09-11T21:02:00.000Z")))
+      Some("2018-09-11T21:02:00.000Z"))
+  )
 
   "/agents/:arn/invitations" should {
 
@@ -338,7 +346,8 @@ class AgentControllerISpec extends BaseISpec {
         "Fail",
         "HMRC-MTD-IT",
         Some(
-          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''"))
+          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''")
+      )
 
     }
 
@@ -357,7 +366,8 @@ class AgentControllerISpec extends BaseISpec {
         "Fail",
         "HMRC-MTD-VAT",
         Some(
-          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''"))
+          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''")
+      )
     }
   }
 
@@ -413,7 +423,8 @@ class AgentControllerISpec extends BaseISpec {
              |    {"key":"MTDITID", "value": "${mtdItId.value}"}
              |  ]}
              |]}
-          """.stripMargin)
+          """.stripMargin
+        )
 
         val result = getInvitationItsaApi(requestITSA.withSession(SessionKeys.authToken -> "Bearer XYZ"))
 
@@ -440,7 +451,8 @@ class AgentControllerISpec extends BaseISpec {
              |    {"key":"IRAgentReference", "value": "someIRAR"}
              |  ]}
              |]}
-          """.stripMargin)
+          """.stripMargin
+        )
 
         val result = getInvitationItsaApi(requestITSA.withSession(SessionKeys.authToken -> "Bearer XYZ"))
 
@@ -512,7 +524,8 @@ class AgentControllerISpec extends BaseISpec {
              |    {"key":"MTDITID", "value": "${mtdItId.value}"}
              |  ]}
              |]}
-          """.stripMargin)
+          """.stripMargin
+        )
 
         val result = getInvitationVatApi(requestVAT.withSession(SessionKeys.authToken -> "Bearer XYZ"))
 
@@ -539,7 +552,8 @@ class AgentControllerISpec extends BaseISpec {
              |    {"key":"IRAgentReference", "value": "someIRAR"}
              |  ]}
              |]}
-          """.stripMargin)
+          """.stripMargin
+        )
 
         val result = getInvitationVatApi(requestVAT.withSession(SessionKeys.authToken -> "Bearer XYZ"))
 
@@ -603,7 +617,8 @@ class AgentControllerISpec extends BaseISpec {
              |    {"key":"MTDITID", "value": "${mtdItId.value}"}
              |  ]}
              |]}
-          """.stripMargin)
+          """.stripMargin
+        )
         val result = cancelInvitationItsaApi(requestITSA)
 
         await(result) shouldBe NotAnAgent
@@ -629,7 +644,8 @@ class AgentControllerISpec extends BaseISpec {
              |    {"key":"IRAgentReference", "value": "someIRAR"}
              |  ]}
              |]}
-          """.stripMargin)
+          """.stripMargin
+        )
         val result = cancelInvitationItsaApi(requestITSA)
 
         await(result) shouldBe AgentNotSubscribed
@@ -933,13 +949,14 @@ class AgentControllerISpec extends BaseISpec {
       1,
       AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi,
       detail = Map(
-        "factCheck" -> result,
+        "factCheck"            -> result,
         "agentReferenceNumber" -> arn,
-        "clientIdType" -> clientIdType,
-        "clientId" -> clientId,
-        "service" -> service)
+        "clientIdType"         -> clientIdType,
+        "clientId"             -> clientId,
+        "service"              -> service)
         .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map("transactionName" -> "Agent created invitation through third party software"))
+      tags = Map("transactionName" -> "Agent created invitation through third party software")
+    )
 
   def verifyAgentClientInvitationCancelledEvent(
     arn: String,
@@ -950,7 +967,8 @@ class AgentControllerISpec extends BaseISpec {
       AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi,
       detail = Map("invitationId" -> invitationId.value, "agentReferenceNumber" -> arn)
         .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map("transactionName" -> "Agent cancelled invitation through third party software"))
+      tags = Map("transactionName" -> "Agent cancelled invitation through third party software")
+    )
 
   def verifyAgentCheckRelationshipStatusEvent(
     arn: String,
@@ -963,11 +981,12 @@ class AgentControllerISpec extends BaseISpec {
       1,
       AgentAuthorisationEvent.AgentCheckRelationshipStatusApi,
       detail = Map(
-        "result" -> result,
+        "result"               -> result,
         "agentReferenceNumber" -> arn,
-        "clientIdType" -> clientIdType,
-        "clientId" -> clientId,
-        "service" -> service)
+        "clientIdType"         -> clientIdType,
+        "clientId"             -> clientId,
+        "service"              -> service)
         .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map("transactionName" -> "Agent checked status of relationship through third party software"))
+      tags = Map("transactionName" -> "Agent checked status of relationship through third party software")
+    )
 }

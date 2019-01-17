@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.http.HttpErrorHandler
 import play.api.libs.json.Json
@@ -30,8 +30,8 @@ object ApiAccess {
 }
 
 @Singleton
-class DocumentationController @Inject() (errorHandler: HttpErrorHandler, configuration: Configuration)
-  extends uk.gov.hmrc.api.controllers.DocumentationController(errorHandler = errorHandler) {
+class DocumentationController @Inject()(errorHandler: HttpErrorHandler, configuration: Configuration)
+    extends uk.gov.hmrc.api.controllers.DocumentationController(errorHandler = errorHandler) {
 
   private lazy val apiAccess = {
     val accessConfig = configuration.getConfig("api.access")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,10 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       await(
         service
-          .sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, result)(hc, FakeRequest("GET", "/path")))
+          .sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, result)(
+            hc,
+            FakeRequest("GET", "/path"),
+            ExecutionContext.Implicits.global))
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
@@ -69,9 +72,6 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         sentEvent.detail("clientIdType") shouldBe "ni"
         sentEvent.detail("clientId") shouldBe "AB123456A"
         sentEvent.detail("service") shouldBe "HMRC-MTD-IT"
-
-        sentEvent.tags.contains("Authorization") shouldBe false
-        sentEvent.detail("Authorization") shouldBe "dummy bearer token"
 
         sentEvent.tags("transactionName") shouldBe "Agent created invitation through third party software"
         sentEvent.tags("path") shouldBe "/path"
@@ -97,7 +97,10 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       await(
         service
-          .sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, result)(hc, FakeRequest("GET", "/path")))
+          .sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, result)(
+            hc,
+            FakeRequest("GET", "/path"),
+            ExecutionContext.Implicits.global))
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
@@ -112,9 +115,6 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         sentEvent.detail("clientIdType") shouldBe "vrn"
         sentEvent.detail("clientId") shouldBe "101747641"
         sentEvent.detail("service") shouldBe "HMRC-MTD-VAT"
-
-        sentEvent.tags.contains("Authorization") shouldBe false
-        sentEvent.detail("Authorization") shouldBe "dummy bearer token"
 
         sentEvent.tags("transactionName") shouldBe "Agent created invitation through third party software"
         sentEvent.tags("path") shouldBe "/path"
@@ -136,7 +136,11 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       val invitationId: String = "1"
       val result: String = "Success"
 
-      await(service.sendAgentInvitationCancelled(arn, invitationId, result)(hc, FakeRequest("GET", "/path")))
+      await(
+        service.sendAgentInvitationCancelled(arn, invitationId, result)(
+          hc,
+          FakeRequest("GET", "/path"),
+          ExecutionContext.Implicits.global))
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
@@ -147,9 +151,6 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         sentEvent.auditSource shouldBe "agent-authorisation-api"
         sentEvent.detail("invitationId") shouldBe "1"
         sentEvent.detail("agentReferenceNumber") shouldBe "HX2345"
-
-        sentEvent.tags.contains("Authorization") shouldBe false
-        sentEvent.detail("Authorization") shouldBe "dummy bearer token"
 
         sentEvent.tags("transactionName") shouldBe "Agent cancelled invitation through third party software"
         sentEvent.tags("path") shouldBe "/path"
@@ -172,7 +173,11 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         AgentInvitation("HMRC-MTD-IT", "ni", "AB123456A", "DH14EJ")
       val result: String = "Success"
 
-      await(service.sendAgentCheckRelationshipStatus(arn, agentInvitation, result)(hc, FakeRequest("POST", "/path")))
+      await(
+        service.sendAgentCheckRelationshipStatus(arn, agentInvitation, result)(
+          hc,
+          FakeRequest("POST", "/path"),
+          ExecutionContext.Implicits.global))
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
@@ -185,9 +190,6 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         sentEvent.detail("clientIdType") shouldBe "ni"
         sentEvent.detail("clientId") shouldBe "AB123456A"
         sentEvent.detail("service") shouldBe "HMRC-MTD-IT"
-
-        sentEvent.tags.contains("Authorization") shouldBe false
-        sentEvent.detail("Authorization") shouldBe "dummy bearer token"
 
         sentEvent.tags("transactionName") shouldBe "Agent checked status of relationship through third party software"
         sentEvent.tags("path") shouldBe "/path"

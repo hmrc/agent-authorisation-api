@@ -3,7 +3,7 @@ package uk.gov.hmrc.agentauthorisation.stubs
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.joda.time.LocalDate
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId, Vrn }
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.agentauthorisation._
@@ -34,10 +34,9 @@ trait ACAStubs {
             .withStatus(201)
             .withHeader(
               "location",
-              s"$wireMockBaseUrlAsString/agent-client-authorisation/clients/$serviceIdentifier/${
-                encodePathSegment(
-                  clientId)
-              }/invitations/received/${invitationId.value}")))
+              s"$wireMockBaseUrlAsString/agent-client-authorisation/clients/$serviceIdentifier/${encodePathSegment(
+                clientId)}/invitations/received/${invitationId.value}"
+            )))
 
   def failedCreateInvitation(arn: Arn): Unit =
     stubFor(
@@ -155,7 +154,8 @@ trait ACAStubs {
             .withBody(halEnvelope(Seq(
               invitation(arn, "Pending", "HMRC-MTD-IT", "ni", "AB123456A", "foo1", "2017-12-18"),
               invitation(arn, "Pending", "HMRC-MTD-VAT", "vrn", "101747696", "foo2", "2017-12-18"),
-              invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo3", "2017-12-18")).mkString("[", ",", "]")))))
+              invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo3", "2017-12-18")
+            ).mkString("[", ",", "]")))))
 
   def givenAllInvitationsRespondedStub(arn: Arn): Unit =
     stubFor(
@@ -167,7 +167,8 @@ trait ACAStubs {
             .withBody(halEnvelope(Seq(
               invitation(arn, "Accepted", "HMRC-MTD-IT", "ni", "AB123456A", "foo4", "2017-12-18"),
               invitation(arn, "Rejected", "HMRC-MTD-VAT", "vrn", "101747696", "foo2", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "fo11", "2017-12-18")).mkString("[", ",", "]")))))
+              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "fo11", "2017-12-18")
+            ).mkString("[", ",", "]")))))
 
   def givenAllInvitationsPirStub(arn: Arn): Unit =
     stubFor(
@@ -180,7 +181,8 @@ trait ACAStubs {
               invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo1", "2017-12-18"),
               invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo2", "2017-12-18"),
               invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo3", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo4", "2017-12-18")).mkString("[", ",", "]")))))
+              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo4", "2017-12-18")
+            ).mkString("[", ",", "]")))))
 
   def halEnvelope(embedded: String): String =
     s"""{"_links": {

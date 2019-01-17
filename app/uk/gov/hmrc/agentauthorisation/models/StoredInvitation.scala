@@ -38,10 +38,10 @@ case class StoredInvitation(
 object StoredInvitation {
 
   val serviceByMtdService: String => String = {
-    case "HMRC-MTD-IT" => "MTD-IT"
-    case "HMRC-MTD-VAT" => "MTD-VAT"
+    case "HMRC-MTD-IT"            => "MTD-IT"
+    case "HMRC-MTD-VAT"           => "MTD-VAT"
     case "PERSONAL-INCOME-RECORD" => "PERSONAL-INCOME-RECORD"
-    case _ => throw new IllegalArgumentException
+    case _                        => throw new IllegalArgumentException
   }
 
   implicit val reads: Reads[StoredInvitation] = {
@@ -52,7 +52,7 @@ object StoredInvitation {
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "service").read[String].map(serviceByMtdService) and
       (JsPath \ "status").read[String])((selfLink, created, expiresOn, updated, arn, service, status) =>
-        StoredInvitation(selfLink, created, expiresOn.toString(), updated, arn, service, status))
+      StoredInvitation(selfLink, created, expiresOn.toString(), updated, arn, service, status))
   }
 }
 
@@ -80,7 +80,7 @@ case class PendingOrRespondedInvitation(
   expiresOn: Option[String],
   clientActionUrl: Option[String],
   updated: Option[String])
-  extends Invitation
+    extends Invitation
 
 object PendingOrRespondedInvitation {
 
@@ -97,7 +97,7 @@ case class PendingInvitation(
   service: List[String],
   status: String,
   clientActionUrl: String)
-  extends Invitation
+    extends Invitation
 
 object PendingInvitation {
 
@@ -115,20 +115,21 @@ object PendingInvitation {
       (JsPath \ "service").read[String] and
       (JsPath \ "status").read[String] and
       (JsPath \ "clientActionUrl")
-      .read[String])((selfLink, created, expiresOn, arn, service, status, clientActionUrl) =>
-        PendingInvitation(selfLink, created, expiresOn, arn, List(service), status, clientActionUrl))
+        .read[String])((selfLink, created, expiresOn, arn, service, status, clientActionUrl) =>
+      PendingInvitation(selfLink, created, expiresOn, arn, List(service), status, clientActionUrl))
   }
 
   implicit val writes: Writes[PendingInvitation] = new Writes[PendingInvitation] {
     override def writes(o: PendingInvitation): JsValue =
       Json.obj(
-        "_links" -> Json.obj("self" -> Json.obj("href" -> o.href)),
-        "created" -> o.created,
-        "expiresOn" -> o.expiresOn,
-        "arn" -> o.arn.value,
-        "service" -> o.service,
-        "status" -> o.status,
-        "clientActionUrl" -> o.clientActionUrl)
+        "_links"          -> Json.obj("self" -> Json.obj("href" -> o.href)),
+        "created"         -> o.created,
+        "expiresOn"       -> o.expiresOn,
+        "arn"             -> o.arn.value,
+        "service"         -> o.service,
+        "status"          -> o.status,
+        "clientActionUrl" -> o.clientActionUrl
+      )
   }
 }
 
@@ -139,7 +140,7 @@ case class RespondedInvitation(
   arn: Arn,
   service: List[String],
   status: String)
-  extends Invitation
+    extends Invitation
 
 object RespondedInvitation {
 
@@ -156,17 +157,18 @@ object RespondedInvitation {
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "service").read[String] and
       (JsPath \ "status").read[String])((href, created, updated, arn, service, status) =>
-        RespondedInvitation(href, created, updated, arn, List(service), status))
+      RespondedInvitation(href, created, updated, arn, List(service), status))
   }
 
   implicit val writes: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
     override def writes(o: RespondedInvitation): JsValue =
       Json.obj(
-        "_links" -> Json.obj("self" -> Json.obj("href" -> o.href)),
+        "_links"  -> Json.obj("self" -> Json.obj("href" -> o.href)),
         "created" -> o.created,
         "updated" -> o.updated,
-        "arn" -> o.arn.value,
+        "arn"     -> o.arn.value,
         "service" -> o.service,
-        "status" -> o.status)
+        "status"  -> o.status
+      )
   }
 }
