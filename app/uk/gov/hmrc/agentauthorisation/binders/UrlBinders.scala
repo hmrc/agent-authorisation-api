@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.binders
 
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, InvitationId }
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 
 object UrlBinders {
 

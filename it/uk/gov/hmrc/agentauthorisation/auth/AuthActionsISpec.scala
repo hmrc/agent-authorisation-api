@@ -6,8 +6,8 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
-import uk.gov.hmrc.auth.core.{ AuthConnector, AuthorisationException }
-import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException}
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -40,7 +40,8 @@ class AuthActionsISpec extends BaseISpec {
            |  { "key":"HMRC-AS-AGENT", "identifiers": [
            |    { "key":"AgentReferenceNumber", "value": "fooArn" }
            |  ]}
-           |]}""".stripMargin)
+           |]}""".stripMargin
+      )
       val result = TestController.withAuthorisedAsAgent
       status(result) shouldBe 200
       bodyOf(result) shouldBe "(fooArn,false)"
@@ -62,7 +63,8 @@ class AuthActionsISpec extends BaseISpec {
            |  { "key":"HMRC-MTD-IT", "identifiers": [
            |    { "key":"MTDITID", "value": "fooMtdItId" }
            |  ]}
-           |]}""".stripMargin)
+           |]}""".stripMargin
+      )
       val result = await(TestController.withAuthorisedAsAgent)
       result shouldBe NotAnAgent
     }
@@ -76,7 +78,8 @@ class AuthActionsISpec extends BaseISpec {
            |  { "key":"IR-SA", "identifiers": [
            |    { "key":"BAR", "value": "fooArn" }
            |  ]}
-           |]}""".stripMargin)
+           |]}""".stripMargin
+      )
       val result = await(TestController.withAuthorisedAsAgent)
       result shouldBe AgentNotSubscribed
     }

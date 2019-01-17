@@ -2,8 +2,8 @@ package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, MtdItId }
-import uk.gov.hmrc.domain.{ Nino, TaxIdentifier }
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, MtdItId}
+import uk.gov.hmrc.domain.{Nino, TaxIdentifier}
 
 trait DesStubs {
 

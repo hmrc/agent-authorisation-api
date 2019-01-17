@@ -20,19 +20,19 @@ import java.net.URL
 
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{ Inject, Named, Singleton }
+import javax.inject.{Inject, Named, Singleton}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{ Arn, MtdItId, Vrn }
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, MtdItId, Vrn}
 import uk.gov.hmrc.http._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RelationshipsConnector @Inject() (
+class RelationshipsConnector @Inject()(
   @Named("agent-client-relationships-baseUrl") baseUrl: URL,
   http: HttpPost with HttpGet with HttpPut,
   metrics: Metrics)
-  extends HttpAPIMonitor {
+    extends HttpAPIMonitor {
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 

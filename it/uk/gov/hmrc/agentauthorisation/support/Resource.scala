@@ -1,13 +1,13 @@
 package uk.gov.hmrc.agentauthorisation.support
 
-import play.api.http.{ HeaderNames, MimeTypes }
-import play.api.libs.ws.{ WS, WSClient, WSRequest, WSResponse }
+import play.api.http.{HeaderNames, MimeTypes}
+import play.api.libs.ws.{WS, WSClient, WSRequest, WSResponse}
 import play.api.mvc.Results
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.http.ws.WSHttpResponse
 
-import scala.concurrent.duration.{ Duration, SECONDS, _ }
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.duration.{Duration, SECONDS, _}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object Http {
 
