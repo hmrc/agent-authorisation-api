@@ -25,7 +25,7 @@ import org.joda.time.LocalDate
 import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, AgentReferenceRecord, StoredInvitation}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
@@ -44,6 +44,14 @@ class InvitationsConnector @Inject()(
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   private val dateFormatter = ISODateTimeFormat.date()
+
+  private[connectors] def createAgentLinkUrl(arn: Arn, clientType: String): URL =
+    new URL(
+      baseUrl,
+      s"/agent-client-authorisation/agencies/references/arn/${encodePathSegment(arn.value)}/clientType/$clientType")
+
+  private[connectors] def getAgentRefByArnUrl(arn: Arn): URL =
+    new URL(baseUrl, s"/agent-client-authorisation/agencies/references/arn/${encodePathSegment(arn.value)}")
 
   private[connectors] def createInvitationUrl(arn: Arn): URL =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
@@ -77,6 +85,23 @@ class InvitationsConnector @Inject()(
       http.POST[AgentInvitation, HttpResponse](createInvitationUrl(arn).toString, agentInvitation) map { r =>
         r.header("location")
       }
+    }
+
+  def createAgentLink(arn: Arn, clientType: String)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[String]] =
+    monitor(s"ConsumedAPI-Agent-Create-Agent-Link-POST") {
+      http.POST[Boolean, HttpResponse](createAgentLinkUrl(arn, clientType).toString, false) map { r =>
+        r.header("location")
+      }
+    }
+
+  def getAgentRefByArn(
+    arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AgentReferenceRecord]] =
+    monitor(s"ConsumedAPI-Agent-Create-Agent-Link-POST") {
+      http.GET[Option[AgentReferenceRecord]](getAgentRefByArnUrl(arn).toString)
+    }.recoverWith {
+      case _: NotFoundException => Future successful None
     }
 
   def checkPostcodeForClient(nino: Nino, postcode: String)(

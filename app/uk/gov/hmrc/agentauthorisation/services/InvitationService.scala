@@ -30,13 +30,20 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
 
-  def createInvitationService(arn: Arn, agentInvitation: AgentInvitation)(
+  type InvitationUrls = (String, String)
+
+  def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext): Future[String] =
-    invitationsConnector
-      .createInvitation(arn, agentInvitation)
-      .map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
+    executionContext: ExecutionContext): Future[InvitationUrls] =
+    for {
+      invitationUrl <- invitationsConnector
+                        .createInvitation(arn, agentInvitation)
+                        .map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
+      agentLink <- invitationsConnector
+                    .createAgentLink(arn, agentInvitation.clientType)
+                    .map(_.getOrElse(throw new Exception("Agent Link location excepted but missing.")))
+    } yield (agentLink, invitationUrl)
 
   def checkPostcodeMatches(nino: Nino, postcode: String)(
     implicit
@@ -61,5 +68,20 @@ class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[Int]] =
     invitationsConnector.cancelInvitation(arn, invitationId)
+
+  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Seq[StoredInvitation]] =
+    for {
+      agentRefRecord <- invitationsConnector.getAgentRefByArn(arn)
+      invitations    <- invitationsConnector.getAllInvitations(arn, createdOnOrAfter)
+    } yield {
+      val actionLink = (clientType: String) =>
+        agentRefRecord match {
+          case Some(r) => s"invitations/$clientType/${r.uid}/${r.normalisedAgentNames.last}"
+          case None    => "No URL Found"
+      }
+      invitations.map(i => i.copy(clientActionUrl = Some(actionLink(i.clientType))))
+    }
 
 }

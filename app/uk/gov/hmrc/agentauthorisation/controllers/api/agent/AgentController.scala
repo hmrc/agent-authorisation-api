@@ -30,6 +30,7 @@ import uk.gov.hmrc.agentauthorisation.connectors.{DesConnector, InvitationsConne
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.models._
+import uk.gov.hmrc.agentauthorisation.services.InvitationService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
@@ -43,6 +44,7 @@ class AgentController @Inject()(
   @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
   @Named("get-requests-show-last-days") val getRequestsShowLastDays: Int,
   invitationsConnector: InvitationsConnector,
+  invitationService: InvitationService,
   relationshipsConnector: RelationshipsConnector,
   desConnector: DesConnector,
   auditService: AuditService,
@@ -61,12 +63,16 @@ class AgentController @Inject()(
       forThisAgency(givenArn) {
         request.body.asJson.map(_.validate[AgentInvitationReceived]) match {
           case Some(JsSuccess(ItsaInvitation(invitation), _)) =>
-            validateNino(invitation) {
-              checkKnownFactAndCreate(arn, invitation)
+            validateClientType(invitation) {
+              validateNino(invitation) {
+                checkKnownFactAndCreate(arn, invitation)
+              }
             }
           case Some(JsSuccess(VatInvitation(invitation), _)) =>
-            validateVrn(invitation) {
-              checkKnownFactAndCreate(arn, invitation)
+            validateClientType(invitation) {
+              validateVrn(invitation) {
+                checkKnownFactAndCreate(arn, invitation)
+              }
             }
           case Some(JsSuccess(s, _)) =>
             Logger(getClass).warn(s"Unsupported service received: ${s.service.mkString("[", ",", "]")}")
@@ -166,12 +172,14 @@ class AgentController @Inject()(
       forThisAgency(givenArn) {
         val invitationResponse = request.body.asJson match {
           case Some(json) => json.as[AgentInvitationReceived]
-          case None       => AgentInvitationReceived(List.empty, "", "", "")
+          case None       => AgentInvitationReceived(List.empty, "", "", "", "")
         }
         invitationResponse match {
           case ItsaInvitation(invitation) =>
-            validateNino(invitation) {
-              checkKnownFactAndRelationship(arn, invitation)
+            validateClientType(invitation) {
+              validateNino(invitation) {
+                checkKnownFactAndRelationship(arn, invitation)
+              }
             }
           case VatInvitation(invitation) =>
             validateVrn(invitation) {
@@ -222,19 +230,15 @@ class AgentController @Inject()(
         hasKnownFact <- checkKnownFactMatches(agentInvitation)
         result <- hasKnownFact match {
                    case Some(true) =>
-                     invitationsConnector
+                     invitationService
                        .createInvitation(arn, agentInvitation)
                        .flatMap { invitationUrl =>
-                         val id = invitationUrl
-                           .getOrElse(throw new Exception("Invitation location expected but missing."))
-                           .toString
+                         val id = invitationUrl._2
                            .split("/")
                            .toStream
                            .last
-                         val newInvitationUrl =
-                           s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                          auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
-                         Future successful NoContent.withHeaders(LOCATION -> newInvitationUrl)
+                         Future successful NoContent.withHeaders(LOCATION -> invitationUrl._1)
                        }
                        .recoverWith {
                          case e =>
@@ -351,7 +355,7 @@ class AgentController @Inject()(
       forThisAgency(givenArn) {
         val previousDate =
           LocalDate.now(DateTimeZone.UTC).minusDays(getRequestsShowLastDays)
-        invitationsConnector
+        invitationService
           .getAllInvitations(arn, previousDate)
           .map(invitations => {
             invitations
@@ -370,7 +374,7 @@ class AgentController @Inject()(
                     List(pendingInv.service),
                     pendingInv.status,
                     Some(pendingInv.expiresOn),
-                    Some(s"$invitationFrontendUrl" + s"$id"),
+                    pendingInv.clientActionUrl,
                     None
                   )
 
@@ -406,6 +410,18 @@ object AgentController {
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
   private val supportedServices = Seq("MTD-IT", "MTD-VAT")
+
+  val personal = "personal"
+  val business = "business"
+
+  val supportedClientTypes = Map("HMRC-MTD-IT" -> Seq("personal"), "HMRC-MTD-VAT" -> Seq("personal", "business"))
+
+  private def validateClientType(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
+    if (supportedClientTypes(agentInvitation.service).contains(agentInvitation.clientType)) body
+    else {
+      Logger(getClass).warn(s"Unsupported Client Type")
+      Future successful UnsupportedClientType
+    }
 
   private def validateNino(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (Nino.isValid(agentInvitation.clientId)) body
@@ -463,8 +479,8 @@ object AgentController {
   object ItsaInvitation {
     def unapply(arg: AgentInvitationReceived): Option[AgentInvitation] =
       arg match {
-        case AgentInvitationReceived(List("MTD-IT"), "ni", _, _) =>
-          Some(AgentInvitation("HMRC-MTD-IT", arg.clientIdType, arg.clientId, arg.knownFact))
+        case AgentInvitationReceived(List("MTD-IT"), "personal", "ni", _, _) =>
+          Some(AgentInvitation("HMRC-MTD-IT", "personal", arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }
@@ -472,8 +488,8 @@ object AgentController {
   object VatInvitation {
     def unapply(arg: AgentInvitationReceived): Option[AgentInvitation] =
       arg match {
-        case AgentInvitationReceived(List("MTD-VAT"), "vrn", _, _) =>
-          Some(AgentInvitation("HMRC-MTD-VAT", arg.clientIdType, arg.clientId, arg.knownFact))
+        case AgentInvitationReceived(List("MTD-VAT"), _, "vrn", _, _) =>
+          Some(AgentInvitation("HMRC-MTD-VAT", arg.clientType, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }

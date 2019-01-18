@@ -32,8 +32,10 @@ case class StoredInvitation(
   expiresOn: String,
   updated: String,
   arn: Arn,
+  clientType: String,
   service: String,
-  status: String)
+  status: String,
+  clientActionUrl: Option[String])
 
 object StoredInvitation {
 
@@ -50,9 +52,12 @@ object StoredInvitation {
       (JsPath \ "expiryDate").read[String].map(LocalDateTime.parse) and
       (JsPath \ "lastUpdated").read[String] and
       (JsPath \ "arn").read[Arn] and
+      (JsPath \ "clientType").read[String] and
       (JsPath \ "service").read[String].map(serviceByMtdService) and
-      (JsPath \ "status").read[String])((selfLink, created, expiresOn, updated, arn, service, status) =>
-      StoredInvitation(selfLink, created, expiresOn.toString(), updated, arn, service, status))
+      (JsPath \ "status").read[String] and
+      (JsPath \ "clientActionUrl")
+        .readNullable[String])((selfLink, created, expiresOn, updated, arn, clientType, service, status, clientActionUrl) =>
+      StoredInvitation(selfLink, created, expiresOn.toString(), updated, arn, clientType, service, status, clientActionUrl))
   }
 }
 
@@ -102,8 +107,8 @@ case class PendingInvitation(
 object PendingInvitation {
 
   def unapply(arg: StoredInvitation): Option[PendingInvitation] = arg match {
-    case StoredInvitation(href, created, expiredOn, _, arn, service, status) if status == "Pending" =>
-      Some(PendingInvitation(href, created, expiredOn, arn, List(service), status, ""))
+    case StoredInvitation(href, created, expiredOn, _, arn, _, service, status, clientActionUrl) if status == "Pending" =>
+      Some(PendingInvitation(href, created, expiredOn, arn, List(service), status, clientActionUrl.getOrElse("")))
     case _ => None
   }
 
@@ -145,7 +150,7 @@ case class RespondedInvitation(
 object RespondedInvitation {
 
   def unapply(arg: StoredInvitation): Option[RespondedInvitation] = arg match {
-    case StoredInvitation(href, created, _, updated, arn, service, status) if status != "Pending" =>
+    case StoredInvitation(href, created, _, updated, arn, _, service, status, _) if status != "Pending" =>
       Some(RespondedInvitation(href, created, updated, arn, List(service), status))
     case _ => None
   }
