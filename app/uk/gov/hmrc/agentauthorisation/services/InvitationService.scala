@@ -16,10 +16,9 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{Inject, Named, Singleton}
 import org.joda.time.LocalDate
 import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
-
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
@@ -28,7 +27,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
+class InvitationService @Inject()(
+  @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
+  invitationsConnector: InvitationsConnector) {
 
   type InvitationUrls = (String, String)
 
@@ -61,7 +62,20 @@ class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
     implicit
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
-    invitationsConnector.getInvitation(arn, invitationId)
+    for {
+      invitationOpt <- invitationsConnector.getInvitation(arn, invitationId)
+      invitationWithActionLink: Option[StoredInvitation] <- invitationOpt match {
+                                                             case Some(invitation) =>
+                                                               invitationsConnector
+                                                                 .createAgentLink(arn, invitation.clientType)
+                                                                 .map(
+                                                                   agentLink =>
+                                                                     Some(invitation.copy(
+                                                                       clientActionUrl = agentLink.map(al =>
+                                                                         s"$invitationFrontendUrl/$al"))))
+                                                             case None => Future successful None
+                                                           }
+    } yield invitationWithActionLink
 
   def cancelInvitationService(arn: Arn, invitationId: InvitationId)(
     implicit
@@ -73,15 +87,14 @@ class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Seq[StoredInvitation]] =
     for {
-      agentRefRecord <- invitationsConnector.getAgentRefByArn(arn)
-      invitations    <- invitationsConnector.getAllInvitations(arn, createdOnOrAfter)
-    } yield {
-      val actionLink = (clientType: String) =>
-        agentRefRecord match {
-          case Some(r) => s"invitations/$clientType/${r.uid}/${r.normalisedAgentNames.last}"
-          case None    => "No URL Found"
-      }
-      invitations.map(i => i.copy(clientActionUrl = Some(actionLink(i.clientType))))
-    }
+      invitations <- invitationsConnector.getAllInvitations(arn, createdOnOrAfter)
+      invitationsWithActionLink <- Future.traverse(invitations) { invitation =>
+                                    invitationsConnector
+                                      .createAgentLink(arn, invitation.clientType)
+                                      .map(agentLink =>
+                                        invitation.copy(clientActionUrl = agentLink.map(al =>
+                                          s"$invitationFrontendUrl/$al")))
+                                  }
+    } yield invitationsWithActionLink
 
 }

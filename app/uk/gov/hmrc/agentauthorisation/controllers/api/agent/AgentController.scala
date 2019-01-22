@@ -41,7 +41,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AgentController @Inject()(
-  @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
   @Named("get-requests-show-last-days") val getRequestsShowLastDays: Int,
   invitationsConnector: InvitationsConnector,
   invitationService: InvitationService,
@@ -103,10 +102,8 @@ class AgentController @Inject()(
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                 Ok(
-                  toJson(
-                    pendingInvitation
-                      .copy(clientActionUrl = s"$invitationFrontendUrl" + s"${invitationId.value}")
-                      .copy(href = newInvitationUrl))
+                  toJson(pendingInvitation
+                    .copy(href = newInvitationUrl))
                     .as[JsObject])
               case Some(PendingInvitation(pendingInvitation)) =>
                 Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")

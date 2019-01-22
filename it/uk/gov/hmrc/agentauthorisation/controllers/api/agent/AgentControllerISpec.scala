@@ -31,8 +31,10 @@ class AgentControllerISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
+    "personal",
     "MTD-IT",
-    "Pending"
+    "Pending",
+    Some("http://localhost:9448/invitations/personal/GWJU6XZZ/agent1-ltd")
   )
 
   val pendingItsaInvitation = PendingInvitation(
@@ -42,7 +44,7 @@ class AgentControllerISpec extends BaseISpec {
     Arn("TARN0000001"),
     List("MTD-IT"),
     "Pending",
-    s"http://localhost:9448/invitations/${invitationIdITSA.value}"
+    s"http://localhost:9448/invitations/personal/GWJU6XZZ/agent1-ltd"
   )
 
   val respondedItsaInvitation = RespondedInvitation(
@@ -59,8 +61,10 @@ class AgentControllerISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
+    "business",
     "MTD-VAT",
-    "Pending"
+    "Pending",
+    Some("http://localhost:9448/invitations/business/GWJU6XZZ/agent1-ltd")
   )
 
   val pendingVatInvitation = PendingInvitation(
@@ -70,7 +74,7 @@ class AgentControllerISpec extends BaseISpec {
     Arn("TARN0000001"),
     List("MTD-VAT"),
     "Pending",
-    s"http://localhost:9448/invitations/${invitationIdVAT.value}"
+    s"http://localhost:9448/invitations/business/GWJU6XZZ/agent1-ltd"
   )
 
   val respondedVatInvitation = RespondedInvitation(
@@ -89,7 +93,7 @@ class AgentControllerISpec extends BaseISpec {
       List("MTD-IT"),
       "Pending",
       Some("2017-12-18T00:00:00.000"),
-      Some("http://localhost:9448/invitations/foo1"),
+      Some("http://localhost:9448/invitations/pending/GWJU6XZZ/agent1-ltd"),
       None
     ),
     PendingOrRespondedInvitation(
@@ -99,7 +103,7 @@ class AgentControllerISpec extends BaseISpec {
       List("MTD-VAT"),
       "Pending",
       Some("2017-12-18T00:00:00.000"),
-      Some("http://localhost:9448/invitations/foo2"),
+      Some("http://localhost:9448/invitations/business/GWJU6XZZ/agent1-ltd"),
       None
     )
   )
@@ -138,6 +142,7 @@ class AgentControllerISpec extends BaseISpec {
         invitationIdITSA,
         validNino.value,
         "ni",
+        "personal",
         "HMRC-MTD-IT",
         "MTDITID",
         validPostcode)
@@ -156,6 +161,7 @@ class AgentControllerISpec extends BaseISpec {
         invitationIdVAT,
         validVrn.value,
         "vrn",
+        "business",
         "HMRC-MTD-VAT",
         "VRN",
         validVatRegDate)
@@ -321,6 +327,7 @@ class AgentControllerISpec extends BaseISpec {
         invitationIdITSA,
         validNino.value,
         "ni",
+        "personal",
         "HMRC-MTD-IT",
         "MTDITID",
         validPostcode)
@@ -381,6 +388,7 @@ class AgentControllerISpec extends BaseISpec {
       implicit val timeout: Timeout = Timeout(Duration.Zero)
 
       "return 200 and a json body of a pending invitation" in {
+
         givenGetITSAInvitationStub(arn, "Pending")
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
@@ -885,6 +893,7 @@ class AgentControllerISpec extends BaseISpec {
           invitationIdITSA,
           validNino.value,
           "ni",
+          "personal",
           "HMRC-MTD-IT",
           "MTDITID",
           validPostcode)

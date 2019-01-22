@@ -21,8 +21,10 @@ class InvitationsConnectorISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
+    "personal",
     "MTD-IT",
-    "Pending"
+    "Pending",
+    None
   )
 
   val storedVatInvitation = StoredInvitation(
@@ -31,39 +33,14 @@ class InvitationsConnectorISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
+    "business",
     "MTD-VAT",
-    "Pending"
+    "Pending",
+    None
   )
 
-  val storedInvitations = Seq(
-    StoredInvitation(
-      s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/foo1",
-      "2017-10-31T23:22:50.971Z",
-      "2017-12-18T00:00:00.000",
-      "2018-09-11T21:02:00.000Z",
-      Arn("TARN0000001"),
-      "MTD-IT",
-      "Pending"
-    ),
-    StoredInvitation(
-      s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/foo2",
-      "2017-10-31T23:22:50.971Z",
-      "2017-12-18T00:00:00.000",
-      "2018-09-11T21:02:00.000Z",
-      Arn("TARN0000001"),
-      "MTD-VAT",
-      "Pending"
-    ),
-    StoredInvitation(
-      s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/foo3",
-      "2017-10-31T23:22:50.971Z",
-      "2017-12-18T00:00:00.000",
-      "2018-09-11T21:02:00.000Z",
-      Arn("TARN0000001"),
-      "PERSONAL-INCOME-RECORD",
-      "Pending"
-    )
-  )
+
+  val storedInvitations = Seq(storedItsaInvitation, storedVatInvitation)
 
   "createInvitation" should {
 
@@ -74,10 +51,11 @@ class InvitationsConnectorISpec extends BaseISpec {
         invitationIdITSA,
         validNino.value,
         "ni",
+        "personal",
         "HMRC-MTD-IT",
         "NI",
         validPostcode)
-      val agentInvitation = AgentInvitation("HMRC-MTD-IT", "ni", validNino.value, validPostcode)
+      val agentInvitation = AgentInvitation("HMRC-MTD-IT", "personal", "ni", "AB123456A", "DH14EJ")
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(
         s"/agent-client-authorisation/clients/NI/AB123456A/invitations/received/${invitationIdITSA.value}")
@@ -90,10 +68,11 @@ class InvitationsConnectorISpec extends BaseISpec {
         invitationIdVAT,
         validVrn.value,
         "vrn",
+        "business",
         "HMRC-MTD-VAT",
         "VRN",
         validVatRegDate)
-      val agentInvitation = AgentInvitation("HMRC-MTD-VAT", "vrn", validVrn.value, validVatRegDate)
+      val agentInvitation = AgentInvitation("HMRC-MTD-VAT", "business", "vrn", validVrn.value, validVatRegDate)
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(
         s"/agent-client-authorisation/clients/VRN/101747696/invitations/received/${invitationIdVAT.value}")

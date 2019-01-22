@@ -50,9 +50,6 @@ class InvitationsConnector @Inject()(
       baseUrl,
       s"/agent-client-authorisation/agencies/references/arn/${encodePathSegment(arn.value)}/clientType/$clientType")
 
-  private[connectors] def getAgentRefByArnUrl(arn: Arn): URL =
-    new URL(baseUrl, s"/agent-client-authorisation/agencies/references/arn/${encodePathSegment(arn.value)}")
-
   private[connectors] def createInvitationUrl(arn: Arn): URL =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
 
@@ -94,14 +91,6 @@ class InvitationsConnector @Inject()(
       http.POST[Boolean, HttpResponse](createAgentLinkUrl(arn, clientType).toString, false) map { r =>
         r.header("location")
       }
-    }
-
-  def getAgentRefByArn(
-    arn: Arn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[AgentReferenceRecord]] =
-    monitor(s"ConsumedAPI-Agent-Create-Agent-Link-POST") {
-      http.GET[Option[AgentReferenceRecord]](getAgentRefByArnUrl(arn).toString)
-    }.recoverWith {
-      case _: NotFoundException => Future successful None
     }
 
   def checkPostcodeForClient(nino: Nino, postcode: String)(
