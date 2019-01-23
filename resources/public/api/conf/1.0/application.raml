@@ -91,6 +91,19 @@ traits:
                   code: INVALID_INVITATION_STATUS
                   message: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
 
+  invitationMustHaveSupportedClientType:
+    responses:
+      400:
+        body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              invalidInvitationStatus:
+                description: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
+                value:
+                  code: CLIENT_TYPE_NOT_SUPPORTED
+                  message: The client type requested is not supported. Check the API documentation to find which client types are supported.
+
   invitationSpecified:
     responses:
       404:
@@ -158,11 +171,6 @@ traits:
                   value:
                     code: VAT_REG_DATE_FORMAT_INVALID
                     message: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
-#                invalidCompanyTaxUniqueTaxpayerReference:
-#                  description: Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format.
-#                  value:
-#                    code: CT_UTR_FORMAT_INVALID
-#                    message: Corporation Tax Unique Taxpayer Reference must be in the correct format. Check the API documentation to find the correct format.
 
   knownFactMatches:
     responses:
@@ -181,11 +189,6 @@ traits:
                   value:
                     code: VAT_REG_DATE_DOES_NOT_MATCH
                     message: The VAT registration date provided does not match HMRC's record for the client.
-#                ctUtrDoesNotMatch:
-#                  description: The Corporation Tax Unique Taxpayer Reference provided does not match HMRC's record for the client.
-#                  value:
-#                    code: CT_UTR_DOES_NOT_MATCH
-#                    message: The Corporation Tax Unique Taxpayer Reference provided does not match HMRC's record for the client.
 
   relationshipNotFound:
     responses:
@@ -209,7 +212,7 @@ traits:
         type: string
         example: AARN9999999
     post:
-      is: [serviceSpecified, clientIdSpecified, clientRegistrationRequired, knownFactMatches, validatePayload]
+      is: [serviceSpecified, invitationMustHaveSupportedClientType, clientIdSpecified, clientRegistrationRequired, knownFactMatches, validatePayload]
       displayName: Create a new authorisation
       (annotations.scope): "write:sent-invitations"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
@@ -222,8 +225,6 @@ traits:
                 value: !include examples/post-agency-invitations-example.json
               example-2:
                 value: !include examples/post-agency-invitations-vat-example.json
-#              example-3:
-#                value: !include examples/post-agency-invitations-crn-example.json
 
       responses:
         204:
@@ -293,14 +294,12 @@ traits:
       body:
         application/json:
           description: Check Relationship based on the details received.
-          type: !include schemas/create-invitation.json
+          type: !include schemas/check-relationship.json
           examples:
             example-1:
-              value: !include examples/post-agency-invitations-example.json
+              value: !include examples/post-agency-check-relationship-itsa-example.json
             example-2:
-              value: !include examples/post-agency-invitations-vat-example.json
-#            example-3:
-#              value: !include examples/post-agency-invitations-crn-example.json
+              value: !include examples/post-agency-check-relationship-vat-example.json
       responses:
         204:
           description: Relationship is active. Agent is authorised to act for the client.

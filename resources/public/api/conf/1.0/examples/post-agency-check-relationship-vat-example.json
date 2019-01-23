@@ -1,6 +1,5 @@
 {
-  "service": ["MTD-VAT"],
-  "clientType":"business",
+  "service": ["MTD-IT"],
   "clientIdType": "vrn",
   "clientId": "101747696",
   "knownFact": "2007-05-18"

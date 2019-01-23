@@ -1,9 +1,8 @@
 {
   "type": "object",
-  "description": "Creates a new invitation between the agency and client",
+  "description": "Checks for Active Relationship between agent and client",
   "required": [
     "service",
-    "clientType",
     "clientIdType",
     "clientId",
     "knownFact"
@@ -15,9 +14,6 @@
       "properties": {
         "service": {
           "const": ["MTD-IT"]
-        },
-        "clientType": {
-          "const": "personal"
         },
         "clientIdType": {
           "const": "ni"
@@ -40,19 +36,6 @@
       "properties": {
         "service": {
           "const": ["MTD-VAT"]
-        },
-        "clientType": {
-          "type":"string",
-          "oneOf":[
-            {
-              "enum": [ "personal" ],
-              "description": "Request an authorisation for an individual or sole trader"
-            },
-            {
-              "enum": [ "business" ],
-              "description": "Request an authorisation for a company or partnership"
-            }
-          ]
         },
         "clientIdType": {
           "const": "vrn"

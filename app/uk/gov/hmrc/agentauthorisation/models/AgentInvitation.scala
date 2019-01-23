@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.models
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-case class AgentInvitationReceived(
+case class CreateInvitationPayload(
   service: List[String],
   clientType: String,
   clientIdType: String,
@@ -33,19 +33,19 @@ case class AgentInvitation(
   clientId: String,
   knownFact: String)
 
-object AgentInvitationReceived {
+object CreateInvitationPayload {
 
-  implicit val reads: Reads[AgentInvitationReceived] = {
+  implicit val reads: Reads[CreateInvitationPayload] = {
     ((JsPath \ "service").read[List[String]] and
       (JsPath \ "clientType").read[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
-      AgentInvitationReceived(service, clientType, clientIdType, clientId, knownFact))
+      CreateInvitationPayload(service, clientType, clientIdType, clientId, knownFact))
   }
 
-  implicit val writes: Writes[AgentInvitationReceived] = new Writes[AgentInvitationReceived] {
-    override def writes(o: AgentInvitationReceived): JsValue =
+  implicit val writes: Writes[CreateInvitationPayload] = new Writes[CreateInvitationPayload] {
+    override def writes(o: CreateInvitationPayload): JsValue =
       Json.obj(
         "service"      -> o.service,
         "clientType"   -> o.clientType,
