@@ -93,7 +93,7 @@ class AgentController @Inject()(
       withAuthorisedAsAgent { (arn, _) =>
         implicit val loggedInArn: Arn = arn
         forThisAgency(givenArn) {
-          invitationsConnector
+          invitationService
             .getInvitation(arn, invitationId)
             .map {
               case pendingInv @ Some(PendingInvitation(pendingInvitation))
@@ -229,13 +229,14 @@ class AgentController @Inject()(
                    case Some(true) =>
                      invitationService
                        .createInvitation(arn, agentInvitation)
-                       .flatMap { invitationUrl =>
-                         val id = invitationUrl._2
-                           .split("/")
-                           .toStream
-                           .last
-                         auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
-                         Future successful NoContent.withHeaders(LOCATION -> invitationUrl._1)
+                       .flatMap {
+                         case (agentLink, invitationUrl) =>
+                           val id = invitationUrl
+                             .split("/")
+                             .toStream
+                             .last
+                           auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
+                           Future successful NoContent.withHeaders(LOCATION -> agentLink)
                        }
                        .recoverWith {
                          case e =>

@@ -46,7 +46,7 @@ trait ACAStubs {
         .willReturn(aResponse()
           .withStatus(400)))
 
-  def givenAgentLink(clientType: String, normalisedAgentName: String): Unit =
+  def createAgentLink(clientType: String, normalisedAgentName: String): Unit =
     stubFor(
       post(urlEqualTo(s"/agent-client-authorisation/agencies/references/arn/${arn.value}/clientType/$clientType"))
         .willReturn(aResponse()
@@ -118,7 +118,8 @@ trait ACAStubs {
       0,
       getRequestedFor(urlPathMatching("/agent-client-authorisation/known-facts/organisations/.*/registration-date/.*")))
 
-  def givenGetITSAInvitationStub(arn: Arn, status: String): Unit = givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSA, status)
+  def givenGetITSAInvitationStub(arn: Arn, status: String): Unit =
+    givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSA, status)
 
   def givenGetVATInvitationStub(arn: Arn, status: String): Unit =
     givenGetAgentInvitationStub(arn, "business", "vrn", validVrn.value, invitationIdVAT, serviceVAT, status)
@@ -147,7 +148,7 @@ trait ACAStubs {
                          |  "suppliedClientIdType" : "$clientIdType",
                          |  "status" : "$status",
                          |  "created" : "2017-10-31T23:22:50.971Z",
-                         |  "lastUpdated" : "2017-10-31T23:22:50.971Z",
+                         |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
                          |  "expiryDate" : "2017-12-18",
                          |  "_links": {
                          |    	"self" : {

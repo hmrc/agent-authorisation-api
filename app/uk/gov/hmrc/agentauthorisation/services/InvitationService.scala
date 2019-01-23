@@ -44,7 +44,7 @@ class InvitationService @Inject()(
       agentLink <- invitationsConnector
                     .createAgentLink(arn, agentInvitation.clientType)
                     .map(_.getOrElse(throw new Exception("Agent Link location excepted but missing.")))
-    } yield (agentLink, invitationUrl)
+    } yield (s"$invitationFrontendUrl$agentLink", invitationUrl)
 
   def checkPostcodeMatches(nino: Nino, postcode: String)(
     implicit
@@ -58,7 +58,7 @@ class InvitationService @Inject()(
     ec: ExecutionContext): Future[Option[Boolean]] =
     invitationsConnector.checkVatRegDateForClient(vrn, vatRegDate)
 
-  def getInvitationService(arn: Arn, invitationId: InvitationId)(
+  def getInvitation(arn: Arn, invitationId: InvitationId)(
     implicit
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
@@ -72,7 +72,7 @@ class InvitationService @Inject()(
                                                                    agentLink =>
                                                                      Some(invitation.copy(
                                                                        clientActionUrl = agentLink.map(al =>
-                                                                         s"$invitationFrontendUrl/$al"))))
+                                                                         s"$invitationFrontendUrl$al"))))
                                                              case None => Future successful None
                                                            }
     } yield invitationWithActionLink
@@ -93,7 +93,7 @@ class InvitationService @Inject()(
                                       .createAgentLink(arn, invitation.clientType)
                                       .map(agentLink =>
                                         invitation.copy(clientActionUrl = agentLink.map(al =>
-                                          s"$invitationFrontendUrl/$al")))
+                                          s"$invitationFrontendUrl$al")))
                                   }
     } yield invitationsWithActionLink
 
