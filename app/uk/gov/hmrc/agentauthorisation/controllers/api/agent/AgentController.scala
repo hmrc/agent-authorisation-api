@@ -200,17 +200,9 @@ class AgentController @Inject()(
         result <- hasKnownFact match {
                    case Some(true) => checkRelationship(agentInvitation, arn)
                    case Some(false) =>
-                     knownFactNotMatchedAudit(agentInvitation, arn, "checkRelationship")
                      Logger(getClass).warn(s"Postcode does not match for ${agentInvitation.service}")
                      Future successful knownFactDoesNotMatch(agentInvitation.service)
-                   case _ =>
-                     auditService.sendAgentCheckRelationshipStatus(
-                       arn,
-                       agentInvitation,
-                       "Fail",
-                       Some("CLIENT_REGISTRATION_NOT_FOUND"))
-                     Logger(getClass).warn(s"Client Registration Not Found")
-                     Future successful ClientRegistrationNotFound
+                   case _ => Future successful ClientRegistrationNotFound
                  }
       } yield result
     } else {
@@ -246,7 +238,22 @@ class AgentController @Inject()(
                            Future.failed(e)
                        }
                    case Some(false) =>
-                     knownFactNotMatchedAudit(agentInvitation, arn, "createInvitation")
+                     agentInvitation.service match {
+                       case "HMRC-MTD-IT" =>
+                         auditService.sendAgentInvitationSubmitted(
+                           arn,
+                           "",
+                           agentInvitation,
+                           "Fail",
+                           Some("POSTCODE_DOES_NOT_MATCH"))
+                       case "HMRC-MTD-VAT" =>
+                         auditService.sendAgentInvitationSubmitted(
+                           arn,
+                           "",
+                           agentInvitation,
+                           "Fail",
+                           Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+                     }
                      Future successful knownFactDoesNotMatch(agentInvitation.service)
                    case _ =>
                      auditService.sendAgentInvitationSubmitted(
@@ -283,29 +290,6 @@ class AgentController @Inject()(
           .checkVatRegDateForClient(Vrn(agentInvitation.clientId), LocalDate.parse(agentInvitation.knownFact))
     }
 
-  private def knownFactNotMatchedAudit(agentInvitation: AgentInvitation, arn: Arn, usage: String)(
-    implicit
-    hc: HeaderCarrier,
-    request: Request[_]) =
-    agentInvitation.service match {
-      case "HMRC-MTD-IT" =>
-        usage match {
-          case "createInvitation" =>
-            auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
-          case "checkRelationship" =>
-            auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
-        }
-      case "HMRC-MTD-VAT" =>
-        usage match {
-          case "createInvitation" =>
-            auditService
-              .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
-          case "checkRelationship" =>
-            auditService
-              .sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
-        }
-    }
-
   private def checkRelationship(agentInvitation: AgentInvitation, arn: Arn)(
     implicit
     hc: HeaderCarrier,
@@ -321,12 +305,8 @@ class AgentController @Inject()(
                    }
         } yield result
         res.map {
-          case true =>
-            auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Success")
-            NoContent
+          case true => NoContent
           case false =>
-            auditService
-              .sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("ITSA_RELATIONSHIP_NOT_FOUND"))
             Logger(getClass).warn(s"No ITSA Relationship Found")
             RelationshipNotFound
         }
@@ -335,12 +315,8 @@ class AgentController @Inject()(
         relationshipsConnector
           .checkVatRelationship(arn, Vrn(agentInvitation.clientId))
           .map {
-            case true =>
-              auditService.sendAgentCheckRelationshipStatus(arn, agentInvitation, "Success")
-              NoContent
+            case true => NoContent
             case false =>
-              auditService
-                .sendAgentCheckRelationshipStatus(arn, agentInvitation, "Fail", Some("VAT_RELATIONSHIP_NOT_FOUND"))
               Logger(getClass).warn(s"No VAT Relationship Found")
               RelationshipNotFound
           }
