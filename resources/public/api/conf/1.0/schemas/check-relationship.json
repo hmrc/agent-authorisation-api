@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "description": "Checks for Active Relationship between agent and client",
+  "description": "Checks for an active Relationship between agent and client",
   "required": [
     "service",
     "clientIdType",

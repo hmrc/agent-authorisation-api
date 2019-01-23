@@ -46,11 +46,11 @@
           "oneOf":[
             {
               "enum": [ "personal" ],
-              "description": "Request an authorisation for an individual or sole trader"
+              "description": "Request authorisation from an individual or sole trader"
             },
             {
               "enum": [ "business" ],
-              "description": "Request an authorisation for a company or partnership"
+              "description": "Request authorisation from a company or partnership"
             }
           ]
         },
