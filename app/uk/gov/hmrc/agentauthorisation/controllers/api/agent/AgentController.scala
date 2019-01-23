@@ -236,7 +236,22 @@ class AgentController @Inject()(
                            Future.failed(e)
                        }
                    case Some(false) =>
-                     knownFactNotMatchedAudit(agentInvitation, arn, "createInvitation")
+                     agentInvitation.service match {
+                       case "HMRC-MTD-IT" =>
+                         auditService.sendAgentInvitationSubmitted(
+                           arn,
+                           "",
+                           agentInvitation,
+                           "Fail",
+                           Some("POSTCODE_DOES_NOT_MATCH"))
+                       case "HMRC-MTD-VAT" =>
+                         auditService.sendAgentInvitationSubmitted(
+                           arn,
+                           "",
+                           agentInvitation,
+                           "Fail",
+                           Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+                     }
                      Future successful knownFactDoesNotMatch(agentInvitation.service)
                    case _ =>
                      auditService.sendAgentInvitationSubmitted(
@@ -271,17 +286,6 @@ class AgentController @Inject()(
       case _ =>
         invitationsConnector
           .checkVatRegDateForClient(Vrn(agentInvitation.clientId), LocalDate.parse(agentInvitation.knownFact))
-    }
-
-  private def knownFactNotMatchedAudit(agentInvitation: AgentInvitation, arn: Arn, usage: String)(
-    implicit
-    hc: HeaderCarrier,
-    request: Request[_]) =
-    agentInvitation.service match {
-      case "HMRC-MTD-IT" =>
-        auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("POSTCODE_DOES_NOT_MATCH"))
-      case "HMRC-MTD-VAT" =>
-        auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("VAT_REG_DATE_DOES_NOT_MATCH"))
     }
 
   private def checkRelationship(agentInvitation: AgentInvitation, arn: Arn)(
