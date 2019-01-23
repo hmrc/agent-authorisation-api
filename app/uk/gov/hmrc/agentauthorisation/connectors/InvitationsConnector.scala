@@ -45,6 +45,11 @@ class InvitationsConnector @Inject()(
 
   private val dateFormatter = ISODateTimeFormat.date()
 
+  private[connectors] def createAgentLinkUrl(arn: Arn, clientType: String): URL =
+    new URL(
+      baseUrl,
+      s"/agent-client-authorisation/agencies/references/arn/${encodePathSegment(arn.value)}/clientType/$clientType")
+
   private[connectors] def createInvitationUrl(arn: Arn): URL =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
 
@@ -75,6 +80,15 @@ class InvitationsConnector @Inject()(
     ec: ExecutionContext): Future[Option[String]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
       http.POST[AgentInvitation, HttpResponse](createInvitationUrl(arn).toString, agentInvitation) map { r =>
+        r.header("location")
+      }
+    }
+
+  def createAgentLink(arn: Arn, clientType: String)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[String]] =
+    monitor(s"ConsumedAPI-Agent-Create-Agent-Link-POST") {
+      http.POST[Boolean, HttpResponse](createAgentLinkUrl(arn, clientType).toString, false) map { r =>
         r.header("location")
       }
     }

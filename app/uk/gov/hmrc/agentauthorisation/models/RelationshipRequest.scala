@@ -15,62 +15,47 @@
  */
 
 package uk.gov.hmrc.agentauthorisation.models
-
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import uk.gov.hmrc.agentauthorisation.models
 
-case class CreateInvitationPayload(
-  service: List[String],
-  clientType: String,
-  clientIdType: String,
-  clientId: String,
-  knownFact: String)
+case class CheckRelationshipPayload(service: List[String], clientIdType: String, clientId: String, knownFact: String)
 
-case class AgentInvitation(
-  service: String,
-  clientType: String,
-  clientIdType: String,
-  clientId: String,
-  knownFact: String)
+object CheckRelationshipPayload {
 
-object CreateInvitationPayload {
-
-  implicit val reads: Reads[CreateInvitationPayload] = {
+  implicit val reads: Reads[CheckRelationshipPayload] = {
     ((JsPath \ "service").read[List[String]] and
-      (JsPath \ "clientType").read[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
-      (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
-      CreateInvitationPayload(service, clientType, clientIdType, clientId, knownFact))
+      (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>
+      CheckRelationshipPayload(service, clientIdType, clientId, knownFact))
   }
 
-  implicit val writes: Writes[CreateInvitationPayload] = new Writes[CreateInvitationPayload] {
-    override def writes(o: CreateInvitationPayload): JsValue =
+  implicit val writes: Writes[CheckRelationshipPayload] = new Writes[CheckRelationshipPayload] {
+    override def writes(o: CheckRelationshipPayload): JsValue =
       Json.obj(
         "service"      -> o.service,
-        "clientType"   -> o.clientType,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),
         "knownFact"    -> o.knownFact)
   }
 }
 
-object AgentInvitation {
+case class RelationshipRequest(service: String, clientIdType: String, clientId: String, knownFact: String)
 
-  implicit val reads: Reads[AgentInvitation] = {
+object RelationshipRequest {
+  implicit val reads: Reads[RelationshipRequest] = {
     ((JsPath \ "service").read[String] and
-      (JsPath \ "clientType").read[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
-      (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
-      AgentInvitation(service, clientType, clientIdType, clientId, knownFact))
+      (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>
+      models.RelationshipRequest(service, clientIdType, clientId, knownFact))
   }
 
-  implicit val writes: Writes[AgentInvitation] = new Writes[AgentInvitation] {
-    override def writes(o: AgentInvitation): JsValue =
+  implicit val writes: Writes[RelationshipRequest] = new Writes[RelationshipRequest] {
+    override def writes(o: RelationshipRequest): JsValue =
       Json.obj(
         "service"      -> o.service,
-        "clientType"   -> o.clientType,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),
         "knownFact"    -> o.knownFact)

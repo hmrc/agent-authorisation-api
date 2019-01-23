@@ -17,6 +17,7 @@ trait ACAStubs {
     invitationId: InvitationId,
     suppliedClientId: String,
     suppliedClientType: String,
+    clientType: String,
     service: String,
     serviceIdentifier: String,
     knownFact: String): Unit =
@@ -25,6 +26,7 @@ trait ACAStubs {
         .withRequestBody(equalToJson(s"""
                                         |{
                                         |   "service": "$service",
+                                        |   "clientType": "$clientType",
                                         |   "clientIdType": "$suppliedClientType",
                                         |   "clientId":"$suppliedClientId",
                                         |   "knownFact":"$knownFact"
@@ -43,6 +45,15 @@ trait ACAStubs {
       post(urlEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
         .willReturn(aResponse()
           .withStatus(400)))
+
+  def createAgentLink(clientType: String, normalisedAgentName: String): Unit =
+    stubFor(
+      post(urlEqualTo(s"/agent-client-authorisation/agencies/references/arn/${arn.value}/clientType/$clientType"))
+        .willReturn(aResponse()
+            .withStatus(201)
+            .withHeader("location", s"/invitations/$clientType/12345678/$normalisedAgentName")
+        )
+    )
 
   def givenMatchingClientIdAndPostcode(nino: Nino, postcode: String) =
     stubFor(
@@ -108,13 +119,14 @@ trait ACAStubs {
       getRequestedFor(urlPathMatching("/agent-client-authorisation/known-facts/organisations/.*/registration-date/.*")))
 
   def givenGetITSAInvitationStub(arn: Arn, status: String): Unit =
-    givenGetAgentInvitationStub(arn, "ni", validNino.value, invitationIdITSA, serviceITSA, status)
+    givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSA, status)
 
   def givenGetVATInvitationStub(arn: Arn, status: String): Unit =
-    givenGetAgentInvitationStub(arn, "ni", validVrn.value, invitationIdVAT, serviceVAT, status)
+    givenGetAgentInvitationStub(arn, "business", "vrn", validVrn.value, invitationIdVAT, serviceVAT, status)
 
   def givenGetAgentInvitationStub(
     arn: Arn,
+    clientType: String,
     clientIdType: String,
     clientId: String,
     invitationId: InvitationId,
@@ -129,13 +141,14 @@ trait ACAStubs {
                          |{
                          |  "arn" : "${arn.value}",
                          |  "service" : "$service",
+                         |  "clientType":"$clientType",
                          |  "clientId" : "$clientId",
                          |  "clientIdType" : "$clientIdType",
                          |  "suppliedClientId" : "$clientId",
                          |  "suppliedClientIdType" : "$clientIdType",
                          |  "status" : "$status",
                          |  "created" : "2017-10-31T23:22:50.971Z",
-                         |  "lastUpdated" : "2017-10-31T23:22:50.971Z",
+                         |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
                          |  "expiryDate" : "2017-12-18",
                          |  "_links": {
                          |    	"self" : {
@@ -152,10 +165,8 @@ trait ACAStubs {
           aResponse()
             .withStatus(200)
             .withBody(halEnvelope(Seq(
-              invitation(arn, "Pending", "HMRC-MTD-IT", "ni", "AB123456A", "foo1", "2017-12-18"),
-              invitation(arn, "Pending", "HMRC-MTD-VAT", "vrn", "101747696", "foo2", "2017-12-18"),
-              invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo3", "2017-12-18")
-            ).mkString("[", ",", "]")))))
+              invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni","AB123456A", "ABERULMHCKKW3", "2017-12-18"),
+              invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18")).mkString("[", ",", "]")))))
 
   def givenAllInvitationsRespondedStub(arn: Arn): Unit =
     stubFor(
@@ -165,9 +176,9 @@ trait ACAStubs {
           aResponse()
             .withStatus(200)
             .withBody(halEnvelope(Seq(
-              invitation(arn, "Accepted", "HMRC-MTD-IT", "ni", "AB123456A", "foo4", "2017-12-18"),
-              invitation(arn, "Rejected", "HMRC-MTD-VAT", "vrn", "101747696", "foo2", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "fo11", "2017-12-18")
+              invitation(arn, "Accepted", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "foo4", "2017-12-18"),
+              invitation(arn, "Rejected", "HMRC-MTD-VAT",  "business", "vrn", "101747696", "foo2", "2017-12-18"),
+              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "fo11", "2017-12-18")
             ).mkString("[", ",", "]")))))
 
   def givenAllInvitationsPirStub(arn: Arn): Unit =
@@ -178,10 +189,10 @@ trait ACAStubs {
           aResponse()
             .withStatus(200)
             .withBody(halEnvelope(Seq(
-              invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo1", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo2", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo3", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "ni", "AB123456B", "foo4", "2017-12-18")
+              invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo1", "2017-12-18"),
+              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo2", "2017-12-18"),
+              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo3", "2017-12-18"),
+              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo4", "2017-12-18")
             ).mkString("[", ",", "]")))))
 
   def halEnvelope(embedded: String): String =
@@ -212,6 +223,7 @@ trait ACAStubs {
     arn: Arn,
     status: String,
     service: String,
+    clientType: String,
     clientIdType: String,
     clientId: String,
     invitationId: String,
@@ -219,6 +231,7 @@ trait ACAStubs {
                               |{
                               |  "arn" : "${arn.value}",
                               |  "service" : "$service",
+                              |  "clientType": "$clientType",
                               |  "clientId" : "$clientId",
                               |  "clientIdType" : "$clientIdType",
                               |  "suppliedClientId" : "$clientId",

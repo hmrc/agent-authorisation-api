@@ -74,6 +74,7 @@ Create a new authorisation request.
 ```
 {
   "service": ["MTD-IT"],
+  "clientType":"personal",
   "clientIdType": "ni",
   "clientId": "AA999999A",
   "knownFact": "AA11 1AA"
@@ -82,6 +83,7 @@ Create a new authorisation request.
 ```
 {
   "service": ["MTD-VAT"],
+  "clientType":"business",
   "clientIdType": "vrn",
   "clientId": "101747696",
   "knownFact": "2007-05-18"
@@ -105,6 +107,18 @@ The authorisation request was created successfully.
 
 #### errorResponse (application/json) 
 
+```
+{
+  "code": "SERVICE_NOT_SUPPORTED",
+  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
+}
+```
+```
+{
+  "code": "CLIENT_TYPE_NOT_SUPPORTED",
+  "message": "The client type requested is not supported. Check the API documentation to find which client types are supported."
+}
+```
 ```
 {
   "code": "CLIENT_ID_FORMAT_INVALID",
@@ -202,13 +216,12 @@ Returns all authorisation requests for the last 30 days.
       "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
     }
   },
-  "created": "2017-01-25T15:20:14.917Z",
+  "created": "2019-01-21T14:27:44.620Z",
   "arn": "AARN9999999",
   "service": ["MTD-IT"],
   "status": "Pending",
-  "expiresOn": "2017-02-04T00:00:00:000Z",
-  "updated": null,
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
+  "expiresOn": "2019-02-04T00:00:00:000Z",
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1"
 },
   {
     "_links": {
@@ -216,13 +229,11 @@ Returns all authorisation requests for the last 30 days.
         "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
       }
     },
-    "created": "2017-01-25T15:20:14.917Z",
+    "created": "2019-01-21T14:27:44.620Z",
     "arn": "AARN9999999",
     "service": ["MTD-IT"],
     "status": "Accepted",
-    "expiresOn": null,
-    "updated": "2017-01-25T15:20:14.917Z",
-    "clientActionUrl": null
+    "updated": "2019-01-21T14:27:44.620Z"
   }
 ]
 ```
@@ -262,22 +273,6 @@ The agent has no authorisation requests for the last 30 days.
 |:-----|:----:|:------------|:--------:|--------:|
 | code |  string |  | true |  |
 
-### Response code: 404
-
-#### errorResponse (application/json) 
-
-```
-{
-  "code": "NO_INVITATIONS_FOUND",
-  "message": "This agent has no authorisation requests."
-}
-```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ---
 
 ### /agents/{arn}/invitations/{invitationId}
@@ -307,12 +302,12 @@ Returns the authorisation request.
       "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
     }
   },
-  "created": "2017-01-25T15:20:14.917Z",
-  "expiresOn": "2017-02-04T00:00:00:000Z",
+  "created": "2019-01-21T14:27:44.620Z",
+  "expiresOn": "2019-02-04T00:00:00.00",
   "arn": "AARN9999999",
   "service": ["MTD-IT"],
   "status": "Pending",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1"
 }
 ```
 ```
@@ -322,8 +317,8 @@ Returns the authorisation request.
       "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
     }
   },
-  "created": "2017-01-25T15:20:14.917Z",
-  "updated": "2017-01-25T15:20:14.917Z",
+  "created": "2019-01-21T14:27:44.620Z",
+  "updated": "2019-01-21T14:27:44.620Z",
   "arn": "AARN9999999",
   "service": ["MTD-VAT"],
   "status": "Accepted"
@@ -488,6 +483,12 @@ Relationship is active. Agent is authorised to act for the client.
 
 #### errorResponse (application/json) 
 
+```
+{
+  "code": "SERVICE_NOT_SUPPORTED",
+  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
+}
+```
 ```
 {
   "code": "CLIENT_ID_FORMAT_INVALID",

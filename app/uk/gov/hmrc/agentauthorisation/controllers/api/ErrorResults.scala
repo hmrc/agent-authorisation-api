@@ -35,6 +35,10 @@ object ErrorResults {
         "SERVICE_NOT_SUPPORTED",
         "The service requested is not supported. Check the API documentation to find which services are supported.")))
 
+  val UnsupportedClientType = BadRequest(toJson(ErrorBody(
+    "CLIENT_TYPE_NOT_SUPPORTED",
+    "The client type requested is not supported. Check the API documentation to find which client types are supported.")))
+
   val ClientIdDoesNotMatchService = BadRequest(
     toJson(
       ErrorBody(

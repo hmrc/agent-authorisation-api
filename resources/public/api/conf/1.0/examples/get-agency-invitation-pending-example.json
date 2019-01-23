@@ -4,10 +4,10 @@
       "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
     }
   },
-  "created": "2017-01-25T15:20:14.917Z",
-  "expiresOn": "2017-02-04T00:00:00:000Z",
+  "created": "2019-01-21T14:27:44.620Z",
+  "expiresOn": "2019-02-04T00:00:00.00",
   "arn": "AARN9999999",
   "service": ["MTD-IT"],
   "status": "Pending",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/CS5AK7O8FPC43"
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1"
 }

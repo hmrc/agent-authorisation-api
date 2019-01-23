@@ -1,6 +1,0 @@
-{
-  "service": ["MTD-VAT"],
-  "clientIdType": "crn",
-  "clientId": "AA123456",
-  "knownFact": "1234567890"
-}

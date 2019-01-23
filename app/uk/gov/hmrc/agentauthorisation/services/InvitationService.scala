@@ -16,10 +16,9 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{Inject, Named, Singleton}
 import org.joda.time.LocalDate
 import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
-
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
@@ -28,15 +27,24 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
+class InvitationService @Inject()(
+  @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
+  invitationsConnector: InvitationsConnector) {
 
-  def createInvitationService(arn: Arn, agentInvitation: AgentInvitation)(
+  type InvitationUrls = (String, String)
+
+  def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext): Future[String] =
-    invitationsConnector
-      .createInvitation(arn, agentInvitation)
-      .map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
+    executionContext: ExecutionContext): Future[InvitationUrls] =
+    for {
+      invitationUrl <- invitationsConnector
+                        .createInvitation(arn, agentInvitation)
+                        .map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
+      agentLink <- invitationsConnector
+                    .createAgentLink(arn, agentInvitation.clientType)
+                    .map(_.getOrElse(throw new Exception("Agent Link location excepted but missing.")))
+    } yield (s"$invitationFrontendUrl$agentLink", invitationUrl)
 
   def checkPostcodeMatches(nino: Nino, postcode: String)(
     implicit
@@ -50,16 +58,43 @@ class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
     ec: ExecutionContext): Future[Option[Boolean]] =
     invitationsConnector.checkVatRegDateForClient(vrn, vatRegDate)
 
-  def getInvitationService(arn: Arn, invitationId: InvitationId)(
+  def getInvitation(arn: Arn, invitationId: InvitationId)(
     implicit
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
-    invitationsConnector.getInvitation(arn, invitationId)
+    for {
+      invitationOpt <- invitationsConnector.getInvitation(arn, invitationId)
+      invitationWithActionLink: Option[StoredInvitation] <- invitationOpt match {
+                                                             case Some(invitation) =>
+                                                               invitationsConnector
+                                                                 .createAgentLink(arn, invitation.clientType)
+                                                                 .map(
+                                                                   agentLink =>
+                                                                     Some(invitation.copy(
+                                                                       clientActionUrl = agentLink.map(al =>
+                                                                         s"$invitationFrontendUrl$al"))))
+                                                             case None => Future successful None
+                                                           }
+    } yield invitationWithActionLink
 
   def cancelInvitationService(arn: Arn, invitationId: InvitationId)(
     implicit
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[Int]] =
     invitationsConnector.cancelInvitation(arn, invitationId)
+
+  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Seq[StoredInvitation]] =
+    for {
+      invitations <- invitationsConnector.getAllInvitations(arn, createdOnOrAfter)
+      invitationsWithActionLink <- Future.traverse(invitations) { invitation =>
+                                    invitationsConnector
+                                      .createAgentLink(arn, invitation.clientType)
+                                      .map(agentLink =>
+                                        invitation.copy(clientActionUrl = agentLink.map(al =>
+                                          s"$invitationFrontendUrl$al")))
+                                  }
+    } yield invitationsWithActionLink
 
 }
