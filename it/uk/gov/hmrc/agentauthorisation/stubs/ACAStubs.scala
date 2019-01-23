@@ -36,8 +36,7 @@ trait ACAStubs {
             .withStatus(201)
             .withHeader(
               "location",
-              s"$wireMockBaseUrlAsString/agent-client-authorisation/clients/$serviceIdentifier/${encodePathSegment(
-                clientId)}/invitations/received/${invitationId.value}"
+              s"/agents/${arn.value}/invitations/${invitationId.value}"
             )))
 
   def failedCreateInvitation(arn: Arn): Unit =

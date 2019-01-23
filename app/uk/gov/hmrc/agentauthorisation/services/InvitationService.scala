@@ -31,20 +31,13 @@ class InvitationService @Inject()(
   @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
   invitationsConnector: InvitationsConnector) {
 
-  type InvitationUrls = (String, String)
-
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext): Future[InvitationUrls] =
-    for {
-      invitationUrl <- invitationsConnector
-                        .createInvitation(arn, agentInvitation)
-                        .map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
-      agentLink <- invitationsConnector
-                    .createAgentLink(arn, agentInvitation.clientType)
-                    .map(_.getOrElse(throw new Exception("Agent Link location excepted but missing.")))
-    } yield (s"$invitationFrontendUrl$agentLink", invitationUrl)
+    executionContext: ExecutionContext): Future[String] =
+    invitationsConnector
+      .createInvitation(arn, agentInvitation)
+      .map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
 
   def checkPostcodeMatches(nino: Nino, postcode: String)(
     implicit

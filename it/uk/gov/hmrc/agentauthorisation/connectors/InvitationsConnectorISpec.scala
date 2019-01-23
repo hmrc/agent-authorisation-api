@@ -57,8 +57,7 @@ class InvitationsConnectorISpec extends BaseISpec {
         validPostcode)
       val agentInvitation = AgentInvitation("HMRC-MTD-IT", "personal", "ni", "AB123456A", "DH14EJ")
       val result = await(connector.createInvitation(arn, agentInvitation))
-      result.get should include(
-        s"/agent-client-authorisation/clients/NI/AB123456A/invitations/received/${invitationIdITSA.value}")
+      result.get should include(s"/agents/${arn.value}/invitations/${invitationIdITSA.value}")
     }
 
     "return a url upon success for VAT" in {
@@ -74,8 +73,7 @@ class InvitationsConnectorISpec extends BaseISpec {
         validVatRegDate)
       val agentInvitation = AgentInvitation("HMRC-MTD-VAT", "business", "vrn", validVrn.value, validVatRegDate)
       val result = await(connector.createInvitation(arn, agentInvitation))
-      result.get should include(
-        s"/agent-client-authorisation/clients/VRN/101747696/invitations/received/${invitationIdVAT.value}")
+      result.get should include(s"/agents/${arn.value}/invitations/${invitationIdVAT.value}")
     }
   }
 

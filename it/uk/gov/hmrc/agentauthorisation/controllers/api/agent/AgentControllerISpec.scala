@@ -152,7 +152,7 @@ class AgentControllerISpec extends BaseISpec {
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
       status(result) shouldBe 204
-      result.header.headers("Location") shouldBe s"someInvitationUrl/invitations/personal/12345678/agent-1"
+      result.header.headers("Location") shouldBe s"/agents/TARN0000001/invitations/ABERULMHCKKW3"
       verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
     }
 
@@ -175,7 +175,7 @@ class AgentControllerISpec extends BaseISpec {
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
 
       status(result) shouldBe 204
-      result.header.headers("Location") shouldBe s"someInvitationUrl/invitations/business/12345678/agent-1"
+      result.header.headers("Location") shouldBe s"/agents/TARN0000001/invitations/CZTW1KY6RTAAT"
       verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Success", "HMRC-MTD-VAT", None)
     }
 

@@ -226,14 +226,14 @@ class AgentController @Inject()(
                    case Some(true) =>
                      invitationService
                        .createInvitation(arn, agentInvitation)
-                       .flatMap {
-                         case (agentLink, invitationUrl) =>
-                           val id = invitationUrl
-                             .split("/")
-                             .toStream
-                             .last
-                           auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
-                           Future successful NoContent.withHeaders(LOCATION -> agentLink)
+                       .flatMap { invitationUrl =>
+                         val id = invitationUrl
+                           .split("/")
+                           .toStream
+                           .last
+                         val locationLink = routes.AgentController.getInvitationApi(arn, InvitationId(id)).url
+                         auditService.sendAgentInvitationSubmitted(arn, id, agentInvitation, "Success")
+                         Future successful NoContent.withHeaders(LOCATION -> locationLink)
                        }
                        .recoverWith {
                          case e =>
