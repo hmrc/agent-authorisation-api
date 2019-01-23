@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 object AgentAuthorisationEvent extends Enumeration {
-  val AgentAuthorisationCreatedViaApi, AgentAuthorisedCancelledViaApi, AgentCheckRelationshipStatusApi = Value
+  val AgentAuthorisationCreatedViaApi, AgentAuthorisedCancelledViaApi = Value
   type AgentAuthorisationEvent = Value
 }
 
@@ -82,29 +82,6 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
       "Agent cancelled invitation through third party software",
       Seq("result" -> result, "invitationId" -> invitationId, "agentReferenceNumber" -> arn.value)
         .filter(_._2.nonEmpty) ++ failure
-        .map(e => Seq("failureDescription" -> e))
-        .getOrElse(Seq.empty)
-    )
-
-  def sendAgentCheckRelationshipStatus(
-    arn: Arn,
-    agentInvitation: AgentInvitation,
-    result: String,
-    failure: Option[String] = None)(
-    implicit
-    hc: HeaderCarrier,
-    request: Request[Any],
-    ec: ExecutionContext): Future[Unit] =
-    auditEvent(
-      AgentAuthorisationEvent.AgentCheckRelationshipStatusApi,
-      "Agent checked status of relationship through third party software",
-      Seq(
-        "result"               -> result,
-        "agentReferenceNumber" -> arn.value,
-        "service"              -> agentInvitation.service,
-        "clientId"             -> agentInvitation.clientId,
-        "clientIdType"         -> agentInvitation.clientIdType
-      ).filter(_._2.nonEmpty) ++ failure
         .map(e => Seq("failureDescription" -> e))
         .getOrElse(Seq.empty)
     )

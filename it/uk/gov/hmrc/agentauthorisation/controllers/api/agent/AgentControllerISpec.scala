@@ -813,13 +813,6 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe ClientRegistrationNotFound
-        verifyAgentCheckRelationshipStatusEvent(
-          arn.value,
-          validNino.value,
-          "ni",
-          "Fail",
-          "HMRC-MTD-IT",
-          Some("CLIENT_REGISTRATION_NOT_FOUND"))
       }
 
       "return 403 CLIENT_REGISTRATION_NOT_FOUND when the VAT registration date returns nothing" in {
@@ -828,13 +821,6 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe ClientRegistrationNotFound
-        verifyAgentCheckRelationshipStatusEvent(
-          arn.value,
-          validVrn.value,
-          "vrn",
-          "Fail",
-          "HMRC-MTD-VAT",
-          Some("CLIENT_REGISTRATION_NOT_FOUND"))
       }
 
       "return 403 POSTCODE_DOES_NOT_MATCH when the postcode and clientId do not match" in {
@@ -844,13 +830,6 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe PostcodeDoesNotMatch
-        verifyAgentCheckRelationshipStatusEvent(
-          arn.value,
-          validNino.value,
-          "ni",
-          "Fail",
-          "HMRC-MTD-IT",
-          Some("POSTCODE_DOES_NOT_MATCH"))
       }
 
       "return 403 VAT_REG_DATE_DOES_NOT_MATCH when the VAT registration date and clientId do not match" in {
@@ -859,13 +838,6 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe VatRegDateDoesNotMatch
-        verifyAgentCheckRelationshipStatusEvent(
-          arn.value,
-          validVrn.value,
-          "vrn",
-          "Fail",
-          "HMRC-MTD-VAT",
-          Some("VAT_REG_DATE_DOES_NOT_MATCH"))
       }
 
       "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
@@ -968,25 +940,5 @@ class AgentControllerISpec extends BaseISpec {
       detail = Map("invitationId" -> invitationId.value, "agentReferenceNumber" -> arn)
         .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
       tags = Map("transactionName" -> "Agent cancelled invitation through third party software")
-    )
-
-  def verifyAgentCheckRelationshipStatusEvent(
-    arn: String,
-    clientId: String,
-    clientIdType: String,
-    result: String,
-    service: String,
-    failure: Option[String] = None): Unit =
-    verifyAuditRequestSent(
-      1,
-      AgentAuthorisationEvent.AgentCheckRelationshipStatusApi,
-      detail = Map(
-        "result"               -> result,
-        "agentReferenceNumber" -> arn,
-        "clientIdType"         -> clientIdType,
-        "clientId"             -> clientId,
-        "service"              -> service)
-        .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map("transactionName" -> "Agent checked status of relationship through third party software")
     )
 }
