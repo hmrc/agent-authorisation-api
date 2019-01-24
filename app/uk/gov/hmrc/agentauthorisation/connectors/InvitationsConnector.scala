@@ -80,7 +80,7 @@ class InvitationsConnector @Inject()(
     ec: ExecutionContext): Future[Option[String]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
       http.POST[AgentInvitation, HttpResponse](createInvitationUrl(arn).toString, agentInvitation) map { r =>
-        r.header("location")
+        r.header("InvitationId")
       }
     }
 
