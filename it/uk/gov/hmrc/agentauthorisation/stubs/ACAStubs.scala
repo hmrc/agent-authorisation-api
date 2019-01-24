@@ -35,8 +35,8 @@ trait ACAStubs {
           aResponse()
             .withStatus(201)
             .withHeader(
-              "location",
-              s"/agents/${arn.value}/invitations/${invitationId.value}"
+              "InvitationId",
+              invitationId.value
             )))
 
   def failedCreateInvitation(arn: Arn): Unit =

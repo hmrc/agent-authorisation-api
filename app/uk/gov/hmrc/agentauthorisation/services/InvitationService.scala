@@ -37,7 +37,7 @@ class InvitationService @Inject()(
     executionContext: ExecutionContext): Future[String] =
     invitationsConnector
       .createInvitation(arn, agentInvitation)
-      .map(_.getOrElse(throw new Exception("Invitation location expected but missing.")))
+      .map(_.getOrElse(throw new Exception("Invitation Id expected but missing.")))
 
   def checkPostcodeMatches(nino: Nino, postcode: String)(
     implicit
