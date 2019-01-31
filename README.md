@@ -7,8 +7,8 @@ The API also allows the agent to check the status of authorisations already requ
 
 This API has no effect on the existing XML API.
 
-### Release Notes
-TBC
+### Change Log
+You can find the changelog in the [agent-authorisation-api](https://github.com/hmrc/agent-authorisation-api/blob/master/CHANGE_LOG.md) GitHub repository.
 
 ### Why use this API?
 Agents often use software to perform services for their clients. The API will benefit these agents as it allows them to create a request for authorisation to act on a client's behalf for a specific Making Tax Digital service directly through software.
