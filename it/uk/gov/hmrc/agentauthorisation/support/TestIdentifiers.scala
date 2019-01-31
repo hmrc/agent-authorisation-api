@@ -1,9 +1,8 @@
-package uk.gov.hmrc
-
+package uk.gov.hmrc.agentauthorisation.support
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, MtdItId, Vrn}
 import uk.gov.hmrc.domain.Nino
 
-package object agentauthorisation {
+trait TestIdentifiers {
 
   val arn = Arn("TARN0000001")
   val arn2 = Arn("DARN0002185")

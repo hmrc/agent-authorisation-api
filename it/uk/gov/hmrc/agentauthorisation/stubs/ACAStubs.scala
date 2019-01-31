@@ -2,14 +2,13 @@ package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.joda.time.LocalDate
-import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
+import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, WireMockSupport}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.agentauthorisation._
 
 trait ACAStubs {
-  me: WireMockSupport =>
+  me: WireMockSupport with TestIdentifiers =>
 
   def createInvitationStub(
     arn: Arn,
@@ -48,10 +47,10 @@ trait ACAStubs {
   def createAgentLink(clientType: String, normalisedAgentName: String): Unit =
     stubFor(
       post(urlEqualTo(s"/agent-client-authorisation/agencies/references/arn/${arn.value}/clientType/$clientType"))
-        .willReturn(aResponse()
+        .willReturn(
+          aResponse()
             .withStatus(201)
-            .withHeader("location", s"/invitations/$clientType/12345678/$normalisedAgentName")
-        )
+            .withHeader("location", s"/invitations/$clientType/12345678/$normalisedAgentName"))
     )
 
   def givenMatchingClientIdAndPostcode(nino: Nino, postcode: String) =
@@ -156,6 +155,12 @@ trait ACAStubs {
                          |  }
                          |}""".stripMargin)))
 
+  def givenGetAgentInvitationStubReturns(arn: Arn, invitationId: InvitationId, status: Int) =
+    stubFor(
+      get(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
+        .willReturn(aResponse()
+          .withStatus(status)))
+
   def givenAllInvitationsPendingStub(arn: Arn): Unit =
     stubFor(
       get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
@@ -164,8 +169,9 @@ trait ACAStubs {
           aResponse()
             .withStatus(200)
             .withBody(halEnvelope(Seq(
-              invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni","AB123456A", "ABERULMHCKKW3", "2017-12-18"),
-              invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18")).mkString("[", ",", "]")))))
+              invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18"),
+              invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18")
+            ).mkString("[", ",", "]")))))
 
   def givenAllInvitationsRespondedStub(arn: Arn): Unit =
     stubFor(
@@ -176,8 +182,16 @@ trait ACAStubs {
             .withStatus(200)
             .withBody(halEnvelope(Seq(
               invitation(arn, "Accepted", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "foo4", "2017-12-18"),
-              invitation(arn, "Rejected", "HMRC-MTD-VAT",  "business", "vrn", "101747696", "foo2", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "fo11", "2017-12-18")
+              invitation(arn, "Rejected", "HMRC-MTD-VAT", "business", "vrn", "101747696", "foo2", "2017-12-18"),
+              invitation(
+                arn,
+                "Cancelled",
+                "PERSONAL-INCOME-RECORD",
+                "personal",
+                "ni",
+                "AB123456B",
+                "fo11",
+                "2017-12-18")
             ).mkString("[", ",", "]")))))
 
   def givenAllInvitationsPirStub(arn: Arn): Unit =
@@ -189,9 +203,33 @@ trait ACAStubs {
             .withStatus(200)
             .withBody(halEnvelope(Seq(
               invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo1", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo2", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo3", "2017-12-18"),
-              invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo4", "2017-12-18")
+              invitation(
+                arn,
+                "Cancelled",
+                "PERSONAL-INCOME-RECORD",
+                "personal",
+                "ni",
+                "AB123456B",
+                "foo2",
+                "2017-12-18"),
+              invitation(
+                arn,
+                "Cancelled",
+                "PERSONAL-INCOME-RECORD",
+                "personal",
+                "ni",
+                "AB123456B",
+                "foo3",
+                "2017-12-18"),
+              invitation(
+                arn,
+                "Cancelled",
+                "PERSONAL-INCOME-RECORD",
+                "personal",
+                "ni",
+                "AB123456B",
+                "foo4",
+                "2017-12-18")
             ).mkString("[", ",", "]")))))
 
   def halEnvelope(embedded: String): String =
