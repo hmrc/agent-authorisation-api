@@ -7,6 +7,9 @@ The API also allows the agent to check the status of authorisations already requ
 
 This API has no effect on the existing XML API.
 
+### Release Notes
+TBC
+
 ### Why use this API?
 Agents often use software to perform services for their clients. The API will benefit these agents as it allows them to create a request for authorisation to act on a client's behalf for a specific Making Tax Digital service directly through software.
 
