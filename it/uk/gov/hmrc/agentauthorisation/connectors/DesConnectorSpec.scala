@@ -24,10 +24,6 @@ class DesConnectorSpec extends BaseISpec {
   val desConnector =
     new DesConnector(wireMockBaseUrl, "token", "stub", http, app.injector.instanceOf[Metrics])
 
-  val mtdItId = MtdItId("ABCDEF123456789")
-  val vrn = Vrn("101747641")
-  val agentARN = Arn("ABCDE123456")
-
   "DesConnector getMtdIdFor" should {
 
     val mtdItId = MtdItId("foo")

@@ -6,7 +6,6 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
-import uk.gov.hmrc.agentauthorisation._
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.SessionKeys
@@ -170,7 +169,6 @@ class AgentControllerISpec extends BaseISpec {
         validVatRegDate)
 
       createAgentLink("business", "agent-1")
-
 
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
 
@@ -482,6 +480,16 @@ class AgentControllerISpec extends BaseISpec {
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn2.value))
         status(result) shouldBe 403
         await(result) shouldBe NoPermissionOnAgency
+      }
+
+      "return 404 for invitation not accessible for this Agent" in {
+
+        givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 403)
+        createAgentLink("personal", "agent-1")
+        val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
+
+        status(result) shouldBe 404
+        await(result) shouldBe InvitationNotFound
       }
 
       "return 404 for Invitation Not Found" in {

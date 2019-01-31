@@ -9,7 +9,7 @@ import uk.gov.hmrc.play.test.UnitSpec
 
 abstract class BaseISpec
     extends UnitSpec with OneAppPerSuite with WireMockSupport with AuthStubs with ACAStubs with DataStreamStubs
-    with ACRStubs with DesStubs {
+    with ACRStubs with DesStubs with TestIdentifiers {
 
   override implicit lazy val app: Application = appBuilder.build()
 
