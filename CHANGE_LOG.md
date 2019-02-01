@@ -1,4 +1,4 @@
-## [0.49.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.48.0) 23 Janurary 2019
+## [0.49.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.48.0) 31 Janurary 2019
 
 * Added Mandatory parameter field, Client Type for  POST /agents/{arn}/invitations
     * For Schema [See here](https://github.com/hmrc/agent-authorisation-api/blob/master/resources/public/api/conf/1.0/schemas/create-invitation.json)
