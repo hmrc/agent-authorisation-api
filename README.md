@@ -26,7 +26,6 @@ The aim is for the API to mirror the current process that happens through the Ag
 * The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
 * The agent enters the identifier for the client they are requesting authorisation from, for example:
     * National Insurance number (NINO)
-    * Company registration number (CRN)
     * VAT registration number (VRN)
 * If required by the service the agent enters an additional identifier for the client, for example, the client's postcode or VAT registration date
 * The API returns a link for the client to follow to authorise the agent and the date when the authorisation request will expire
@@ -39,19 +38,17 @@ The detailed guide how to create required client data in the External Tests (San
 can be found at <https://test-www.tax.service.gov.uk/agents-external-stubs/help/agent-authorisation-api>
 
 ### Versioning
-Specific versions are requested by providing an Accept header. When
-backwards-incompatible API changes are made, a new version will be released.
-Backwards-compatible changes are released in the current version without the
-need to change your Accept header.  See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) for more on
+When an API changes in a way that is backwards-incompatible, we increase the version number of the API. 
+See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) for more on
 versioning.
 
 ### Errors
-We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They're usually:
-* in the 200 to 299 range if it succeeded; including code 202 if it was accepted by an API that needs to wait for further action
-* in the 400 to 499 range if it didn't succeed because of a client error by your application
-* in the 500 to 599 range if it didn't succeed because of an error on our server
+We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They are usually in the range:
+* 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action
+* 400 to 499 if it failed because of a client error by your application
+* 500 to 599 if it failed because of an error on our server
 
-Errors specific to each API are shown in its own Resources section, under Response. 
+Errors specific to each API are shown in the Endpoints section, under Response. 
 See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
 
 ---
@@ -69,10 +66,10 @@ See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
-Create a new authorisation request.
+Create a new authorisation request. The request will expire after 14 days.
 
 ```
 {
@@ -104,7 +101,7 @@ The authorisation request was created successfully.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Location | string | Location of the authorisation request that was created. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
+| Location | string | Location of the authorisation request that was created which will expire after 14 days. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
 
 ### Response code: 400
 
@@ -205,7 +202,7 @@ The authorisation request was created successfully.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
 
@@ -291,7 +288,7 @@ The agent has no authorisation requests for the last 30 days.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
 
@@ -383,7 +380,7 @@ Returns the authorisation request.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 204
 The authorisation request has been cancelled successfully.
@@ -453,7 +450,7 @@ The authorisation request has been cancelled successfully.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the version of the API that you want to call. See [versioning](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning). | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
 Check Relationship based on the details received.

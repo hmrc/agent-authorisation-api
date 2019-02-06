@@ -220,7 +220,7 @@ traits:
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
       body:
           application/json:
-            description: Create a new authorisation request.
+            description: Create a new authorisation request. The request will expire after 14 days.
             type: !include schemas/create-invitation.json
             examples:
               example-1:
@@ -234,7 +234,7 @@ traits:
           headers:
             Location:
               example: /agents/AARN9999999/invitations/CS5AK7O8FPC43
-              description: Location of the authorisation request that was created.
+              description: Location of the authorisation request.
 
     get:
       displayName: Get all authorisation requests for the last 30 days

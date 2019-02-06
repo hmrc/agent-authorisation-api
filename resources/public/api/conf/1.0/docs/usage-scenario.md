@@ -5,7 +5,6 @@ The aim is for the API to mirror the current process that happens through the Ag
 * The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
 * The agent enters the identifier for the client they are requesting authorisation from, for example:
     * National Insurance number (NINO)
-    * Company registration number (CRN)
     * VAT registration number (VRN)
 * If required by the service the agent enters an additional identifier for the client, for example, the client's postcode or VAT registration date
 * The API returns a link for the client to follow to authorise the agent and the date when the authorisation request will expire
