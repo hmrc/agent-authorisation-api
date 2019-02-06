@@ -53,14 +53,6 @@ See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/
 
 ---
 
-## /agents/{arn}
-
-#### Available endpoints
-
-* [/agents/{arn}/invitations](#agentsarninvitations)* [/agents/{arn}/invitations/{invitationId}](#agentsarninvitationsinvitationid)
-
-* [/agents/{arn}/relationships](#agentsarnrelationships)
-
 ### /agents/{arn}/invitations
 
 * **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
