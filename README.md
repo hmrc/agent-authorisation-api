@@ -69,7 +69,7 @@ See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/
 | Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
-Create a new authorisation request.
+Create a new authorisation request. The request will expire after 14 days.
 
 ```
 {
