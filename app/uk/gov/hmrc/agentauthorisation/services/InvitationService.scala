@@ -55,20 +55,7 @@ class InvitationService @Inject()(
     implicit
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
-    for {
-      invitationOpt <- invitationsConnector.getInvitation(arn, invitationId)
-      invitationWithActionLink: Option[StoredInvitation] <- invitationOpt match {
-                                                             case Some(invitation) =>
-                                                               invitationsConnector
-                                                                 .createAgentLink(arn, invitation.clientType)
-                                                                 .map(
-                                                                   agentLink =>
-                                                                     Some(invitation.copy(
-                                                                       clientActionUrl = agentLink.map(al =>
-                                                                         s"$invitationFrontendUrl$al"))))
-                                                             case None => Future successful None
-                                                           }
-    } yield invitationWithActionLink
+    invitationsConnector.getInvitation(arn, invitationId)
 
   def cancelInvitationService(arn: Arn, invitationId: InvitationId)(
     implicit
@@ -79,15 +66,6 @@ class InvitationService @Inject()(
   def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Seq[StoredInvitation]] =
-    for {
-      invitations <- invitationsConnector.getAllInvitations(arn, createdOnOrAfter)
-      invitationsWithActionLink <- Future.traverse(invitations) { invitation =>
-                                    invitationsConnector
-                                      .createAgentLink(arn, invitation.clientType)
-                                      .map(agentLink =>
-                                        invitation.copy(clientActionUrl = agentLink.map(al =>
-                                          s"$invitationFrontendUrl$al")))
-                                  }
-    } yield invitationsWithActionLink
+    invitationsConnector.getAllInvitations(arn, createdOnOrAfter)
 
 }

@@ -30,10 +30,10 @@ class AgentControllerISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
-    "personal",
+    Some("personal"),
     "MTD-IT",
     "Pending",
-    Some("http://localhost:9448/invitations/personal/12345678/agent-1")
+      Some("http://localhost:9448/invitations/personal/12345678/agent-1")
   )
 
   val pendingItsaInvitation = PendingInvitation(
@@ -60,7 +60,7 @@ class AgentControllerISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2017-10-31T23:22:50.971Z",
     Arn("TARN0000001"),
-    "business",
+    Some("business"),
     "MTD-VAT",
     "Pending",
     Some("http://localhost:9448/invitations/business/12345678/agent-1")

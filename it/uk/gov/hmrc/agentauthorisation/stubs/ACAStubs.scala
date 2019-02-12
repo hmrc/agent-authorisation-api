@@ -148,6 +148,7 @@ trait ACAStubs {
                          |  "created" : "2017-10-31T23:22:50.971Z",
                          |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
                          |  "expiryDate" : "2017-12-18",
+                         |  "clientActionUrl": "someInvitationUrl/invitations/$clientType/12345678/agent-1",
                          |  "_links": {
                          |    	"self" : {
                          |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"
@@ -278,6 +279,7 @@ trait ACAStubs {
                               |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
                               |  "expiryDate" : "$expiryDate",
                               |  "invitationId": "$invitationId",
+                              |  "clientActionUrl": "someInvitationUrl/invitations/$clientType/12345678/agent-1",
                               |  "_links": {
                               |    	"self" : {
                               |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/$invitationId"

@@ -32,7 +32,7 @@ case class StoredInvitation(
   expiresOn: String,
   updated: String,
   arn: Arn,
-  clientType: String,
+  clientType: Option[String],
   service: String,
   status: String,
   clientActionUrl: Option[String])
@@ -52,7 +52,7 @@ object StoredInvitation {
       (JsPath \ "expiryDate").read[String].map(LocalDateTime.parse) and
       (JsPath \ "lastUpdated").read[String] and
       (JsPath \ "arn").read[Arn] and
-      (JsPath \ "clientType").read[String] and
+      (JsPath \ "clientType").readNullable[String] and
       (JsPath \ "service").read[String].map(serviceByMtdService) and
       (JsPath \ "status").read[String] and
       (JsPath \ "clientActionUrl")
