@@ -16,25 +16,18 @@
 
 import java.net.URL
 
-import akka.actor.ActorSystem
-import com.google.inject.AbstractModule
+import com.google.inject.{AbstractModule, TypeLiteral}
 import com.google.inject.name.{Named, Names}
-import com.typesafe.config.Config
 import javax.inject.{Inject, Provider, Singleton}
-import org.slf4j.MDC
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.agentauthorisation.ApplicationRegistration
 import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
-import uk.gov.hmrc.agentauthorisation.controllers.api.{FrontendPasscodeVerification, PasscodeVerification}
 import uk.gov.hmrc.api.connector.{ApiServiceLocatorConnector, ServiceLocatorConnector}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.otac.OtacAuthConnector
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.audit.http.HttpAuditing
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.ws.WSHttp
 
 class MicroserviceModule(val environment: Environment, val configuration: Configuration)
     extends AbstractModule with ServicesConfig {
@@ -44,12 +37,7 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
 
   def configure(): Unit = {
     val appName = "agent-authorisation"
-
-    val loggerDateFormat: Option[String] =
-      configuration.getString("logger.json.dateformat")
     Logger.info(s"Starting microservice : $appName : in mode : ${environment.mode}")
-    MDC.put("appName", appName)
-    loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
 
     bindProperty("appName")
     bindProperty2param("des.environment", "des.environment")
@@ -63,6 +51,8 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindServiceBooleanProperty("service-locator.enabled")
     bindIntegerProperty("get-requests-show-last-days")
 
+    bindSeqStringProperty("api.supported-versions")
+
     bind(classOf[CorePost]).to(classOf[DefaultHttpClient])
     bind(classOf[HttpGet]).to(classOf[DefaultHttpClient])
     bind(classOf[HttpPost]).to(classOf[DefaultHttpClient])
@@ -71,8 +61,6 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bind(classOf[ServiceLocatorConnector])
       .to(classOf[ApiServiceLocatorConnector])
     bind(classOf[AuthConnector]).to(classOf[MicroserviceAuthConnector])
-    bind(classOf[PasscodeVerification])
-      .to(classOf[FrontendPasscodeVerification])
     bind(classOf[OtacAuthConnector]).to(classOf[MicroserviceAuthConnector])
     bind(classOf[ApplicationRegistration]).asEagerSingleton()
 
@@ -137,6 +125,18 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     override lazy val get: Int = configuration
       .getInt(confKey)
       .getOrElse(throw new IllegalStateException(s"No value found for configuration property $confKey"))
+  }
+
+  private def bindSeqStringProperty(propertyName: String) =
+    bind(new TypeLiteral[Seq[String]]() {})
+      .annotatedWith(Names.named(propertyName))
+      .toProvider(new SeqStringPropertyProvider(propertyName))
+
+  private class SeqStringPropertyProvider(confKey: String) extends Provider[Seq[String]] {
+    override lazy val get: Seq[String] = configuration
+      .getStringSeq(confKey)
+      .getOrElse(throw new IllegalStateException(s"No value found for configuration property $confKey"))
+
   }
 
 }

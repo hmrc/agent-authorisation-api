@@ -58,7 +58,7 @@ class DesConnector @Inject()(
       .map(record => Right(record.mtdbsa))
       .recover {
         case e: NotFoundException =>
-          Logger(getClass).error(s"MtdItId not found for given Nino. Error: ${e.getMessage}")
+          Logger(getClass).warn(s"MtdItId not found for given Nino. Error: ${e.getMessage}")
           Left(false)
       }
   }
