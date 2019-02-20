@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.controllers.api
 import org.scalatestplus.play.OneServerPerSuite
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.agentauthorisation.support.Resource
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.language.postfixOps
@@ -28,6 +28,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ApiPlatformISpec extends UnitSpec with OneServerPerSuite {
 
   implicit val ws: WSClient = app.injector.instanceOf[WSClient]
+
+  implicit val hc: HeaderCarrier = HeaderCarrier(otherHeaders = Seq("Accept" -> s"application/vnd.hmrc.1.0+json"))
 
   "/public/api/definition" should {
     "return the definition JSON" in {

@@ -22,7 +22,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTimeZone, LocalDate}
 import play.api.Logger
 import play.api.libs.json.Json._
-import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import uk.gov.hmrc.agentauthorisation.audit.AuditService
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions

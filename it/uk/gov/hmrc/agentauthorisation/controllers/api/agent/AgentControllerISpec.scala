@@ -131,6 +131,7 @@ class AgentControllerISpec extends BaseISpec {
   "/agents/:arn/invitations" should {
 
     val request = FakeRequest("POST", s"/agents/${arn.value}/invitations")
+      .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
     val createInvitation = controller.createInvitationApi(arn)
 
     "return 204 when invitation is successfully created for ITSA" in {
@@ -389,6 +390,7 @@ class AgentControllerISpec extends BaseISpec {
 
       val getInvitationItsaApi = controller.getInvitationApi(arn, invitationIdITSA)
       val requestITSA = FakeRequest("GET", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}")
+        .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
 
       implicit val timeout: Timeout = Timeout(Duration.Zero)
 
@@ -503,6 +505,7 @@ class AgentControllerISpec extends BaseISpec {
     "requesting an VAT invitation" should {
       val getInvitationVatApi = controller.getInvitationApi(arn, invitationIdVAT)
       val requestVAT = FakeRequest("GET", s"/agents/${arn.value}/invitations/${invitationIdVAT.value}")
+        .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
 
       implicit val timeout: Timeout = Timeout(Duration.Zero)
 
@@ -611,6 +614,8 @@ class AgentControllerISpec extends BaseISpec {
 
       val cancelInvitationItsaApi = controller.cancelInvitationApi(arn, invitationIdITSA)
       val requestITSA = FakeRequest("DELETE", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}/cancel")
+        .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
+
 
       "return 204 for a successful cancellation" in {
         givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
@@ -691,6 +696,7 @@ class AgentControllerISpec extends BaseISpec {
 
       val cancelInvitationVatApi = controller.cancelInvitationApi(arn, invitationIdVAT)
       val requestVAT = FakeRequest("DELETE", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}/cancel")
+        .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
 
       "return 204 for a successful cancellation" in {
         givenCancelAgentInvitationStub(arn, invitationIdVAT, 204)
@@ -706,6 +712,7 @@ class AgentControllerISpec extends BaseISpec {
     "getting the status of an ITSA relationship" should {
       val checkRelationshipApi = controller.checkRelationshipApi(arn)
       val request = FakeRequest("POST", s"/agents/$arn/relationships")
+        .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
 
       "return 204 when the relationship is active for ITSA" in {
         givenMtdItIdIsKnownFor(validNino, mtdItId)
@@ -902,6 +909,7 @@ class AgentControllerISpec extends BaseISpec {
 
         val getInvitations = controller.getInvitationsApi(arn)
         val request = FakeRequest("GET", s"/agents/${arn.value}/invitations")
+          .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
 
         implicit val timeout: Timeout = Timeout(Duration.Zero)
 
