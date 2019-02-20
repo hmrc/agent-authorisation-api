@@ -23,6 +23,8 @@ import akka.stream.ActorMaterializer
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito.{reset, when}
 import org.scalatestplus.play.OneAppPerSuite
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{Headers, RequestHeader}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn

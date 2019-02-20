@@ -28,6 +28,7 @@ import uk.gov.hmrc.agentauthorisation.audit.AuditService
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.connectors.{DesConnector, InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
+import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.models
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.InvitationService
@@ -48,6 +49,7 @@ class AgentController @Inject()(
   desConnector: DesConnector,
   auditService: AuditService,
   val authConnector: AuthConnector,
+  val withVerifiedPasscode: PasscodeVerification,
   ecp: Provider[ExecutionContext])
     extends BaseController with AuthActions {
 
@@ -56,7 +58,7 @@ class AgentController @Inject()(
   import AgentController._
 
   def createInvitationApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAsAgent { arn =>
+    withAuthorisedAsAgent { (arn, _) =>
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
         request.body.asJson.map(_.validate[CreateInvitationPayload]) match {
@@ -89,7 +91,7 @@ class AgentController @Inject()(
 
   def getInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
     Action.async { implicit request =>
-      withAuthorisedAsAgent { arn =>
+      withAuthorisedAsAgent { (arn, _) =>
         implicit val loggedInArn: Arn = arn
         forThisAgency(givenArn) {
           invitationService
@@ -127,7 +129,7 @@ class AgentController @Inject()(
 
   def cancelInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
     Action.async { implicit request =>
-      withAuthorisedAsAgent { arn =>
+      withAuthorisedAsAgent { (arn, _) =>
         implicit val loggedInArn: Arn = arn
         forThisAgency(givenArn) {
           invitationsConnector
@@ -163,7 +165,7 @@ class AgentController @Inject()(
     }
 
   def checkRelationshipApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAsAgent { arn =>
+    withAuthorisedAsAgent { (arn, _) =>
       implicit val loggedInAgent: Arn = arn
       forThisAgency(givenArn) {
         val invitationResponse = request.body.asJson match {
@@ -325,7 +327,7 @@ class AgentController @Inject()(
     }
 
   def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAsAgent { arn =>
+    withAuthorisedAsAgent { (arn, _) =>
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
         val previousDate =

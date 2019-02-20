@@ -22,6 +22,7 @@ import javax.inject.{Inject, Provider, Singleton}
 import play.api.{Configuration, Environment, Logger}
 import uk.gov.hmrc.agentauthorisation.ApplicationRegistration
 import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
+import uk.gov.hmrc.agentauthorisation.controllers.api.{FrontendPasscodeVerification, PasscodeVerification}
 import uk.gov.hmrc.api.connector.{ApiServiceLocatorConnector, ServiceLocatorConnector}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.otac.OtacAuthConnector
@@ -61,6 +62,8 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bind(classOf[ServiceLocatorConnector])
       .to(classOf[ApiServiceLocatorConnector])
     bind(classOf[AuthConnector]).to(classOf[MicroserviceAuthConnector])
+    bind(classOf[PasscodeVerification])
+      .to(classOf[FrontendPasscodeVerification])
     bind(classOf[OtacAuthConnector]).to(classOf[MicroserviceAuthConnector])
     bind(classOf[ApplicationRegistration]).asEagerSingleton()
 
