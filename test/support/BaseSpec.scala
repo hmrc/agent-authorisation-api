@@ -43,8 +43,6 @@ abstract class BaseSpec extends UnitSpec with MockitoSugar with OneAppPerSuite {
 
   when(mockServiceLocator.register).thenReturn(Future.successful(true))
 
-
-
   def testRequest[A](fakeRequest: FakeRequest[A]): RequestHeader = new RequestHeader {
     override def id: Long = fakeRequest.id
     override def tags: Map[String, String] = fakeRequest.tags

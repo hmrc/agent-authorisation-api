@@ -19,7 +19,7 @@ import akka.stream.Materializer
 import javax.inject.{Inject, Named, Singleton}
 import play.api.http.HeaderNames
 import play.api.mvc.{Filter, RequestHeader, Result}
-import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse.{errorBadRequestCustomMessage, errorAcceptHeaderInvalidCustomMessage}
+import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse.{errorAcceptHeaderInvalidCustomMessage, errorBadRequestCustomMessage}
 
 import scala.concurrent.Future
 import scala.util.Try
