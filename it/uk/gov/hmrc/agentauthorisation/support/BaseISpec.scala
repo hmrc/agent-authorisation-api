@@ -10,7 +10,6 @@ import uk.gov.hmrc.play.test.UnitSpec
 abstract class BaseISpec
     extends UnitSpec with OneAppPerSuite with WireMockSupport with AuthStubs with ACAStubs with DataStreamStubs
     with ACRStubs with DesStubs with TestIdentifiers {
-
   override implicit lazy val app: Application = appBuilder.build()
 
   protected def appBuilder: GuiceApplicationBuilder =
@@ -28,7 +27,8 @@ abstract class BaseISpec
         "microservice.services.des.port"                                -> wireMockPort,
         "microservice.services.service-locator.port"                    -> wireMockPort,
         "microservice.services.service-locator.host"                    -> wireMockHost,
-        "passcodeAuthentication.enabled"                                -> true
+        "passcodeAuthentication.enabled"                                -> true,
+        "api.supported-versions"                                        -> Seq("1.0")
       )
 
   protected implicit val materializer: Materializer = app.materializer

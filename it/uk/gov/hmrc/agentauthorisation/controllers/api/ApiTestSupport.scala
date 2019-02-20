@@ -21,7 +21,7 @@ import play.api.libs.ws.WSClient
 import play.utils.UriEncoding
 import uk.gov.hmrc.agentauthorisation.controllers.api.ApiTestSupport.Endpoint
 import uk.gov.hmrc.agentauthorisation.support.Resource
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext
 import scala.util.Try
@@ -33,7 +33,7 @@ object ApiTestSupport {
 
 }
 
-abstract class ApiTestSupport(implicit ws: WSClient, ec: ExecutionContext) {
+abstract class ApiTestSupport(implicit ws: WSClient, hc: HeaderCarrier, ec: ExecutionContext) {
 
   val runningPort: Int
 

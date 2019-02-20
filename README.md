@@ -143,6 +143,18 @@ The authorisation request was created successfully.
   "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported version number"
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported content-type."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
@@ -187,6 +199,28 @@ The authorisation request was created successfully.
 {
   "code": "NO_PERMISSION_ON_AGENCY",
   "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 406
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Missing 'Accept' header."
+}
+```
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Invalid 'Accept' header"
 }
 ```
 
@@ -245,6 +279,28 @@ Returns all authorisation requests for the last 30 days.
 ### Response code: 204
 The agent has no authorisation requests for the last 30 days.
 
+### Response code: 400
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported version number"
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported content-type."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
 ### Response code: 403
 
 #### errorResponse (application/json) 
@@ -265,6 +321,28 @@ The agent has no authorisation requests for the last 30 days.
 {
   "code": "NO_PERMISSION_ON_AGENCY",
   "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 406
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Missing 'Accept' header."
+}
+```
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Invalid 'Accept' header"
 }
 ```
 
@@ -329,6 +407,28 @@ Returns the authorisation request.
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
 
+### Response code: 400
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported version number"
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported content-type."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
 ### Response code: 403
 
 #### errorResponse (application/json) 
@@ -373,6 +473,28 @@ Returns the authorisation request.
 |:-----|:----:|:------------|:--------:|--------:|
 | code |  string |  | true |  |
 
+### Response code: 406
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Missing 'Accept' header."
+}
+```
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Invalid 'Accept' header"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
 ---
 #### **DELETE** *(secured)*:
 
@@ -384,6 +506,28 @@ Returns the authorisation request.
 
 ### Response code: 204
 The authorisation request has been cancelled successfully.
+
+### Response code: 400
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported version number"
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported content-type."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
 
 ### Response code: 403
 
@@ -427,6 +571,28 @@ The authorisation request has been cancelled successfully.
 {
   "code": "INVITATION_NOT_FOUND",
   "message": "The authorisation request cannot be found."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 406
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Missing 'Accept' header."
+}
+```
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Invalid 'Accept' header"
 }
 ```
 
@@ -513,6 +679,18 @@ Relationship is active. Agent is authorised to act for the client.
   "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
 }
 ```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported version number"
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported content-type."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
@@ -573,6 +751,28 @@ Relationship is active. Agent is authorised to act for the client.
 {
   "code": "RELATIONSHIP_NOT_FOUND",
   "message": "Relationship is inactive. Agent is not authorised to act for this client."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 406
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Missing 'Accept' header."
+}
+```
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Invalid 'Accept' header"
 }
 ```
 
