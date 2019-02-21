@@ -38,6 +38,9 @@ class AcceptHeaderFilter @Inject()(@Named("api.supported-versions") apiSupported
 
     def getGroup(key: String)(matches: Match): Option[String] = Try(matches.group(key)).toOption
 
+    val uriExclusions = Seq("/ping/ping")
+    val requestUri = uriExclusions.contains(rh.uri)
+
     val acceptHeader: Option[String] = rh.headers.get(HeaderNames.ACCEPT)
     val optMatch: Option[Match] = acceptHeader.flatMap(acceptHeaderRegex.findFirstMatchIn)
 
@@ -46,13 +49,17 @@ class AcceptHeaderFilter @Inject()(@Named("api.supported-versions") apiSupported
     val isSupportedContentType =
       optMatch.flatMap(getGroup("content-type")).fold(false)(c => c.equalsIgnoreCase("json"))
 
-    val errorMessage = (acceptHeader, acceptType, isSupportedVersion, isSupportedContentType) match {
-      case (None, _, _, _)  => Some(errorAcceptHeaderInvalidCustomMessage("Missing 'Accept' header."))
-      case (_, None, _, _)  => Some(errorAcceptHeaderInvalidCustomMessage("Invalid 'Accept' header."))
-      case (_, _, false, _) => Some(errorBadRequestCustomMessage("Missing or unsupported version number."))
-      case (_, _, _, false) => Some(errorBadRequestCustomMessage("Missing or unsupported content-type."))
-      case _                => None
-    }
+    val errorMessage =
+      if (requestUri) None
+      else {
+        (acceptHeader, acceptType, isSupportedVersion, isSupportedContentType) match {
+          case (None, _, _, _)  => Some(errorAcceptHeaderInvalidCustomMessage("Missing 'Accept' header."))
+          case (_, None, _, _)  => Some(errorAcceptHeaderInvalidCustomMessage("Invalid 'Accept' header."))
+          case (_, _, false, _) => Some(errorBadRequestCustomMessage("Missing or unsupported version number."))
+          case (_, _, _, false) => Some(errorBadRequestCustomMessage("Missing or unsupported content-type."))
+          case _                => None
+        }
+      }
 
     errorMessage match {
       case Some(e) => Future.successful(e)
