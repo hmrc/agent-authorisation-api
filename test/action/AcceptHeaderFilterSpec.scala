@@ -16,7 +16,7 @@
 
 package action
 
-import play.api.mvc.{RequestHeader, Result}
+import play.api.mvc.{Call, RequestHeader, Result}
 import play.api.test.FakeRequest
 import support.BaseSpec
 import uk.gov.hmrc.agentauthorisation.actions.AcceptHeaderFilter
@@ -37,6 +37,8 @@ class AcceptHeaderFilterSpec extends BaseSpec {
 
     def fakeHeaders(headers: Seq[(String, String)]) = testRequest(FakeRequest().withHeaders(headers: _*))
 
+    def fakeHeaders(call: Call, headers: Seq[(String, String)]) = testRequest(FakeRequest(call).withHeaders(headers: _*))
+
     def toResult(result: Result) = (_: RequestHeader) => Future.successful(result)
   }
 
@@ -48,6 +50,12 @@ class AcceptHeaderFilterSpec extends BaseSpec {
         val supportedVersions: Seq[String] = Seq("1.0")
         val fakeTestHeader = fakeHeaders(testHeaderVersion("1.0"))
         TestAcceptHeaderFilter(supportedVersions).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
+      }
+
+      "uri is /ping/ping with no headers" in {
+        val call = Call("GET", "/ping/ping")
+        val fakeTestHeader = fakeHeaders(call,testHeaderVersion("1.0"))
+        TestAcceptHeaderFilter(Seq.empty).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
       }
     }
 
