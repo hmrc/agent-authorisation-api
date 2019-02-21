@@ -186,7 +186,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe UnsupportedService
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for ITSA" in {
@@ -197,7 +197,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe ClientIdInvalidFormat
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for VAT" in {
@@ -208,7 +208,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe ClientIdInvalidFormat
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 400 POSTCODE_FORMAT_INVALID when the postcode has an invalid format" in {
@@ -219,7 +219,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe PostcodeFormatInvalid
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 400 VAT_REG_DATE_FORMAT_INVALID when the VAT registration date has an invalid format" in {
@@ -230,7 +230,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe VatRegDateFormatInvalid
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for ITSA" in {
@@ -242,7 +242,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe ClientIdDoesNotMatchService
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for VAT" in {
@@ -254,7 +254,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 400
       await(result) shouldBe ClientIdDoesNotMatchService
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 403 CLIENT_REGISTRATION_NOT_FOUND when the postcode returns nothing" in {
@@ -323,7 +323,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe NotAnAgent
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 403 NOT_PERMISSION_ON_AGENCY when the logged in user does not have an HMRC-AS-AGENT enrolment" in {
@@ -341,7 +341,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe NoPermissionOnAgency
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return a future failed when the invitation creation failed for ITSA" in {
@@ -654,7 +654,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = cancelInvitationItsaApi(requestITSA)
 
         await(result) shouldBe NotAnAgent
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisedCancelledViaApi)
 
       }
 
@@ -681,14 +681,14 @@ class AgentControllerISpec extends BaseISpec {
         val result = cancelInvitationItsaApi(requestITSA)
 
         await(result) shouldBe AgentNotSubscribed
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisedCancelledViaApi)
       }
 
       "return 403 NO_PERMISSION_ON_AGENCY when the arn given does not match the logged in user" in {
         givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
         val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn2.value))
         await(result) shouldBe NoPermissionOnAgency
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisedCancelledViaApi)
       }
     }
 
@@ -761,7 +761,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 400
         await(result) shouldBe UnsupportedService
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
       }
 
       "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for ITSA" in {
@@ -773,7 +773,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 400
         await(result) shouldBe ClientIdInvalidFormat
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
 
       }
 
@@ -786,7 +786,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 400
         await(result) shouldBe ClientIdInvalidFormat
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
       }
 
       "return 400 POSTCODE_FORMAT_INVALID when the postcode has an invalid format" in {
@@ -798,7 +798,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 400
         await(result) shouldBe PostcodeFormatInvalid
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
 
       }
 
@@ -811,7 +811,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 400
         await(result) shouldBe VatRegDateFormatInvalid
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
 
       }
 
@@ -824,7 +824,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 400
         await(result) shouldBe ClientIdDoesNotMatchService
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
 
       }
 
@@ -837,7 +837,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 400
         await(result) shouldBe ClientIdDoesNotMatchService
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
       }
 
       "return 403 CLIENT_REGISTRATION_NOT_FOUND when the postcode returns nothing" in {
@@ -880,7 +880,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe NotAnAgent
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
 
       }
 
@@ -899,7 +899,7 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 403
         await(result) shouldBe NoPermissionOnAgency
-        verifyAuditRequestNotSent(AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi)
+        verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
       }
     }
 
@@ -963,7 +963,7 @@ class AgentControllerISpec extends BaseISpec {
     failure: Option[String] = None): Unit =
     verifyAuditRequestSent(
       1,
-      AgentAuthorisationEvent.AgentAuthorisationCreatedViaApi,
+      AgentAuthorisationEvent.agentAuthorisationCreatedViaApi,
       detail = Map(
         "factCheck"            -> result,
         "agentReferenceNumber" -> arn,
@@ -980,7 +980,7 @@ class AgentControllerISpec extends BaseISpec {
     failure: Option[String] = None): Unit =
     verifyAuditRequestSent(
       1,
-      AgentAuthorisationEvent.AgentAuthorisedCancelledViaApi,
+      AgentAuthorisationEvent.agentAuthorisedCancelledViaApi,
       detail = Map("invitationId" -> invitationId.value, "agentReferenceNumber" -> arn)
         .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
       tags = Map("transactionName" -> "Agent cancelled invitation through third party software")
