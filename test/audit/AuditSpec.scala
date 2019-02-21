@@ -37,7 +37,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
   "auditEvent" should {
 
-    "send an AgentAuthorisationCreatedViaApi Event for ITSA" in {
+    "send an agentAuthorisationCreatedViaApi Event for ITSA" in {
       val mockConnector = mock[AuditConnector]
       val service = new AuditService(mockConnector)
 
@@ -64,7 +64,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
         val sentEvent = captor.getValue.asInstanceOf[DataEvent]
 
-        sentEvent.auditType shouldBe "AgentAuthorisationCreatedViaApi"
+        sentEvent.auditType shouldBe "agentAuthorisationCreatedViaApi"
         sentEvent.auditSource shouldBe "agent-authorisation-api"
         sentEvent.detail("factCheck") shouldBe "Success"
         sentEvent.detail("invitationId") shouldBe "1"
@@ -80,7 +80,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       }
     }
 
-    "send an AgentAuthorisationCreatedViaApi Event for VAT" in {
+    "send an agentAuthorisationCreatedViaApi Event for VAT" in {
       val mockConnector = mock[AuditConnector]
       val service = new AuditService(mockConnector)
 
@@ -107,7 +107,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
         val sentEvent = captor.getValue.asInstanceOf[DataEvent]
 
-        sentEvent.auditType shouldBe "AgentAuthorisationCreatedViaApi"
+        sentEvent.auditType shouldBe "agentAuthorisationCreatedViaApi"
         sentEvent.auditSource shouldBe "agent-authorisation-api"
         sentEvent.detail("factCheck") shouldBe "Success"
         sentEvent.detail("invitationId") shouldBe "1"
@@ -123,7 +123,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       }
     }
 
-    "send an AgentAuthorisedCancelledViaApi Event for ITSA" in {
+    "send an agentAuthorisedCancelledViaApi Event for ITSA" in {
       val mockConnector = mock[AuditConnector]
       val service = new AuditService(mockConnector)
 
@@ -147,7 +147,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
         val sentEvent = captor.getValue.asInstanceOf[DataEvent]
 
-        sentEvent.auditType shouldBe "AgentAuthorisedCancelledViaApi"
+        sentEvent.auditType shouldBe "agentAuthorisedCancelledViaApi"
         sentEvent.auditSource shouldBe "agent-authorisation-api"
         sentEvent.detail("invitationId") shouldBe "1"
         sentEvent.detail("agentReferenceNumber") shouldBe "HX2345"
