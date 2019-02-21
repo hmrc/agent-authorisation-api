@@ -147,7 +147,7 @@ class AgentControllerISpec extends BaseISpec {
         "MTDITID",
         validPostcode)
 
-      createAgentLink("personal", "agent-1")
+
 
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
@@ -169,7 +169,7 @@ class AgentControllerISpec extends BaseISpec {
         "VRN",
         validVatRegDate)
 
-      createAgentLink("business", "agent-1")
+
 
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
 
@@ -397,7 +397,7 @@ class AgentControllerISpec extends BaseISpec {
       "return 200 and a json body of a pending invitation" in {
 
         givenGetITSAInvitationStub(arn, "Pending")
-        createAgentLink("personal", "agent-1")
+
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
@@ -405,7 +405,7 @@ class AgentControllerISpec extends BaseISpec {
       }
 
       "return 200 and a json body of a responded invitation" in {
-        createAgentLink("personal", "agent-1")
+
         givenGetITSAInvitationStub(arn, "Accepted")
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
@@ -487,7 +487,7 @@ class AgentControllerISpec extends BaseISpec {
       "return 404 for invitation not accessible for this Agent" in {
 
         givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 403)
-        createAgentLink("personal", "agent-1")
+
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 404
@@ -510,7 +510,7 @@ class AgentControllerISpec extends BaseISpec {
       implicit val timeout: Timeout = Timeout(Duration.Zero)
 
       "return 200 and a json body of invitation" in {
-        createAgentLink("business", "agent-1")
+
         givenGetVATInvitationStub(arn, "Pending")
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
@@ -519,7 +519,7 @@ class AgentControllerISpec extends BaseISpec {
       }
 
       "return 200 and a json body of a responded invitation" in {
-        createAgentLink("business", "agent-1")
+
         givenGetVATInvitationStub(arn, "Accepted")
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
@@ -915,8 +915,6 @@ class AgentControllerISpec extends BaseISpec {
 
         "return 200 and a json body of a pending invitation filtering out PIR relationships" in {
           givenAllInvitationsPendingStub(arn)
-          createAgentLink("personal", "agent-1")
-          createAgentLink("business", "agent-1")
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 200
@@ -925,8 +923,6 @@ class AgentControllerISpec extends BaseISpec {
 
         "return 200 and a json body of a responded invitation filtering out PIR relationships" in {
           givenAllInvitationsRespondedStub(arn)
-          createAgentLink("personal", "agent-1")
-          createAgentLink("business", "agent-1")
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 200
@@ -935,8 +931,6 @@ class AgentControllerISpec extends BaseISpec {
 
         "return 204 if there are no relationships for the agent" in {
           givenAllInvitationsEmptyStub(arn)
-          createAgentLink("personal", "agent-1")
-          createAgentLink("business", "agent-1")
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 204
@@ -944,8 +938,6 @@ class AgentControllerISpec extends BaseISpec {
 
         "return 204 if there are only PIR relationships for the agent" in {
           givenAllInvitationsPirStub(arn)
-          createAgentLink("personal", "agent-1")
-          createAgentLink("business", "agent-1")
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 204

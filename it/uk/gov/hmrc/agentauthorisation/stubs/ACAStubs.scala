@@ -44,15 +44,6 @@ trait ACAStubs {
         .willReturn(aResponse()
           .withStatus(400)))
 
-  def createAgentLink(clientType: String, normalisedAgentName: String): Unit =
-    stubFor(
-      post(urlEqualTo(s"/agent-client-authorisation/agencies/references/arn/${arn.value}/clientType/$clientType"))
-        .willReturn(
-          aResponse()
-            .withStatus(201)
-            .withHeader("location", s"/invitations/$clientType/12345678/$normalisedAgentName"))
-    )
-
   def givenMatchingClientIdAndPostcode(nino: Nino, postcode: String) =
     stubFor(
       get(urlEqualTo(s"/agent-client-authorisation/known-facts/individuals/nino/${nino.value}/sa/postcode/$postcode"))
