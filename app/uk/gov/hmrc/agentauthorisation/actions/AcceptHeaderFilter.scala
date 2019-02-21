@@ -39,7 +39,7 @@ class AcceptHeaderFilter @Inject()(@Named("api.supported-versions") apiSupported
     def getGroup(key: String)(matches: Match): Option[String] = Try(matches.group(key)).toOption
 
     val uriExclusions = Seq("/ping/ping")
-    val requestUri = uriExclusions.contains(rh.uri)
+    val excludedRequestUri = uriExclusions.contains(rh.uri)
 
     val acceptHeader: Option[String] = rh.headers.get(HeaderNames.ACCEPT)
     val optMatch: Option[Match] = acceptHeader.flatMap(acceptHeaderRegex.findFirstMatchIn)
@@ -50,7 +50,7 @@ class AcceptHeaderFilter @Inject()(@Named("api.supported-versions") apiSupported
       optMatch.flatMap(getGroup("content-type")).fold(false)(c => c.equalsIgnoreCase("json"))
 
     val errorMessage =
-      if (requestUri) None
+      if (excludedRequestUri) None
       else {
         (acceptHeader, acceptType, isSupportedVersion, isSupportedContentType) match {
           case (None, _, _, _)  => Some(errorAcceptHeaderInvalidCustomMessage("Missing 'Accept' header."))
