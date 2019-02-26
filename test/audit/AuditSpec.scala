@@ -73,7 +73,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         sentEvent.detail("clientId") shouldBe "AB123456A"
         sentEvent.detail("service") shouldBe "HMRC-MTD-IT"
 
-        sentEvent.tags("transactionName") shouldBe "Agent created invitation through third party software"
+        sentEvent.tags("transactionName") shouldBe "agent-created-invitation-via-api"
         sentEvent.tags("path") shouldBe "/path"
         sentEvent.tags("X-Session-ID") shouldBe "dummy session id"
         sentEvent.tags("X-Request-ID") shouldBe "dummy request id"
@@ -116,7 +116,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         sentEvent.detail("clientId") shouldBe "101747641"
         sentEvent.detail("service") shouldBe "HMRC-MTD-VAT"
 
-        sentEvent.tags("transactionName") shouldBe "Agent created invitation through third party software"
+        sentEvent.tags("transactionName") shouldBe "agent-created-invitation-via-api"
         sentEvent.tags("path") shouldBe "/path"
         sentEvent.tags("X-Session-ID") shouldBe "dummy session id"
         sentEvent.tags("X-Request-ID") shouldBe "dummy request id"
@@ -152,7 +152,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         sentEvent.detail("invitationId") shouldBe "1"
         sentEvent.detail("agentReferenceNumber") shouldBe "HX2345"
 
-        sentEvent.tags("transactionName") shouldBe "Agent cancelled invitation through third party software"
+        sentEvent.tags("transactionName") shouldBe "agent-cancelled-invitation-via-api"
         sentEvent.tags("path") shouldBe "/path"
         sentEvent.tags("X-Session-ID") shouldBe "dummy session id"
         sentEvent.tags("X-Request-ID") shouldBe "dummy request id"

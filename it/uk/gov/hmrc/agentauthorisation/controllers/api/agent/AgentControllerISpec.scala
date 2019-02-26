@@ -963,7 +963,7 @@ class AgentControllerISpec extends BaseISpec {
         "clientId"             -> clientId,
         "service"              -> service)
         .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map("transactionName" -> "Agent created invitation through third party software")
+      tags = Map("transactionName" -> "agent-created-invitation-via-api")
     )
 
   def verifyAgentClientInvitationCancelledEvent(
@@ -975,6 +975,6 @@ class AgentControllerISpec extends BaseISpec {
       AgentAuthorisationEvent.agentAuthorisedCancelledViaApi,
       detail = Map("invitationId" -> invitationId.value, "agentReferenceNumber" -> arn)
         .filter(_._2.nonEmpty) ++ failure.map(e => Seq("failureDescription" -> e)).getOrElse(Seq.empty),
-      tags = Map("transactionName" -> "Agent cancelled invitation through third party software")
+      tags = Map("transactionName" -> "agent-cancelled-invitation-via-api")
     )
 }
