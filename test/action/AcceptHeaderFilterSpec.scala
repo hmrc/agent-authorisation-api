@@ -37,7 +37,8 @@ class AcceptHeaderFilterSpec extends BaseSpec {
 
     def fakeHeaders(headers: Seq[(String, String)]) = testRequest(FakeRequest().withHeaders(headers: _*))
 
-    def fakeHeaders(call: Call, headers: Seq[(String, String)]) = testRequest(FakeRequest(call).withHeaders(headers: _*))
+    def fakeHeaders(call: Call, headers: Seq[(String, String)]) =
+      testRequest(FakeRequest(call).withHeaders(headers: _*))
 
     def toResult(result: Result) = (_: RequestHeader) => Future.successful(result)
   }
@@ -54,7 +55,7 @@ class AcceptHeaderFilterSpec extends BaseSpec {
 
       "uri is /ping/ping with no headers" in {
         val call = Call("GET", "/ping/ping")
-        val fakeTestHeader = fakeHeaders(call,testHeaderVersion("1.0"))
+        val fakeTestHeader = fakeHeaders(call, testHeaderVersion("1.0"))
         TestAcceptHeaderFilter(Seq.empty).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
       }
     }

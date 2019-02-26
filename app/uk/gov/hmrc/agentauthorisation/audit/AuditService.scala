@@ -59,7 +59,7 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
     ec: ExecutionContext): Future[Unit] =
     auditEvent(
       AgentAuthorisationEvent.agentAuthorisationCreatedViaApi,
-      "Agent created invitation through third party software",
+      "agent-created-invitation-via-api",
       Seq(
         "factCheck"            -> result,
         "invitationId"         -> invitationId,
@@ -79,7 +79,7 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
     ec: ExecutionContext): Future[Unit] =
     auditEvent(
       AgentAuthorisationEvent.agentAuthorisedCancelledViaApi,
-      "Agent cancelled invitation through third party software",
+      "agent-cancelled-invitation-via-api",
       Seq("result" -> result, "invitationId" -> invitationId, "agentReferenceNumber" -> arn.value)
         .filter(_._2.nonEmpty) ++ failure
         .map(e => Seq("failureDescription" -> e))
