@@ -84,15 +84,6 @@ class InvitationsConnector @Inject()(
       }
     }
 
-  def createAgentLink(arn: Arn, clientType: String)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[String]] =
-    monitor(s"ConsumedAPI-Agent-Create-Agent-Link-POST") {
-      http.POST[Boolean, HttpResponse](createAgentLinkUrl(arn, clientType).toString, false) map { r =>
-        r.header("location")
-      }
-    }
-
   def checkPostcodeForClient(nino: Nino, postcode: String)(
     implicit
     hc: HeaderCarrier,

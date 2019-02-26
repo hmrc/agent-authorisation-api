@@ -44,15 +44,6 @@ trait ACAStubs {
         .willReturn(aResponse()
           .withStatus(400)))
 
-  def createAgentLink(clientType: String, normalisedAgentName: String): Unit =
-    stubFor(
-      post(urlEqualTo(s"/agent-client-authorisation/agencies/references/arn/${arn.value}/clientType/$clientType"))
-        .willReturn(
-          aResponse()
-            .withStatus(201)
-            .withHeader("location", s"/invitations/$clientType/12345678/$normalisedAgentName"))
-    )
-
   def givenMatchingClientIdAndPostcode(nino: Nino, postcode: String) =
     stubFor(
       get(urlEqualTo(s"/agent-client-authorisation/known-facts/individuals/nino/${nino.value}/sa/postcode/$postcode"))
@@ -148,6 +139,7 @@ trait ACAStubs {
                          |  "created" : "2017-10-31T23:22:50.971Z",
                          |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
                          |  "expiryDate" : "2017-12-18",
+                         |  "clientActionUrl": "someInvitationUrl/invitations/$clientType/12345678/agent-1",
                          |  "_links": {
                          |    	"self" : {
                          |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"
@@ -278,6 +270,7 @@ trait ACAStubs {
                               |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
                               |  "expiryDate" : "$expiryDate",
                               |  "invitationId": "$invitationId",
+                              |  "clientActionUrl": "someInvitationUrl/invitations/$clientType/12345678/agent-1",
                               |  "_links": {
                               |    	"self" : {
                               |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/$invitationId"

@@ -21,10 +21,10 @@ class InvitationsConnectorISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2018-09-11T21:02:00.000Z",
     Arn("TARN0000001"),
-    "personal",
+    Some("personal"),
     "MTD-IT",
     "Pending",
-    None
+    Some("someInvitationUrl/invitations/personal/12345678/agent-1")
   )
 
   val storedVatInvitation = StoredInvitation(
@@ -33,10 +33,10 @@ class InvitationsConnectorISpec extends BaseISpec {
     "2017-12-18T00:00:00.000",
     "2018-09-11T21:02:00.000Z",
     Arn("TARN0000001"),
-    "business",
+    Some("business"),
     "MTD-VAT",
     "Pending",
-    None
+    Some("someInvitationUrl/invitations/business/12345678/agent-1")
   )
 
 
