@@ -32,12 +32,12 @@ object ErrorResponse {
     Unauthorized(ErrorResponse(401, code, message).toJson)
   def errorUnauthorisedCustomMessage(message: String): Result = errorGenericUnauthorised("UNAUTHORIZED", message)
   val standardUnauthorised: Result =
-    errorGenericUnauthorised("UNAUTHORIZED", "Bearer token is missing or not authorized")
+    errorGenericUnauthorised("UNAUTHORIZED", "Bearer token is missing or not authorized.")
 
   def errorGenericNotFound(code: String, message: String): Result = NotFound(ErrorResponse(404, code, message).toJson)
   def errorNotFoundCustomMessage(message: String): Result = errorGenericNotFound("NOT_FOUND", message)
   val standardNotFound: Result =
-    errorGenericNotFound("NOT_FOUND", "Resource was not found")
+    errorGenericNotFound("NOT_FOUND", "Resource was not found.")
 
   def errorGenericBadRequest(code: String, message: String): Result =
     BadRequest(ErrorResponse(400, code, message).toJson)
@@ -50,13 +50,13 @@ object ErrorResponse {
   def errorAcceptHeaderInvalidCustomMessage(message: String): Result =
     errorGenericAcceptHeaderInvalid("ACCEPT_HEADER_INVALID", message)
   val standardAcceptHeaderInvalid: Result =
-    errorGenericAcceptHeaderInvalid("ACCEPT_HEADER_INVALID", "The accept header is missing or invalid")
+    errorGenericAcceptHeaderInvalid("ACCEPT_HEADER_INVALID", "The accept header is missing or invalid.")
 
   def errorGenericInternalServerError(code: String, message: String): Result =
     InternalServerError(ErrorResponse(500, code, message).toJson)
   def errorInternalServerErrorCustomMessage(message: String): Result =
     errorGenericInternalServerError("INTERNAL_SERVER_ERROR", message)
   val standardInternalServerError: Result =
-    errorGenericInternalServerError("INTERNAL_SERVER_ERROR", "Internal server error")
+    errorGenericInternalServerError("INTERNAL_SERVER_ERROR", "Internal server error.")
 
 }

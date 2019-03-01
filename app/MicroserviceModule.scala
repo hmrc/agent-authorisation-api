@@ -48,7 +48,6 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindBaseUrl("agent-client-relationships")
     bindBaseUrl("service-locator")
     bindBaseUrl("des")
-    bindServiceProperty("agent-invitations-frontend.external-url")
     bindServiceBooleanProperty("service-locator.enabled")
     bindIntegerProperty("get-requests-show-last-days")
 

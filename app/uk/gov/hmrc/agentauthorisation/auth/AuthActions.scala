@@ -19,6 +19,7 @@ package uk.gov.hmrc.agentauthorisation.auth
 import play.api.Logger
 import play.api.mvc.{Request, Result}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
+import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
@@ -79,6 +80,9 @@ trait AuthActions extends AuthorisedFunctions {
         case _: InsufficientEnrolments =>
           Logger(getClass).warn(s"User has Insufficient Enrolments to Login")
           Future successful NotAnAgent
+        case e: AuthorisationException =>
+          Logger(getClass).warn(s"User has Missing Bearer Token in Header or: $e")
+          Future successful standardUnauthorised
       }
     }
 

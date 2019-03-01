@@ -155,6 +155,28 @@ The authorisation request was created successfully.
   "message": "Missing or unsupported content-type."
 }
 ```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Bad Request"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "UNAUTHORIZED",
+  "message": "Bearer token is missing or not authorized."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
@@ -229,6 +251,22 @@ The authorisation request was created successfully.
 |:-----|:----:|:------------|:--------:|--------:|
 | code |  string |  | true |  |
 
+### Response code: 500
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "Internal server error."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
 ---
 #### **GET** *(secured)*:
 
@@ -295,6 +333,28 @@ The agent has no authorisation requests for the last 30 days.
   "message": "Missing or unsupported content-type."
 }
 ```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Bad Request"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "UNAUTHORIZED",
+  "message": "Bearer token is missing or not authorized."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
@@ -343,6 +403,22 @@ The agent has no authorisation requests for the last 30 days.
 {
   "code": "ACCEPT_HEADER_INVALID",
   "message": "Invalid 'Accept' header"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 500
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "Internal server error."
 }
 ```
 
@@ -423,6 +499,28 @@ Returns the authorisation request.
   "message": "Missing or unsupported content-type."
 }
 ```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Bad Request"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "UNAUTHORIZED",
+  "message": "Bearer token is missing or not authorized."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
@@ -495,6 +593,22 @@ Returns the authorisation request.
 |:-----|:----:|:------------|:--------:|--------:|
 | code |  string |  | true |  |
 
+### Response code: 500
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "Internal server error."
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
 ---
 #### **DELETE** *(secured)*:
 
@@ -521,6 +635,28 @@ The authorisation request has been cancelled successfully.
 {
   "code": "BAD_REQUEST",
   "message": "Missing or unsupported content-type."
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Bad Request"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "UNAUTHORIZED",
+  "message": "Bearer token is missing or not authorized."
 }
 ```
 
@@ -593,6 +729,22 @@ The authorisation request has been cancelled successfully.
 {
   "code": "ACCEPT_HEADER_INVALID",
   "message": "Invalid 'Accept' header"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 500
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "Internal server error."
 }
 ```
 
@@ -691,6 +843,28 @@ Relationship is active. Agent is authorised to act for the client.
   "message": "Missing or unsupported content-type."
 }
 ```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Bad Request"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 401
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "UNAUTHORIZED",
+  "message": "Bearer token is missing or not authorized."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
@@ -773,6 +947,22 @@ Relationship is active. Agent is authorised to act for the client.
 {
   "code": "ACCEPT_HEADER_INVALID",
   "message": "Invalid 'Accept' header"
+}
+```
+
+##### *errorResponse*:
+| Name | Type | Description | Required | Pattern |
+|:-----|:----:|:------------|:--------:|--------:|
+| code |  string |  | true |  |
+
+### Response code: 500
+
+#### errorResponse (application/json) 
+
+```
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "Internal server error."
 }
 ```
 

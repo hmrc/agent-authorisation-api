@@ -47,11 +47,10 @@ class AuthActionsISpec extends BaseISpec {
       bodyOf(result) shouldBe "(fooArn,false)"
     }
 
-    "throw AuthorisationException when user not logged in" in {
+    "return 401 UNAUTHORISED when no Bearer Token supplied" in {
       givenUnauthorisedWith("MissingBearerToken")
-      an[AuthorisationException] shouldBe thrownBy {
-        TestController.withAuthorisedAsAgent
-      }
+      val result = TestController.withAuthorisedAsAgent
+      status(result) shouldBe 401
     }
 
     "return 403 Not An Agent when agent not enrolled for service" in {

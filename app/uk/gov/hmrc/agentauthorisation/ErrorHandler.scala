@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation
 
 import javax.inject.{Inject, Singleton}
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import play.api.http.Status._
 import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
@@ -36,6 +36,7 @@ class ErrorHandler @Inject()(auditConnector: AuditConnector)(
     implicit val req = request
 
     super.onClientError(request, statusCode, message).map { auditedError =>
+      Logger(getClass).warn(s"Client Side Error: $message from request: $request statusCode: $statusCode")
       statusCode match {
         case NOT_FOUND    => standardNotFound
         case BAD_REQUEST  => standardBadRequest
@@ -48,6 +49,11 @@ class ErrorHandler @Inject()(auditConnector: AuditConnector)(
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     implicit val req: RequestHeader = request
 
-    super.onServerError(request, exception).map(_ => standardInternalServerError)
+    super
+      .onServerError(request, exception)
+      .map(_ => {
+        Logger(getClass).warn(s"Client Side Error: $exception from request: $request")
+        standardInternalServerError
+      })
   }
 }
