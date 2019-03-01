@@ -27,9 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationService @Inject()(
-  @Named("agent-invitations-frontend.external-url") invitationFrontendUrl: String,
-  invitationsConnector: InvitationsConnector) {
+class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit

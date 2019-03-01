@@ -18,7 +18,6 @@ abstract class BaseISpec
         "auditing.enabled"                                              -> true,
         "auditing.consumer.baseUri.host"                                -> wireMockHost,
         "auditing.consumer.baseUri.port"                                -> wireMockPort,
-        "microservice.services.agent-invitations-frontend.external-url" -> "someInvitationUrl",
         "microservice.services.auth.port"                               -> wireMockPort,
         "microservice.services.agent-client-authorisation.port"         -> wireMockPort,
         "microservice.services.agent-client-relationships.port"         -> wireMockPort,
