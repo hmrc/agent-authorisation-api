@@ -238,10 +238,42 @@ traits:
                     code: ACCEPT_HEADER_INVALID
                     message: Invalid 'Accept' header
 
+  standardErrors:
+    responses:
+      400:
+         body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              badRequest:
+                  description: Bad Request
+                  value:
+                    code: BAD_REQUEST
+                    message: Bad Request
+      401:
+         body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              unauthorizedRequest:
+                  description: Bearer token is missing or not authorized.
+                  value:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+      500:
+         body:
+          application/json:
+            type: types.errorResponse
+            examples:
+              internalServerRequest:
+                  description: INTERNAL_SERVER_ERROR
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
 
 /agents/{arn}:
   /invitations:
-    is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, headerErrors]
+    is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, headerErrors, standardErrors]
     uriParameters:
       arn:
         description: The Making Tax Digital (MTD) platform Agent Reference Number.
@@ -288,7 +320,7 @@ traits:
           description: The agent has no authorisation requests for the last 30 days.
 
     /{invitationId}:
-      is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified, headerErrors]
+      is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, invitationSpecified, headerErrors, standardErrors]
       uriParameters:
         invitationId:
           description: A unique authorisation request ID
@@ -317,7 +349,7 @@ traits:
             description: The authorisation request has been cancelled successfully.
 
   /relationships:
-    is: [headers.acceptHeader, clientRegistrationRequired, knownFactMatches, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound, serviceSpecified, clientIdSpecified, headerErrors]
+    is: [headers.acceptHeader, clientRegistrationRequired, knownFactMatches, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound, serviceSpecified, clientIdSpecified, headerErrors, standardErrors]
     uriParameters:
       arn:
         description: The Making Tax Digital (MTD) platform Agent Reference Number.
