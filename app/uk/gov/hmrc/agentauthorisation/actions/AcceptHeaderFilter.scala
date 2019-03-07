@@ -38,8 +38,8 @@ class AcceptHeaderFilter @Inject()(@Named("api.supported-versions") apiSupported
 
     def getGroup(key: String)(matches: Match): Option[String] = Try(matches.group(key)).toOption
 
-    val uriExclusions = Seq("/ping/ping")
-    val excludedRequestUri = uriExclusions.contains(rh.uri)
+    val uriExclusions = Seq("\\/ping\\/ping", "\\/api.+")
+    val excludedRequestUri: Boolean = uriExclusions.exists(rh.uri.matches)
 
     val acceptHeader: Option[String] = rh.headers.get(HeaderNames.ACCEPT)
     val optMatch: Option[Match] = acceptHeader.flatMap(acceptHeaderRegex.findFirstMatchIn)

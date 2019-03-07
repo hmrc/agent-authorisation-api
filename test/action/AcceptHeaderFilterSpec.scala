@@ -55,7 +55,24 @@ class AcceptHeaderFilterSpec extends BaseSpec {
 
       "uri is /ping/ping with no headers" in {
         val call = Call("GET", "/ping/ping")
-        val fakeTestHeader = fakeHeaders(call, testHeaderVersion("1.0"))
+        val fakeTestHeader = fakeHeaders(call, Seq.empty)
+        TestAcceptHeaderFilter(Seq.empty).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
+      }
+
+      "uri is /api/conf/:version/*file with no headers" in {
+        val call = Call("GET", "/api/conf/1.0/someFile")
+        val fakeTestHeader = fakeHeaders(call, Seq.empty)
+        TestAcceptHeaderFilter(Seq.empty).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
+      }
+
+      "uri is /api/definition with no headers" in {
+        val call = Call("GET", "/api/definition")
+        val fakeTestHeader = fakeHeaders(call, Seq.empty)
+        TestAcceptHeaderFilter(Seq.empty).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
+      }
+      "uri is /api/documentation/:version/:endpointName with no headers" in {
+        val call = Call("GET", "/api/documentation/1.0/someEndpointName")
+        val fakeTestHeader = fakeHeaders(call, Seq.empty)
         TestAcceptHeaderFilter(Seq.empty).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
       }
     }
