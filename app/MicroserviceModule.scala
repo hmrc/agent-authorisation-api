@@ -16,14 +16,12 @@
 
 import java.net.URL
 
+import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, TypeLiteral}
-import com.google.inject.name.{Named, Names}
-import javax.inject.{Inject, Provider, Singleton}
+import javax.inject.Provider
 import play.api.{Configuration, Environment, Logger}
-import uk.gov.hmrc.agentauthorisation.ApplicationRegistration
 import uk.gov.hmrc.agentauthorisation.connectors.MicroserviceAuthConnector
 import uk.gov.hmrc.agentauthorisation.controllers.api.{FrontendPasscodeVerification, PasscodeVerification}
-import uk.gov.hmrc.api.connector.{ApiServiceLocatorConnector, ServiceLocatorConnector}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.otac.OtacAuthConnector
 import uk.gov.hmrc.http._
@@ -48,7 +46,6 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindBaseUrl("agent-client-relationships")
     bindBaseUrl("service-locator")
     bindBaseUrl("des")
-    bindServiceBooleanProperty("service-locator.enabled")
     bindIntegerProperty("get-requests-show-last-days")
 
     bindSeqStringProperty("api.supported-versions")
@@ -58,13 +55,10 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bind(classOf[HttpPost]).to(classOf[DefaultHttpClient])
     bind(classOf[HttpPut]).to(classOf[DefaultHttpClient])
 
-    bind(classOf[ServiceLocatorConnector])
-      .to(classOf[ApiServiceLocatorConnector])
     bind(classOf[AuthConnector]).to(classOf[MicroserviceAuthConnector])
     bind(classOf[PasscodeVerification])
       .to(classOf[FrontendPasscodeVerification])
     bind(classOf[OtacAuthConnector]).to(classOf[MicroserviceAuthConnector])
-    bind(classOf[ApplicationRegistration]).asEagerSingleton()
 
   }
 
