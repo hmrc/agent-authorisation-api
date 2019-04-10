@@ -44,7 +44,6 @@ class MicroserviceModule(val environment: Environment, val configuration: Config
     bindBaseUrl("auth")
     bindBaseUrl("agent-client-authorisation")
     bindBaseUrl("agent-client-relationships")
-    bindBaseUrl("service-locator")
     bindBaseUrl("des")
     bindIntegerProperty("get-requests-show-last-days")
 
