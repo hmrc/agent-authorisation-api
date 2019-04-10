@@ -276,7 +276,7 @@ traits:
     is: [headers.acceptHeader, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, headerErrors, standardErrors]
     uriParameters:
       arn:
-        description: The Making Tax Digital (MTD) platform Agent Reference Number.
+        description: !include docs/arn_see_here.md
         type: string
         example: AARN9999999
     post:
@@ -352,7 +352,7 @@ traits:
     is: [headers.acceptHeader, clientRegistrationRequired, knownFactMatches, mustBeAnAgent, agentSubscriptionRequired, permissionOnAgencyRequired, relationshipNotFound, serviceSpecified, clientIdSpecified, headerErrors, standardErrors]
     uriParameters:
       arn:
-        description: The Making Tax Digital (MTD) platform Agent Reference Number.
+        description: !include docs/arn_see_here.md
         type: string
         example: AARN9999999
     post:

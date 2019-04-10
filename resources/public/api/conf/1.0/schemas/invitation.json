@@ -28,6 +28,7 @@
     },
     "arn": {
       "type": "string",
+      "pattern":"^[A-Z]ARN[0-9]{7}$",
       "description": "The Agent Registration Number for the calling agency"
     },
     "created": {
