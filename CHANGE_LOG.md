@@ -1,3 +1,7 @@
+## [0.68.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.68.0) 18 April 2019
+
+* Moved the APIs from Private Beta to Public Beta 
+
 ## [0.49.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.48.0) 31 Janurary 2019
 
 * Added Mandatory parameter field, Client Type for  POST /agents/{arn}/invitations
