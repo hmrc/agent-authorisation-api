@@ -17,7 +17,7 @@
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.mockito.Mockito.when
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._

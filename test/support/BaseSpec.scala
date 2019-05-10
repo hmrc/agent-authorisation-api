@@ -20,7 +20,7 @@ import java.security.cert.X509Certificate
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.OneAppPerSuite
 import play.api.mvc.{Headers, RequestHeader}
 import play.api.test.FakeRequest

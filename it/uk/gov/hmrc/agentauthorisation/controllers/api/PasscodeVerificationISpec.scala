@@ -20,7 +20,7 @@ import java.io.File
 
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Results.Ok
 import play.api.test.{FakeApplication, FakeRequest}
 import play.api.{Configuration, Environment, Mode, Play}
