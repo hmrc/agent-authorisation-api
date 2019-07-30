@@ -224,6 +224,35 @@ trait ACAStubs {
                 "2017-12-18")
             ).mkString("[", ",", "]")))))
 
+  def givenAllInvitationsTERS(arn: Arn) =
+    stubFor(
+      get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
+        .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString("yyyy-MM-dd")))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(halEnvelope(Seq(
+              invitation(arn, "Pending", "HMRC-TERS-ORG", "business", "utr", "AB123456B", "foo1", "2017-12-18"),
+              invitation(
+                arn,
+                "Cancelled",
+                "HMRC-TERS-ORG",
+                "business",
+                "utr",
+                "AB123456B",
+                "foo2",
+                "2017-12-18"),
+              invitation(
+                arn,
+                "Cancelled",
+                "HMRC-TERS-ORG",
+                "business",
+                "utr",
+                "AB123456B",
+                "foo3",
+                "2017-12-18")
+            ).mkString("[", ",", "]")))))
+
   def halEnvelope(embedded: String): String =
     s"""{"_links": {
         "invitations": [

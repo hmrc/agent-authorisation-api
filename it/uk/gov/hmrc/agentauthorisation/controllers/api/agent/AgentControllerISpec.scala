@@ -942,6 +942,13 @@ class AgentControllerISpec extends BaseISpec {
 
           status(result) shouldBe 204
         }
+
+        "return 204 if there are only TERS relationships for the agent" in {
+          givenAllInvitationsTERS(arn)
+          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+          status(result) shouldBe 204
+        }
       }
     }
   }
