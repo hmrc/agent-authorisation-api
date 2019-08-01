@@ -39,8 +39,33 @@ class InvitationsConnectorISpec extends BaseISpec {
     Some("someInvitationUrl/invitations/business/12345678/agent-1")
   )
 
+  val storedIrvInvitation = StoredInvitation(
+    s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/BBERULMHCKKW3",
+    "2017-10-31T23:22:50.971Z",
+    "2017-12-18T00:00:00.000",
+    "2018-09-11T21:02:00.000Z",
+    Arn("TARN0000001"),
+    Some("personal"),
+    "PERSONAL-INCOME-RECORD",
+    "Pending",
+    Some("someInvitationUrl/invitations/personal/12345678/agent-1")
+  )
 
-  val storedInvitations = Seq(storedItsaInvitation, storedVatInvitation)
+
+  val storedTersInvitation = StoredInvitation(
+    s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/DBERULMHCKKW3",
+    "2017-10-31T23:22:50.971Z",
+    "2017-12-18T00:00:00.000",
+    "2018-09-11T21:02:00.000Z",
+    Arn("TARN0000001"),
+    Some("business"),
+    "HMRC-TERS-ORG",
+    "Pending",
+    Some("someInvitationUrl/invitations/business/12345678/agent-1")
+  )
+
+
+  val storedInvitations = Seq(storedItsaInvitation, storedVatInvitation, storedIrvInvitation, storedTersInvitation)
 
   "createInvitation" should {
 

@@ -913,7 +913,7 @@ class AgentControllerISpec extends BaseISpec {
 
         implicit val timeout: Timeout = Timeout(Duration.Zero)
 
-        "return 200 and a json body of a pending invitation filtering out PIR relationships" in {
+        "return 200 and a json body of a pending invitation filtering out PIR and TERS invitations" in {
           givenAllInvitationsPendingStub(arn)
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
@@ -921,7 +921,7 @@ class AgentControllerISpec extends BaseISpec {
           contentAsJson(result) shouldBe toJson(gettingPendingInvitations)
         }
 
-        "return 200 and a json body of a responded invitation filtering out PIR relationships" in {
+        "return 200 and a json body of a responded invitation filtering out PIR and TERS invitations" in {
           givenAllInvitationsRespondedStub(arn)
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
@@ -929,21 +929,21 @@ class AgentControllerISpec extends BaseISpec {
           contentAsJson(result) shouldBe toJson(gettingRespondedInvitations)
         }
 
-        "return 204 if there are no relationships for the agent" in {
+        "return 204 if there are no invitations for the agent" in {
           givenAllInvitationsEmptyStub(arn)
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 204
         }
 
-        "return 204 if there are only PIR relationships for the agent" in {
+        "return 204 if there are only PIR invitations for the agent" in {
           givenAllInvitationsPirStub(arn)
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 204
         }
 
-        "return 204 if there are only TERS relationships for the agent" in {
+        "return 204 if there are only TERS invitations for the agent" in {
           givenAllInvitationsTERS(arn)
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
