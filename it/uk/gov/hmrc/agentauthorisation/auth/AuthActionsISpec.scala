@@ -53,6 +53,13 @@ class AuthActionsISpec extends BaseISpec {
       status(result) shouldBe 401
     }
 
+    "return 403 FORBIDDEN when having InsufficientEnrolments" in {
+      givenUnauthorisedWith("InsufficientEnrolments")
+      val result = TestController.withAuthorisedAsAgent
+      status(result) shouldBe 403
+      result shouldBe NotAnAgent
+    }
+
     "return 403 Not An Agent when agent not enrolled for service" in {
       givenAuthorisedFor(
         "{}",

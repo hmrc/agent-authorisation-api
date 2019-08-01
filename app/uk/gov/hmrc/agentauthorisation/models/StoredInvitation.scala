@@ -39,11 +39,10 @@ case class StoredInvitation(
 
 object StoredInvitation {
 
-  val serviceByMtdService: String => String = {
+  val transformService: String => String = {
     case "HMRC-MTD-IT"            => "MTD-IT"
     case "HMRC-MTD-VAT"           => "MTD-VAT"
-    case "PERSONAL-INCOME-RECORD" => "PERSONAL-INCOME-RECORD"
-    case _                        => throw new IllegalArgumentException
+    case e => e
   }
 
   implicit val reads: Reads[StoredInvitation] = {
@@ -53,7 +52,7 @@ object StoredInvitation {
       (JsPath \ "lastUpdated").read[String] and
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "clientType").readNullable[String] and
-      (JsPath \ "service").read[String].map(serviceByMtdService) and
+      (JsPath \ "service").read[String].map(transformService) and
       (JsPath \ "status").read[String] and
       (JsPath \ "clientActionUrl")
         .readNullable[String])((selfLink, created, expiresOn, updated, arn, clientType, service, status, clientActionUrl) =>
