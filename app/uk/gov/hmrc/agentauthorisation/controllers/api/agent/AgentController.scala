@@ -97,8 +97,7 @@ class AgentController @Inject()(
           invitationService
             .getInvitation(arn, invitationId)
             .map {
-              case pendingInv @ Some(PendingInvitation(pendingInvitation))
-                  if supportedServices.exists(pendingInvitation.service.contains) =>
+              case pendingInv @ Some(PendingInvitation(pendingInvitation)) =>
                 val id = pendingInv.get.href.toString.split("/").toStream.last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
@@ -109,8 +108,7 @@ class AgentController @Inject()(
               case Some(PendingInvitation(pendingInvitation)) =>
                 Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
                 UnsupportedService
-              case respondedInv @ Some(RespondedInvitation(respondedInvitation))
-                  if supportedServices.exists(respondedInvitation.service.contains) =>
+              case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
                 val id = respondedInv.get.href.toString.split("/").toStream.last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
@@ -336,9 +334,6 @@ class AgentController @Inject()(
           .getAllInvitations(arn, previousDate)
           .map(invitations => {
             invitations
-              .collect {
-                case si if supportedServices.contains(si.service) => si
-              }
               .map {
                 case pendingInv @ PendingInvitation(_) =>
                   val id = pendingInv.href.toString.split("/").toStream.last

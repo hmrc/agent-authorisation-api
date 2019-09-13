@@ -178,7 +178,7 @@ class InvitationsConnectorISpec extends BaseISpec {
 
   "getAllInvitations" should {
     "return a sequence of stored invitations" in {
-      givenAllInvitationsPendingStub(arn)
+      givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
       val result = await(connector.getAllInvitations(arn, LocalDate.now(DateTimeZone.UTC).minusDays(30)))
 
       result shouldBe storedInvitations

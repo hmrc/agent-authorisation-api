@@ -30,7 +30,6 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.agentauthorisation.models.StoredInvitation.supportedStoredServices
 
 import scala.concurrent.{ExecutionContext, Future}
 
