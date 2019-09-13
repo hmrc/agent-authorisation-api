@@ -67,17 +67,12 @@ class InvitationsConnector @Inject()(
   private[connectors] def cancelInvitationUrl(arn: Arn, invitationId: InvitationId) =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
 
-  private[connectors] def getAgencyInvitationsUrl(
-    arn: Arn,
-    supportedServices: Seq[String],
-    createdOnOrAfter: LocalDate): URL = {
-    val services = s"service=${supportedServices.mkString(",")}&"
+  private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
     new URL(
       baseUrl,
-      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?${services}createdOnOrAfter=${dateFormatter
+      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${dateFormatter
         .print(createdOnOrAfter)}"
     )
-  }
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
@@ -148,7 +143,7 @@ class InvitationsConnector @Inject()(
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Seq[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
-      val url = getAgencyInvitationsUrl(arn, supportedStoredServices, createdOnOrAfter)
+      val url = getAgencyInvitationsUrl(arn, createdOnOrAfter)
       http
         .GET[JsObject](url.toString)
         .map(obj => {
