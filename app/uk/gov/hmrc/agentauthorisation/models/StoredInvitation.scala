@@ -39,6 +39,8 @@ case class StoredInvitation(
 
 object StoredInvitation {
 
+  val supportedStoredServices = Seq("HMRC-MTD-IT", "HMRC-MTD-VAT")
+
   val transformService: String => String = {
     case "HMRC-MTD-IT"            => "MTD-IT"
     case "HMRC-MTD-VAT"           => "MTD-VAT"

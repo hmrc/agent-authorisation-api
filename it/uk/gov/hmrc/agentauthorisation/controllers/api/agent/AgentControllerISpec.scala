@@ -935,20 +935,6 @@ class AgentControllerISpec extends BaseISpec {
 
           status(result) shouldBe 204
         }
-
-        "return 204 if there are only PIR invitations for the agent" in {
-          givenAllInvitationsPirStub(arn)
-          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
-
-          status(result) shouldBe 204
-        }
-
-        "return 204 if there are only TERS invitations for the agent" in {
-          givenAllInvitationsTERS(arn)
-          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
-
-          status(result) shouldBe 204
-        }
       }
     }
   }

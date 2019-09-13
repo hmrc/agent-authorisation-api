@@ -157,20 +157,20 @@ trait ACAStubs {
   def givenAllInvitationsPendingStub(arn: Arn): Unit =
     stubFor(
       get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
+        .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-VAT"))
         .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString("yyyy-MM-dd")))
         .willReturn(
           aResponse()
             .withStatus(200)
             .withBody(halEnvelope(Seq(
               invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18"),
-              invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18"),
-              invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456A", "BBERULMHCKKW3", "2017-12-18"),
-              invitation(arn, "Pending", "HMRC-TERS-ORG", "business", "utr", "AB123456B", "DBERULMHCKKW3", "2017-12-18")
+              invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18")
             ).mkString("[", ",", "]")))))
 
   def givenAllInvitationsRespondedStub(arn: Arn): Unit =
     stubFor(
       get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
+        .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-VAT"))
         .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString("yyyy-MM-dd")))
         .willReturn(
           aResponse()
@@ -188,73 +188,6 @@ trait ACAStubs {
                 "fo11",
                 "2017-12-18"),
               invitation(arn, "Accepted", "HMRC-TERS-ORG", "business", "utr", "AB123456B", "foo1", "2017-12-18")
-            ).mkString("[", ",", "]")))))
-
-  def givenAllInvitationsPirStub(arn: Arn): Unit =
-    stubFor(
-      get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
-        .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString("yyyy-MM-dd")))
-        .willReturn(
-          aResponse()
-            .withStatus(200)
-            .withBody(halEnvelope(Seq(
-              invitation(arn, "Pending", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "foo1", "2017-12-18"),
-              invitation(
-                arn,
-                "Cancelled",
-                "PERSONAL-INCOME-RECORD",
-                "personal",
-                "ni",
-                "AB123456B",
-                "foo2",
-                "2017-12-18"),
-              invitation(
-                arn,
-                "Cancelled",
-                "PERSONAL-INCOME-RECORD",
-                "personal",
-                "ni",
-                "AB123456B",
-                "foo3",
-                "2017-12-18"),
-              invitation(
-                arn,
-                "Cancelled",
-                "PERSONAL-INCOME-RECORD",
-                "personal",
-                "ni",
-                "AB123456B",
-                "foo4",
-                "2017-12-18")
-            ).mkString("[", ",", "]")))))
-
-  def givenAllInvitationsTERS(arn: Arn) =
-    stubFor(
-      get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
-        .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString("yyyy-MM-dd")))
-        .willReturn(
-          aResponse()
-            .withStatus(200)
-            .withBody(halEnvelope(Seq(
-              invitation(arn, "Pending", "HMRC-TERS-ORG", "business", "utr", "AB123456B", "foo1", "2017-12-18"),
-              invitation(
-                arn,
-                "Cancelled",
-                "HMRC-TERS-ORG",
-                "business",
-                "utr",
-                "AB123456B",
-                "foo2",
-                "2017-12-18"),
-              invitation(
-                arn,
-                "Cancelled",
-                "HMRC-TERS-ORG",
-                "business",
-                "utr",
-                "AB123456B",
-                "foo3",
-                "2017-12-18")
             ).mkString("[", ",", "]")))))
 
   def halEnvelope(embedded: String): String =

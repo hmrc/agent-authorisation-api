@@ -30,7 +30,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
+import uk.gov.hmrc.agentauthorisation.models.StoredInvitation.supportedStoredServices
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -67,12 +67,17 @@ class InvitationsConnector @Inject()(
   private[connectors] def cancelInvitationUrl(arn: Arn, invitationId: InvitationId) =
     new URL(baseUrl, s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
 
-  private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
+  private[connectors] def getAgencyInvitationsUrl(
+    arn: Arn,
+    supportedServices: Seq[String],
+    createdOnOrAfter: LocalDate): URL = {
+    val services = s"service=${supportedServices.mkString(",")}&"
     new URL(
       baseUrl,
-      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?createdOnOrAfter=${dateFormatter
+      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?${services}createdOnOrAfter=${dateFormatter
         .print(createdOnOrAfter)}"
     )
+  }
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
@@ -143,9 +148,11 @@ class InvitationsConnector @Inject()(
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Seq[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
-      val url = getAgencyInvitationsUrl(arn, createdOnOrAfter)
+      val url = getAgencyInvitationsUrl(arn, supportedStoredServices, createdOnOrAfter)
       http
         .GET[JsObject](url.toString)
-        .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
+        .map(obj => {
+          (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]
+        })
     }
 }
