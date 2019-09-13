@@ -42,7 +42,7 @@ object StoredInvitation {
   val transformService: String => String = {
     case "HMRC-MTD-IT"            => "MTD-IT"
     case "HMRC-MTD-VAT"           => "MTD-VAT"
-    case e => e
+    case e => throw new RuntimeException(s"Unexpected Service has been passed through: $e")
   }
 
   implicit val reads: Reads[StoredInvitation] = {

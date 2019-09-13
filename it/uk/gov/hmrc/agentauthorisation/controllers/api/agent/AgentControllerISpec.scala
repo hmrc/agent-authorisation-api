@@ -914,37 +914,23 @@ class AgentControllerISpec extends BaseISpec {
         implicit val timeout: Timeout = Timeout(Duration.Zero)
 
         "return 200 and a json body of a pending invitation filtering out PIR and TERS invitations" in {
-          givenAllInvitationsPendingStub(arn)
+          givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 200
           contentAsJson(result) shouldBe toJson(gettingPendingInvitations)
         }
 
-        "return 200 and a json body of a responded invitation filtering out PIR and TERS invitations" in {
-          givenAllInvitationsRespondedStub(arn)
-          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+        "return 200 and a json body of a responded invitation IRV and TERS invitations" in {
+          givenInvitationsServiceReturns(arn, Seq(irv(arn), ters(arn)))
 
-          status(result) shouldBe 200
-          contentAsJson(result) shouldBe toJson(gettingRespondedInvitations)
+          intercept[RuntimeException] {
+            await(getInvitations(authorisedAsValidAgent(request, arn.value)))
+          }.getMessage shouldBe "Unexpected Service has been passed through: PERSONAL-INCOME-RECORD"
         }
 
         "return 204 if there are no invitations for the agent" in {
           givenAllInvitationsEmptyStub(arn)
-          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
-
-          status(result) shouldBe 204
-        }
-
-        "return 204 if there are only PIR invitations for the agent" in {
-          givenAllInvitationsPirStub(arn)
-          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
-
-          status(result) shouldBe 204
-        }
-
-        "return 204 if there are only TERS invitations for the agent" in {
-          givenAllInvitationsTERS(arn)
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 204

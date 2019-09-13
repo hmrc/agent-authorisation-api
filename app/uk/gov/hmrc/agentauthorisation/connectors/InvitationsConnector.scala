@@ -30,7 +30,6 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -70,7 +69,7 @@ class InvitationsConnector @Inject()(
   private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
     new URL(
       baseUrl,
-      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?createdOnOrAfter=${dateFormatter
+      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${dateFormatter
         .print(createdOnOrAfter)}"
     )
 
@@ -146,6 +145,8 @@ class InvitationsConnector @Inject()(
       val url = getAgencyInvitationsUrl(arn, createdOnOrAfter)
       http
         .GET[JsObject](url.toString)
-        .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
+        .map(obj => {
+          (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]
+        })
     }
 }

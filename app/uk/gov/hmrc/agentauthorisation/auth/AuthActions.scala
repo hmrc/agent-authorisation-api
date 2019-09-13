@@ -60,7 +60,7 @@ trait AuthActions extends AuthorisedFunctions {
                 s"Logged in user has Affinity Group: Agent but does not have Enrolment: HMRC-AS-AGENT")
               Future successful AgentNotSubscribed
             case _ =>
-              Logger(getClass).warn(s"Logged in user does not have Affinity Group: Agent")
+              Logger(getClass).warn(s"Logged in user does not have Affinity Group: Agent. Discovered: $affinity")
               Future successful NotAnAgent
           }
         case _ =>
