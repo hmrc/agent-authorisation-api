@@ -26,12 +26,12 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import uk.gov.hmrc.agentauthorisation.audit.AuditService
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
-import uk.gov.hmrc.agentauthorisation.connectors.{DesConnector, InvitationsConnector, RelationshipsConnector}
+import uk.gov.hmrc.agentauthorisation.connectors.{InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.models
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentauthorisation.services.InvitationService
+import uk.gov.hmrc.agentauthorisation.services.{InvitationService, RelationshipService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
@@ -46,7 +46,7 @@ class AgentController @Inject()(
   invitationsConnector: InvitationsConnector,
   invitationService: InvitationService,
   relationshipsConnector: RelationshipsConnector,
-  desConnector: DesConnector,
+  relationshipService: RelationshipService,
   auditService: AuditService,
   val authConnector: AuthConnector,
   val withVerifiedPasscode: PasscodeVerification,
@@ -210,6 +210,30 @@ class AgentController @Inject()(
       Future successful knownFactFormatInvalid(relationshipRequest.service)
     }
 
+  private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: String)(
+    successResult: => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+
+    def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
+      invitationsConnector
+        .pendingInvitationsExistForClient(arn, clientId, service)
+        .flatMap(
+          pendingInvitationExists =>
+            if (pendingInvitationExists) Future successful DuplicateAuthorisationRequest
+            else whenNoPendingInvitationFound
+        )
+
+    def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] =
+      relationshipService
+        .hasActiveRelationship(arn, clientId, service)
+        .flatMap(
+          hasRelationship =>
+            if (hasRelationship) Future successful AlreadyAuthorised
+            else whenNoActiveRelationshipFound)
+
+    checkPendingInvitationExists(
+      whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult))
+  }
+
   private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(
     implicit
     hc: HeaderCarrier,
@@ -222,22 +246,26 @@ class AgentController @Inject()(
                          agentInvitation.knownFact)
         result <- hasKnownFact match {
                    case Some(true) =>
-                     invitationService
-                       .createInvitation(arn, agentInvitation)
-                       .flatMap { invitationId =>
-                         val locationLink = routes.AgentController
-                           .getInvitationApi(arn, InvitationId(invitationId))
-                           .url
-                         auditService.sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, "Success")
-                         Future successful NoContent.withHeaders(LOCATION -> locationLink)
-                       }
-                       .recoverWith {
-                         case e =>
-                           Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
-                           auditService
-                             .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
-                           Future.failed(e)
-                       }
+                     checkForPendingInvitationOrActiveRelationship(
+                       arn,
+                       agentInvitation.clientId,
+                       agentInvitation.service)(
+                       successResult = invitationService
+                         .createInvitation(arn, agentInvitation)
+                         .flatMap { invitationId =>
+                           val locationLink = routes.AgentController
+                             .getInvitationApi(arn, InvitationId(invitationId))
+                             .url
+                           auditService.sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, "Success")
+                           Future successful NoContent.withHeaders(LOCATION -> locationLink)
+                         }
+                         .recoverWith {
+                           case e =>
+                             Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
+                             auditService
+                               .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
+                             Future.failed(e)
+                         })
                    case Some(false) =>
                      agentInvitation.service match {
                        case "HMRC-MTD-IT" =>
@@ -298,12 +326,7 @@ class AgentController @Inject()(
     relationshipRequest.service match {
       case "HMRC-MTD-IT" => {
         val res = for {
-          mtdItId <- desConnector.getMtdIdFor(Nino(relationshipRequest.clientId))
-          result <- mtdItId match {
-                     case Right(id) =>
-                       relationshipsConnector.checkItsaRelationship(arn, id)
-                     case Left(_) => Future successful false
-                   }
+          result <- relationshipsConnector.checkItsaRelationship(arn, Nino(relationshipRequest.clientId))
         } yield result
         res.map {
           case true => NoContent

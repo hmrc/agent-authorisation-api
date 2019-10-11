@@ -1,11 +1,12 @@
 package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.joda.time.LocalDate
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, WireMockSupport}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
-import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.domain.{Nino, TaxIdentifier}
 
 trait ACAStubs {
   me: WireMockSupport with TestIdentifiers =>
@@ -160,10 +161,9 @@ trait ACAStubs {
       get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
         .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-VAT"))
         .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString("yyyy-MM-dd")))
-        .willReturn(
-          aResponse()
-            .withStatus(200)
-            .withBody(halEnvelope(invitations.mkString("[", ",", "]")))))
+        .willReturn(aResponse()
+          .withStatus(200)
+          .withBody(halEnvelope(invitations.mkString("[", ",", "]")))))
 
   def halEnvelope(embedded: String): String =
     s"""{"_links": {
@@ -219,10 +219,14 @@ trait ACAStubs {
                               |  }
                               |}""".stripMargin
 
-  val itsa: Arn => String = (arn: Arn) => invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18")
-  val vat: Arn => String = (arn: Arn) => invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18")
-  val irv: Arn => String =  (arn: Arn) => invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "fo11", "2017-12-18")
-  val ters: Arn => String = (arn: Arn) => invitation(arn, "Accepted", "HMRC-TERS-ORG", "business", "utr", "AB123456B", "foo1", "2017-12-18")
+  val itsa: Arn => String = (arn: Arn) =>
+    invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18")
+  val vat: Arn => String = (arn: Arn) =>
+    invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18")
+  val irv: Arn => String = (arn: Arn) =>
+    invitation(arn, "Cancelled", "PERSONAL-INCOME-RECORD", "personal", "ni", "AB123456B", "fo11", "2017-12-18")
+  val ters: Arn => String = (arn: Arn) =>
+    invitation(arn, "Accepted", "HMRC-TERS-ORG", "business", "utr", "AB123456B", "foo1", "2017-12-18")
 
   def givenInvitationNotFound(arn: Arn, invitationId: InvitationId): Unit =
     stubFor(
@@ -250,4 +254,65 @@ trait ACAStubs {
                          |   "message":"The inivtation has an invalid status to be cancelled"
                          |}
            """.stripMargin)))
+
+  def givenPendingInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+    val body = service match {
+      case "HMRC-MTD-IT" =>
+        invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case "HMRC-MTD-VAT" =>
+        invitation(arn, "Pending", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
+    }
+
+    stubFor(
+      get(
+        urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+      ).withQueryParam("status", equalTo("Pending"))
+        .withQueryParam("clientId", equalTo(clientId.value))
+        .withQueryParam("service", equalTo(service))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""{"_links": {
+        "invitations": [
+          {
+            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+          }
+        ],
+        "self": {
+          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+        }
+      },
+      "_embedded": {
+        "invitations": [$body]
+      }
+    }""".stripMargin)
+        )
+    )
+  }
+
+  def givenNoPendingInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String) = {
+    stubFor(
+      get(
+        urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+      ).withQueryParam("status", equalTo("Pending"))
+        .withQueryParam("clientId", equalTo(clientId.value))
+        .withQueryParam("service", equalTo(service))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+        .withBody(s"""{"_links": {
+                     |        "invitations": [
+                     |          {
+                     |            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+                     |          }
+                     |        ],
+                     |        "self": {
+                     |          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+                     |        }
+                     |      },
+                     |      "_embedded": {
+                     |        "invitations": []
+                     |      }
+                     |    }""".stripMargin)))
+  }
 }

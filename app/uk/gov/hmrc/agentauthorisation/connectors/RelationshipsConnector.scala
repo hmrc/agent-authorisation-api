@@ -23,6 +23,7 @@ import com.kenshoo.play.metrics.Metrics
 import javax.inject.{Inject, Named, Singleton}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, MtdItId, Vrn}
+import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,22 +37,20 @@ class RelationshipsConnector @Inject()(
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  private[connectors] def checkItsaRelationshipUrl(arn: Arn, mtdItId: MtdItId): URL =
-    new URL(
-      baseUrl,
-      s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-IT/client/MTDITID/${mtdItId.value}")
+  private[connectors] def checkItsaRelationshipUrl(arn: Arn, nino: Nino): URL =
+    new URL(baseUrl, s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-IT/client/NI/${nino.value}")
 
   private[connectors] def checkVatRelationshipUrl(arn: Arn, vrn: Vrn): URL =
     new URL(baseUrl, s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
 
-  def checkItsaRelationship(arn: Arn, mtdItId: MtdItId)(
+  def checkItsaRelationship(arn: Arn, nino: Nino)(
     implicit
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaRelationship-GET") {
-      http.GET[HttpResponse](checkItsaRelationshipUrl(arn, mtdItId).toString) map (_ => true)
+      http.GET[HttpResponse](checkItsaRelationshipUrl(arn, nino).toString) map (_ => true)
     }.recover {
-      case notFound: NotFoundException => false
+      case _: NotFoundException => false
     }
 
   def checkVatRelationship(arn: Arn, vrn: Vrn)(
@@ -63,6 +62,6 @@ class RelationshipsConnector @Inject()(
         .GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString)
         .map(_ => true)
     }.recover {
-      case notFound: NotFoundException => false
+      case _: NotFoundException => false
     }
 }
