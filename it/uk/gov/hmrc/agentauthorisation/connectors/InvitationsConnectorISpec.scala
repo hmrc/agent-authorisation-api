@@ -5,6 +5,7 @@ import uk.gov.hmrc.agentauthorisation._
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -186,9 +187,25 @@ class InvitationsConnectorISpec extends BaseISpec {
 
     "return a empty sequence of stored invitations" in {
       givenAllInvitationsEmptyStub(arn)
-      val result = await(connector.getAllInvitations(arn, LocalDate.now(DateTimeZone.UTC).minusDays(30)))
+      val result: Seq[StoredInvitation] = await(connector.getAllInvitations(arn, LocalDate.now(DateTimeZone.UTC).minusDays(30)))
 
       result shouldBe Seq.empty[StoredInvitation]
+    }
+  }
+
+  "getAllPendingInvitationsForClient" should {
+    "return true when pending invitations exist" in {
+      givenPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
+      val result = await(connector.pendingInvitationsExistForClient(arn, nino, "HMRC-MTD-IT"))
+
+      result shouldBe true
+    }
+
+    "return false when pending invitations do not exist" in {
+      givenNoPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
+      val result = await(connector.pendingInvitationsExistForClient(arn, nino, "HMRC-MTD-IT"))
+
+      result shouldBe false
     }
   }
 }

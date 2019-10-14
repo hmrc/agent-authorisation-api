@@ -223,6 +223,18 @@ The authorisation request was created successfully.
   "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
+```
+{
+  "code": "DUPLICATE_AUTHORISATION_REQUEST",
+  "message": "An authorisation request for this service has already been created and is awaiting the client’s response."
+}
+```
+```
+{
+  "code": "ALREADY_AUTHORISED",
+  "message": "The client has already authorised the agent for this service. The agent does not need ask the client for this authorisation again."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |

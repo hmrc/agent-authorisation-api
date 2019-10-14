@@ -192,6 +192,32 @@ traits:
                     code: VAT_REG_DATE_DOES_NOT_MATCH
                     message: The VAT registration date provided does not match HMRC's record for the client.
 
+  pendingAuthorisationExists:
+    responses:
+            403:
+              body:
+                application/json:
+                  type: types.errorResponse
+                  examples:
+                    duplicateAuthorisationRequest:
+                      description: A pending invitation already exists between the agent and client for this service.
+                      value:
+                        code: DUPLICATE_AUTHORISATION_REQUEST
+                        message: An authorisation request for this service has already been created and is awaiting the client’s response.
+
+  activeAuthorisationExists:
+      responses:
+              403:
+                body:
+                  application/json:
+                    type: types.errorResponse
+                    examples:
+                      alreadyAuthorised:
+                        description: An active relationship already exists between the agent and client for this service.
+                        value:
+                          code: ALREADY_AUTHORISED
+                          message: The client has already authorised the agent for this service. The agent does not need ask the client for this authorisation again.
+
   relationshipNotFound:
     responses:
       404:
@@ -280,7 +306,7 @@ traits:
         type: string
         example: AARN9999999
     post:
-      is: [serviceSpecified, invitationMustHaveSupportedClientType, clientIdSpecified, clientRegistrationRequired, knownFactMatches, validatePayload]
+      is: [serviceSpecified, invitationMustHaveSupportedClientType, clientIdSpecified, clientRegistrationRequired, knownFactMatches, pendingAuthorisationExists, activeAuthorisationExists validatePayload]
       displayName: Create a new authorisation
       (annotations.scope): "write:sent-invitations"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]

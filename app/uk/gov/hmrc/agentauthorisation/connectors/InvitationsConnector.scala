@@ -28,7 +28,7 @@ import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
-import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.domain.{Nino, TaxIdentifier}
 import uk.gov.hmrc.http._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -71,6 +71,12 @@ class InvitationsConnector @Inject()(
       baseUrl,
       s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${dateFormatter
         .print(createdOnOrAfter)}"
+    )
+
+  private[connectors] def getAllPendingInvitationsForClientUrl(arn: Arn, clientId: String, service: String): URL =
+    new URL(
+      baseUrl,
+      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?status=Pending&clientId=$clientId&service=$service"
     )
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
@@ -148,5 +154,17 @@ class InvitationsConnector @Inject()(
         .map(obj => {
           (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]
         })
+    }
+
+  def pendingInvitationsExistForClient(arn: Arn, clientId: String, service: String)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Boolean] =
+    monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {
+      val url = getAllPendingInvitationsForClientUrl(arn, clientId, service)
+      http
+        .GET[JsObject](url.toString)
+        .map(obj => {
+          (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]
+        }.nonEmpty)
     }
 }
