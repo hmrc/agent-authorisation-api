@@ -306,7 +306,7 @@ traits:
         type: string
         example: AARN9999999
     post:
-      is: [serviceSpecified, invitationMustHaveSupportedClientType, clientIdSpecified, clientRegistrationRequired, knownFactMatches, pendingAuthorisationExists, activeAuthorisationExists validatePayload]
+      is: [serviceSpecified, invitationMustHaveSupportedClientType, clientIdSpecified, clientRegistrationRequired, knownFactMatches, pendingAuthorisationExists, activeAuthorisationExists, validatePayload]
       displayName: Create a new authorisation
       (annotations.scope): "write:sent-invitations"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:sent-invitations" ] } ]
