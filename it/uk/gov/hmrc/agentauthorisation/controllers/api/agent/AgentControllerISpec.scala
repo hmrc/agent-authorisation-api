@@ -1,7 +1,8 @@
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
+import java.time.LocalDate
+
 import akka.util.Timeout
-import org.joda.time.LocalDate
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._

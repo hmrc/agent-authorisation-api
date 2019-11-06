@@ -1,8 +1,9 @@
 package uk.gov.hmrc.agentauthorisation.stubs
 
+import java.time.LocalDate
+
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import org.joda.time.LocalDate
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, WireMockSupport}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
@@ -160,7 +161,7 @@ trait ACAStubs {
     stubFor(
       get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
         .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-VAT"))
-        .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString("yyyy-MM-dd")))
+        .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString))
         .willReturn(aResponse()
           .withStatus(200)
           .withBody(halEnvelope(invitations.mkString("[", ",", "]")))))

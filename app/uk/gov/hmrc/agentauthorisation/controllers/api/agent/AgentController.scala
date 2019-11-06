@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, ZoneOffset}
+
 import com.google.inject.Provider
 import javax.inject.{Inject, Named, Singleton}
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTimeZone, LocalDate}
 import play.api.Logger
 import play.api.libs.json.Json._
 import play.api.libs.json._
@@ -324,7 +325,7 @@ class AgentController @Inject()(
     hc: HeaderCarrier,
     request: Request[_]) =
     relationshipRequest.service match {
-      case "HMRC-MTD-IT" => {
+      case "HMRC-MTD-IT" =>
         val res = for {
           result <- relationshipsConnector.checkItsaRelationship(arn, Nino(relationshipRequest.clientId))
         } yield result
@@ -334,8 +335,7 @@ class AgentController @Inject()(
             Logger(getClass).warn(s"No ITSA Relationship Found")
             RelationshipNotFound
         }
-      }
-      case "HMRC-MTD-VAT" => {
+      case "HMRC-MTD-VAT" =>
         relationshipsConnector
           .checkVatRelationship(arn, Vrn(relationshipRequest.clientId))
           .map {
@@ -344,7 +344,6 @@ class AgentController @Inject()(
               Logger(getClass).warn(s"No VAT Relationship Found")
               RelationshipNotFound
           }
-      }
     }
 
   def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
@@ -352,7 +351,7 @@ class AgentController @Inject()(
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
         val previousDate =
-          LocalDate.now(DateTimeZone.UTC).minusDays(getRequestsShowLastDays)
+          LocalDate.now(ZoneOffset.UTC).minusDays(getRequestsShowLastDays)
         invitationService
           .getAllInvitations(arn, previousDate)
           .map(invitations => {
@@ -409,7 +408,8 @@ object AgentController {
   val personal = "personal"
   val business = "business"
 
-  val supportedClientTypes = Map("HMRC-MTD-IT" -> Seq("personal"), "HMRC-MTD-VAT" -> Seq("personal", "business"))
+  private val supportedClientTypes =
+    Map("HMRC-MTD-IT" -> Seq("personal"), "HMRC-MTD-VAT" -> Seq("personal", "business"))
 
   private def validateClientType(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (supportedClientTypes(agentInvitation.service).contains(agentInvitation.clientType)) body
@@ -441,11 +441,11 @@ object AgentController {
   def validateDate(value: String): Boolean =
     if (parseDate(value)) true else false
 
-  val dateTimeFormat = DateTimeFormat.forPattern("yyyy-MM-dd")
+  private val dateTimeFormat = DateTimeFormatter.ISO_LOCAL_DATE
 
   def parseDate(date: String): Boolean =
     try {
-      dateTimeFormat.parseDateTime(date)
+      dateTimeFormat.parse(date)
       true
     } catch {
       case _: Throwable => false
@@ -453,9 +453,8 @@ object AgentController {
 
   private def checkKnownFactValid(service: String, knownFact: String): Boolean =
     service match {
-      case "HMRC-MTD-IT" => {
+      case "HMRC-MTD-IT" =>
         knownFact.matches(postcodeRegex)
-      }
       case "HMRC-MTD-VAT" => validateDate(knownFact)
     }
 

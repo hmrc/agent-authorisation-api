@@ -1,7 +1,7 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import org.joda.time.{DateTimeZone, LocalDate}
-import uk.gov.hmrc.agentauthorisation._
+import java.time.{LocalDate, ZoneOffset}
+
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -180,14 +180,14 @@ class InvitationsConnectorISpec extends BaseISpec {
   "getAllInvitations" should {
     "return a sequence of stored invitations" in {
       givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
-      val result = await(connector.getAllInvitations(arn, LocalDate.now(DateTimeZone.UTC).minusDays(30)))
+      val result = await(connector.getAllInvitations(arn, LocalDate.now(ZoneOffset.UTC).minusDays(30)))
 
       result shouldBe storedInvitations
     }
 
     "return a empty sequence of stored invitations" in {
       givenAllInvitationsEmptyStub(arn)
-      val result: Seq[StoredInvitation] = await(connector.getAllInvitations(arn, LocalDate.now(DateTimeZone.UTC).minusDays(30)))
+      val result: Seq[StoredInvitation] = await(connector.getAllInvitations(arn, LocalDate.now(ZoneOffset.UTC).minusDays(30)))
 
       result shouldBe Seq.empty[StoredInvitation]
     }
