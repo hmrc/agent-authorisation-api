@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import org.joda.time.LocalDateTime
+import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter
+
 import play.api.libs.json._
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import play.api.libs.functional.syntax._
@@ -45,10 +47,15 @@ object StoredInvitation {
     case e => throw new RuntimeException(s"Unexpected Service has been passed through: $e")
   }
 
+  // This is the published format for expiryDate in the API, even though it's a date not a datetime
+  // Don't want to change this, since external software might be relying on this format
+  //
+  private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.nnn")
+
   implicit val reads: Reads[StoredInvitation] = {
     ((JsPath \ "_links" \ "self" \ "href").read[String] and
       (JsPath \ "created").read[String] and
-      (JsPath \ "expiryDate").read[String].map(LocalDateTime.parse) and
+      (JsPath \ "expiryDate").read[String].map(LocalDate.parse) and
       (JsPath \ "lastUpdated").read[String] and
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "clientType").readNullable[String] and
@@ -56,7 +63,9 @@ object StoredInvitation {
       (JsPath \ "status").read[String] and
       (JsPath \ "clientActionUrl")
         .readNullable[String])((selfLink, created, expiresOn, updated, arn, clientType, service, status, clientActionUrl) =>
-      StoredInvitation(selfLink, created, expiresOn.toString(), updated, arn, clientType, service, status, clientActionUrl))
+      StoredInvitation(selfLink, created,
+        LocalDateTime.of(expiresOn, LocalTime.MIDNIGHT).format(dateTimeFormatter),
+        updated, arn, clientType, service, status, clientActionUrl))
   }
 }
 

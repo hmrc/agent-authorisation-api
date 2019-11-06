@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import javax.inject.{Inject, Named, Singleton}
-import org.joda.time.LocalDate
+import java.time.LocalDate
+
+import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}

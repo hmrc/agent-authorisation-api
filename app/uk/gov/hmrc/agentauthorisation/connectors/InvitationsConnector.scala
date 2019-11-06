@@ -17,18 +17,18 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import java.net.URL
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import javax.inject.{Inject, Named, Singleton}
-import org.joda.time.LocalDate
-import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
+import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
-import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
-import uk.gov.hmrc.domain.{Nino, TaxIdentifier}
+import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,7 +42,7 @@ class InvitationsConnector @Inject()(
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
-  private val dateFormatter = ISODateTimeFormat.date()
+  private val isoDateFormat = DateTimeFormatter.ISO_LOCAL_DATE
 
   private[connectors] def createAgentLinkUrl(arn: Arn, clientType: String): URL =
     new URL(
@@ -69,8 +69,8 @@ class InvitationsConnector @Inject()(
   private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
     new URL(
       baseUrl,
-      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${dateFormatter
-        .print(createdOnOrAfter)}"
+      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
+        .format(isoDateFormat)}"
     )
 
   private[connectors] def getAllPendingInvitationsForClientUrl(arn: Arn, clientId: String, service: String): URL =
@@ -121,7 +121,7 @@ class InvitationsConnector @Inject()(
   def getInvitation(arn: Arn, invitationId: InvitationId)(
     implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext) =
+    executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
       http.GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
     }.recoverWith {
