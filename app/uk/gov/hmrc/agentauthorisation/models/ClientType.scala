@@ -31,11 +31,6 @@ object ClientType {
     case alien      => throw new Exception(s"Client type $alien not supported")
   }
 
-  def clientTypeToString: ClientType => String = {
-    case ClientType.personal => "personal"
-    case ClientType.business => "business"
-  }
-
   implicit val reads: Reads[ClientType] = new Reads[ClientType] {
     override def reads(json: JsValue): JsResult[ClientType] = json match {
       case JsString(name) => JsSuccess(stringToClientType(name))
@@ -44,6 +39,6 @@ object ClientType {
   }
 
   implicit val writes: Writes[ClientType] = new Writes[ClientType] {
-    override def writes(clientType: ClientType): JsValue = JsString(clientTypeToString(clientType))
+    override def writes(clientType: ClientType): JsValue = JsString(clientType.toString)
   }
 }
