@@ -41,11 +41,11 @@ object CheckRelationshipPayload {
   }
 }
 
-case class RelationshipRequest(service: String, clientIdType: String, clientId: String, knownFact: String)
+case class RelationshipRequest(service: Service, clientIdType: String, clientId: String, knownFact: String)
 
 object RelationshipRequest {
   implicit val reads: Reads[RelationshipRequest] = {
-    ((JsPath \ "service").read[String] and
+    ((JsPath \ "service").read[Service] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>

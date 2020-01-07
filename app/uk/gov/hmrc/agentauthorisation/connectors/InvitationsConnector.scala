@@ -26,7 +26,7 @@ import javax.inject.{Inject, Named, Singleton}
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, Service, StoredInvitation}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
@@ -73,10 +73,10 @@ class InvitationsConnector @Inject()(
         .format(isoDateFormat)}"
     )
 
-  private[connectors] def getAllPendingInvitationsForClientUrl(arn: Arn, clientId: String, service: String): URL =
+  private[connectors] def getAllPendingInvitationsForClientUrl(arn: Arn, clientId: String, service: Service): URL =
     new URL(
       baseUrl,
-      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?status=Pending&clientId=$clientId&service=$service"
+      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?status=Pending&clientId=$clientId&service=${service.toString}"
     )
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
@@ -156,7 +156,7 @@ class InvitationsConnector @Inject()(
         })
     }
 
-  def pendingInvitationsExistForClient(arn: Arn, clientId: String, service: String)(
+  def pendingInvitationsExistForClient(arn: Arn, clientId: String, service: Service)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {

@@ -18,6 +18,8 @@ package uk.gov.hmrc.agentauthorisation.services
 
 import javax.inject.Inject
 import uk.gov.hmrc.agentauthorisation.connectors.RelationshipsConnector
+import uk.gov.hmrc.agentauthorisation.models.Service
+import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
@@ -26,11 +28,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class RelationshipService @Inject()(relationshipsConnector: RelationshipsConnector) {
 
-  def hasActiveRelationship(arn: Arn, clientId: String, service: String)(
+  def hasActiveRelationship(arn: Arn, clientId: String, service: Service)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     service match {
-      case "HMRC-MTD-IT"  => relationshipsConnector.checkItsaRelationship(arn, Nino(clientId))
-      case "HMRC-MTD-VAT" => relationshipsConnector.checkVatRelationship(arn, Vrn(clientId))
+      case Itsa => relationshipsConnector.checkItsaRelationship(arn, Nino(clientId))
+      case Vat  => relationshipsConnector.checkVatRelationship(arn, Vrn(clientId))
     }
 }

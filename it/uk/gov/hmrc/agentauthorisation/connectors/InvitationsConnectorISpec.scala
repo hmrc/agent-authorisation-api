@@ -2,6 +2,8 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import java.time.{LocalDate, ZoneOffset}
 
+import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
+import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -56,7 +58,7 @@ class InvitationsConnectorISpec extends BaseISpec {
         "HMRC-MTD-IT",
         "NI",
         validPostcode)
-      val agentInvitation = AgentInvitation("HMRC-MTD-IT", "personal", "ni", "AB123456A", "DH14EJ")
+      val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ")
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(invitationIdITSA.value)
     }
@@ -72,7 +74,7 @@ class InvitationsConnectorISpec extends BaseISpec {
         "HMRC-MTD-VAT",
         "VRN",
         validVatRegDate)
-      val agentInvitation = AgentInvitation("HMRC-MTD-VAT", "business", "vrn", validVrn.value, validVatRegDate)
+      val agentInvitation = AgentInvitation(Vat, business, "vrn", validVrn.value, validVatRegDate)
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(invitationIdVAT.value)
     }
@@ -196,14 +198,14 @@ class InvitationsConnectorISpec extends BaseISpec {
   "getAllPendingInvitationsForClient" should {
     "return true when pending invitations exist" in {
       givenPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
-      val result = await(connector.pendingInvitationsExistForClient(arn, nino, "HMRC-MTD-IT"))
+      val result = await(connector.pendingInvitationsExistForClient(arn, nino, Itsa))
 
       result shouldBe true
     }
 
     "return false when pending invitations do not exist" in {
       givenNoPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
-      val result = await(connector.pendingInvitationsExistForClient(arn, nino, "HMRC-MTD-IT"))
+      val result = await(connector.pendingInvitationsExistForClient(arn, nino, Itsa))
 
       result shouldBe false
     }

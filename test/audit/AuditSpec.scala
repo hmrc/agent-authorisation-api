@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.audit.AuditService
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
+import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
+import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.{Authorization, RequestId, SessionId}
@@ -48,7 +50,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       val arn: Arn = Arn("HX2345")
       val agentInvitation: AgentInvitation =
-        AgentInvitation("HMRC-MTD-IT", "personal", "ni", "AB123456A", "DH14EJ")
+        AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ")
       val invitationId: String = "1"
       val result: String = "Success"
 
@@ -91,7 +93,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       val arn: Arn = Arn("HX2345")
       val agentInvitation: AgentInvitation =
-        AgentInvitation("HMRC-MTD-VAT", "business", "vrn", "101747641", "2008-08-08")
+        AgentInvitation(Vat, business, "vrn", "101747641", "2008-08-08")
       val invitationId: String = "1"
       val result: String = "Success"
 
