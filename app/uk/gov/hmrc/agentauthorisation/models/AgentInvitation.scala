@@ -21,7 +21,7 @@ import play.api.libs.json._
 
 case class CreateInvitationPayload(
   service: List[String],
-  clientType: ClientType,
+  clientType: String,
   clientIdType: String,
   clientId: String,
   knownFact: String)
@@ -37,7 +37,7 @@ object CreateInvitationPayload {
 
   implicit val reads: Reads[CreateInvitationPayload] = {
     ((JsPath \ "service").read[List[String]] and
-      (JsPath \ "clientType").read[ClientType] and
+      (JsPath \ "clientType").read[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>

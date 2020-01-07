@@ -470,7 +470,7 @@ object AgentController {
   object ItsaInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
-        case CreateInvitationPayload(List("MTD-IT"), personal, "ni", _, _) =>
+        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _) =>
           Some(AgentInvitation(Itsa, personal, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
@@ -480,7 +480,13 @@ object AgentController {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
         case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _) =>
-          Some(AgentInvitation(Vat, arg.clientType, arg.clientIdType, arg.clientId, arg.knownFact))
+          Some(
+            AgentInvitation(
+              Vat,
+              ClientType.stringToClientType(arg.clientType),
+              arg.clientIdType,
+              arg.clientId,
+              arg.knownFact))
         case _ => None
       }
   }
