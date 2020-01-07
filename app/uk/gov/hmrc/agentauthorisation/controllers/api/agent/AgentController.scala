@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -473,8 +473,8 @@ object AgentController {
   object ItsaInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _) =>
-          Some(AgentInvitation("HMRC-MTD-IT", "personal", arg.clientIdType, arg.clientId, arg.knownFact))
+        case CreateInvitationPayload(List("MTD-IT"), personal, "ni", _, _) =>
+          Some(AgentInvitation("HMRC-MTD-IT", personal, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }

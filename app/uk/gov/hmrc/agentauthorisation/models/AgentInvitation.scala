@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import play.api.libs.functional.syntax._
 
 case class CreateInvitationPayload(
   service: List[String],
-  clientType: String,
+  clientType: ClientType,
   clientIdType: String,
   clientId: String,
   knownFact: String)
 
 case class AgentInvitation(
   service: String,
-  clientType: String,
+  clientType: ClientType,
   clientIdType: String,
   clientId: String,
   knownFact: String)
@@ -37,7 +37,7 @@ object CreateInvitationPayload {
 
   implicit val reads: Reads[CreateInvitationPayload] = {
     ((JsPath \ "service").read[List[String]] and
-      (JsPath \ "clientType").read[String] and
+      (JsPath \ "clientType").read[ClientType] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
@@ -59,7 +59,7 @@ object AgentInvitation {
 
   implicit val reads: Reads[AgentInvitation] = {
     ((JsPath \ "service").read[String] and
-      (JsPath \ "clientType").read[String] and
+      (JsPath \ "clientType").read[ClientType] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
