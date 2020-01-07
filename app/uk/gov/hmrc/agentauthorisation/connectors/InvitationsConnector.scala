@@ -26,7 +26,7 @@ import javax.inject.{Inject, Named, Singleton}
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, Service, StoredInvitation}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
@@ -156,11 +156,11 @@ class InvitationsConnector @Inject()(
         })
     }
 
-  def pendingInvitationsExistForClient(arn: Arn, clientId: String, service: String)(
+  def pendingInvitationsExistForClient(arn: Arn, clientId: String, service: Service)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {
-      val url = getAllPendingInvitationsForClientUrl(arn, clientId, service)
+      val url = getAllPendingInvitationsForClientUrl(arn, clientId, service.toString)
       http
         .GET[JsObject](url.toString)
         .map(obj => {

@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 case class CreateInvitationPayload(
   service: List[String],
@@ -27,7 +27,7 @@ case class CreateInvitationPayload(
   knownFact: String)
 
 case class AgentInvitation(
-  service: String,
+  service: Service,
   clientType: ClientType,
   clientIdType: String,
   clientId: String,
@@ -58,7 +58,7 @@ object CreateInvitationPayload {
 object AgentInvitation {
 
   implicit val reads: Reads[AgentInvitation] = {
-    ((JsPath \ "service").read[String] and
+    ((JsPath \ "service").read[Service] and
       (JsPath \ "clientType").read[ClientType] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
@@ -73,6 +73,7 @@ object AgentInvitation {
         "clientType"   -> o.clientType,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),
-        "knownFact"    -> o.knownFact)
+        "knownFact"    -> o.knownFact
+      )
   }
 }

@@ -32,6 +32,7 @@ import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.models
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
+import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{InvitationService, RelationshipService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
@@ -212,7 +213,7 @@ class AgentController @Inject()(
       Future successful knownFactFormatInvalid(relationshipRequest.service)
     }
 
-  private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: String)(
+  private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
     successResult: => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
     def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
@@ -270,14 +271,14 @@ class AgentController @Inject()(
                          })
                    case Some(false) =>
                      agentInvitation.service match {
-                       case "HMRC-MTD-IT" =>
+                       case Itsa =>
                          auditService.sendAgentInvitationSubmitted(
                            arn,
                            "",
                            agentInvitation,
                            "Fail",
                            Some("POSTCODE_DOES_NOT_MATCH"))
-                       case "HMRC-MTD-VAT" =>
+                       case Vat =>
                          auditService.sendAgentInvitationSubmitted(
                            arn,
                            "",
@@ -310,13 +311,13 @@ class AgentController @Inject()(
       Future successful NoPermissionOnAgency
     } else block
 
-  private def checkKnownFactMatches(service: String, clientId: String, knownFact: String)(
+  private def checkKnownFactMatches(service: Service, clientId: String, knownFact: String)(
     implicit
     hc: HeaderCarrier) =
     service match {
-      case "HMRC-MTD-IT" =>
+      case Itsa =>
         invitationsConnector.checkPostcodeForClient(Nino(clientId), knownFact)
-      case _ =>
+      case Vat =>
         invitationsConnector
           .checkVatRegDateForClient(Vrn(clientId), LocalDate.parse(knownFact))
     }
@@ -326,7 +327,7 @@ class AgentController @Inject()(
     hc: HeaderCarrier,
     request: Request[_]) =
     relationshipRequest.service match {
-      case "HMRC-MTD-IT" =>
+      case Itsa =>
         val res = for {
           result <- relationshipsConnector.checkItsaRelationship(arn, Nino(relationshipRequest.clientId))
         } yield result
@@ -336,7 +337,7 @@ class AgentController @Inject()(
             Logger(getClass).warn(s"No ITSA Relationship Found")
             RelationshipNotFound
         }
-      case "HMRC-MTD-VAT" =>
+      case Vat =>
         relationshipsConnector
           .checkVatRelationship(arn, Vrn(relationshipRequest.clientId))
           .map {
@@ -404,8 +405,8 @@ object AgentController {
   private val postcodeRegex =
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
-  private val supportedClientTypes =
-    Map("HMRC-MTD-IT" -> Seq(personal), "HMRC-MTD-VAT" -> Seq(personal, business))
+  private val supportedClientTypes: Map[Service, Seq[ClientType]] =
+    Map(Itsa -> Seq(personal), Vat -> Seq(personal, business))
 
   private def validateClientType(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (supportedClientTypes(agentInvitation.service).contains(agentInvitation.clientType)) body
@@ -447,30 +448,30 @@ object AgentController {
       case _: Throwable => false
     }
 
-  private def checkKnownFactValid(service: String, knownFact: String): Boolean =
+  private def checkKnownFactValid(service: Service, knownFact: String): Boolean =
     service match {
-      case "HMRC-MTD-IT" =>
+      case Itsa =>
         knownFact.matches(postcodeRegex)
-      case "HMRC-MTD-VAT" => validateDate(knownFact)
+      case Vat => validateDate(knownFact)
     }
 
-  private def knownFactDoesNotMatch(service: String) =
+  private def knownFactDoesNotMatch(service: Service) =
     service match {
-      case "HMRC-MTD-IT"  => PostcodeDoesNotMatch
-      case "HMRC-MTD-VAT" => VatRegDateDoesNotMatch
+      case Itsa => PostcodeDoesNotMatch
+      case Vat  => VatRegDateDoesNotMatch
     }
 
-  private def knownFactFormatInvalid(service: String) =
+  private def knownFactFormatInvalid(service: Service) =
     service match {
-      case "HMRC-MTD-IT"  => PostcodeFormatInvalid
-      case "HMRC-MTD-VAT" => VatRegDateFormatInvalid
+      case Itsa => PostcodeFormatInvalid
+      case Vat  => VatRegDateFormatInvalid
     }
 
   object ItsaInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
         case CreateInvitationPayload(List("MTD-IT"), personal, "ni", _, _) =>
-          Some(AgentInvitation("HMRC-MTD-IT", personal, arg.clientIdType, arg.clientId, arg.knownFact))
+          Some(AgentInvitation(Itsa, personal, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }
@@ -479,7 +480,7 @@ object AgentController {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
         case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _) =>
-          Some(AgentInvitation("HMRC-MTD-VAT", arg.clientType, arg.clientIdType, arg.clientId, arg.knownFact))
+          Some(AgentInvitation(Vat, arg.clientType, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }
@@ -488,7 +489,7 @@ object AgentController {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
       arg match {
         case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _) =>
-          Some(RelationshipRequest("HMRC-MTD-IT", arg.clientIdType, arg.clientId, arg.knownFact))
+          Some(RelationshipRequest(Itsa, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }
@@ -497,7 +498,7 @@ object AgentController {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
       arg match {
         case CheckRelationshipPayload(List("MTD-VAT"), "vrn", _, _) =>
-          Some(RelationshipRequest("HMRC-MTD-VAT", arg.clientIdType, arg.clientId, arg.knownFact))
+          Some(RelationshipRequest(Vat, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }

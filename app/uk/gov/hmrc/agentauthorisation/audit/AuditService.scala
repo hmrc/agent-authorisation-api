@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.audit
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.Request
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
-import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, Service}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -66,7 +66,7 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
         "agentReferenceNumber" -> arn.value,
         "clientIdType"         -> agentInvitation.clientIdType,
         "clientId"             -> agentInvitation.clientId,
-        "service"              -> agentInvitation.service
+        "service"              -> agentInvitation.service.toString
       ).filter(_._2.nonEmpty) ++ failure
         .map(e => Seq("failureDescription" -> e))
         .getOrElse(Seq.empty)

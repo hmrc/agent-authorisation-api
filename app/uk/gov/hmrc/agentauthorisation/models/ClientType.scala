@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Reads, Writes}
+import play.api.libs.json._
 
 sealed trait ClientType
 
@@ -39,11 +39,11 @@ object ClientType {
   implicit val reads: Reads[ClientType] = new Reads[ClientType] {
     override def reads(json: JsValue): JsResult[ClientType] = json match {
       case JsString(name) => JsSuccess(stringToClientType(name))
-      case o              => JsError(s"Cannot parse Enum from $o, must be JsString.")
+      case o              => JsError(s"Cannot parse client type from $o, must be JsString.")
     }
   }
 
   implicit val writes: Writes[ClientType] = new Writes[ClientType] {
-    override def writes(enum: ClientType): JsValue = JsString(clientTypeToString(enum))
+    override def writes(clientType: ClientType): JsValue = JsString(clientTypeToString(clientType))
   }
 }
