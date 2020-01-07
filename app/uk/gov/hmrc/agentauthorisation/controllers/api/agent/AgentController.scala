@@ -31,6 +31,7 @@ import uk.gov.hmrc.agentauthorisation.connectors.{InvitationsConnector, Relation
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.models
+import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{InvitationService, RelationshipService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
@@ -403,13 +404,8 @@ object AgentController {
   private val postcodeRegex =
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
-  private val supportedServices = Seq("MTD-IT", "MTD-VAT")
-
-  val personal = "personal"
-  val business = "business"
-
   private val supportedClientTypes =
-    Map("HMRC-MTD-IT" -> Seq("personal"), "HMRC-MTD-VAT" -> Seq("personal", "business"))
+    Map("HMRC-MTD-IT" -> Seq(personal), "HMRC-MTD-VAT" -> Seq(personal, business))
 
   private def validateClientType(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (supportedClientTypes(agentInvitation.service).contains(agentInvitation.clientType)) body
