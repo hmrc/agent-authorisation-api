@@ -52,7 +52,7 @@ class ErrorHandler @Inject()(auditConnector: AuditConnector)(
     super
       .onServerError(request, exception)
       .map(_ => {
-        Logger(getClass).warn(s"Client Side Error: $exception from request: $request")
+        Logger(getClass).warn(s"Server Side Error: $exception from request: $request")
         standardInternalServerError
       })
   }
