@@ -84,7 +84,11 @@ class InvitationsConnector @Inject()(
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[String]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
-      http.POST[AgentInvitation, HttpResponse](createInvitationUrl(arn).toString, agentInvitation) map { r =>
+      http.POST[AgentInvitation, HttpResponse](
+        createInvitationUrl(arn).toString,
+        agentInvitation,
+        Seq("Origin" -> "agent-authorisation-api")
+      ) map { r =>
         r.header("InvitationId")
       }
     }
