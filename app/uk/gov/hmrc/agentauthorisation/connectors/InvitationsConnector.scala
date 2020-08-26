@@ -22,61 +22,56 @@ import java.time.format.DateTimeFormatter
 
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{Inject, Singleton}
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
+import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, Service, StoredInvitation}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException, Upstream4xxResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationsConnector @Inject()(
-  @Named("agent-client-authorisation-baseUrl") baseUrl: URL,
-  http: HttpPost with HttpGet with HttpPut,
-  metrics: Metrics)
+class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, appConfig: AppConfig)
     extends HttpAPIMonitor {
+
+  val acaUrl = s"${appConfig.acaBaseUrl}/agent-client-authorisation"
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   private val isoDateFormat = DateTimeFormatter.ISO_LOCAL_DATE
 
   private[connectors] def createAgentLinkUrl(arn: Arn, clientType: String): URL =
-    new URL(
-      baseUrl,
-      s"/agent-client-authorisation/agencies/references/arn/${encodePathSegment(arn.value)}/clientType/$clientType")
+    new URL(s"$acaUrl/agencies/references/arn/${encodePathSegment(arn.value)}/clientType/$clientType")
 
   private[connectors] def createInvitationUrl(arn: Arn): URL =
-    new URL(baseUrl, s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+    new URL(s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent")
 
   private[connectors] def checkPostcodeUrl(nino: Nino, postcode: String) =
-    new URL(baseUrl, s"/agent-client-authorisation/known-facts/individuals/nino/${nino.value}/sa/postcode/$postcode")
+    new URL(s"$acaUrl/known-facts/individuals/nino/${nino.value}/sa/postcode/$postcode")
 
   private[connectors] def checkVatRegisteredClientUrl(vrn: Vrn, registrationDate: LocalDate) =
-    new URL(
-      baseUrl,
-      s"/agent-client-authorisation/known-facts/organisations/vat/${vrn.value}/registration-date/${registrationDate.toString}")
+    new URL(s"$acaUrl/known-facts/organisations/vat/${vrn.value}/registration-date/${registrationDate.toString}")
 
   private[connectors] def getInvitationUrl(arn: Arn, invitationId: InvitationId) =
-    new URL(baseUrl, s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}")
+    new URL(s"$acaUrl/agencies/${arn.value}/invitations/sent/${invitationId.value}")
 
   private[connectors] def cancelInvitationUrl(arn: Arn, invitationId: InvitationId) =
-    new URL(baseUrl, s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
+    new URL(s"$acaUrl/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
 
   private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
     new URL(
-      baseUrl,
-      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
+      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
         .format(isoDateFormat)}"
     )
 
   private[connectors] def getAllPendingInvitationsForClientUrl(arn: Arn, clientId: String, service: Service): URL =
     new URL(
-      baseUrl,
-      s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent?status=Pending&clientId=$clientId&service=${service.toString}"
+      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?status=Pending&clientId=$clientId&service=${service.toString}"
     )
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
@@ -84,7 +79,7 @@ class InvitationsConnector @Inject()(
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[String]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
-      http.POST[AgentInvitation, HttpResponse](
+      httpClient.POST[AgentInvitation, HttpResponse](
         createInvitationUrl(arn).toString,
         agentInvitation,
         Seq("Origin" -> "agent-authorisation-api")
@@ -98,7 +93,7 @@ class InvitationsConnector @Inject()(
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[Boolean]] =
     monitor(s"ConsumedAPI-CheckPostcode-GET") {
-      http
+      httpClient
         .GET[HttpResponse](checkPostcodeUrl(nino, postcode).toString)
         .map(_ => Some(true))
     }.recover {
@@ -113,7 +108,7 @@ class InvitationsConnector @Inject()(
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[Boolean]] =
     monitor(s"ConsumedAPI-CheckVatRegDate-GET") {
-      http
+      httpClient
         .GET[HttpResponse](checkVatRegisteredClientUrl(vrn, registrationDateKnownFact).toString)
         .map(_ => Some(true))
     }.recover {
@@ -127,7 +122,7 @@ class InvitationsConnector @Inject()(
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
-      http.GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
+      httpClient.GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
     }.recoverWith {
       case _ => Future successful None
     }
@@ -137,7 +132,7 @@ class InvitationsConnector @Inject()(
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[Int]] =
     monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
-      http
+      httpClient
         .PUT[String, HttpResponse](cancelInvitationUrl(arn, invitationId).toString, "")
         .map(response => Some(response.status))
     }.recover {
@@ -153,7 +148,7 @@ class InvitationsConnector @Inject()(
     ec: ExecutionContext): Future[Seq[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
       val url = getAgencyInvitationsUrl(arn, createdOnOrAfter)
-      http
+      httpClient
         .GET[JsObject](url.toString)
         .map(obj => {
           (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]
@@ -165,7 +160,7 @@ class InvitationsConnector @Inject()(
     ec: ExecutionContext): Future[Boolean] =
     monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {
       val url = getAllPendingInvitationsForClientUrl(arn, clientId, service)
-      http
+      httpClient
         .GET[JsObject](url.toString)
         .map(obj => {
           (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]

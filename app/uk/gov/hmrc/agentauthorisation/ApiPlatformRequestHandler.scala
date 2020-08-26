@@ -18,6 +18,7 @@ package uk.gov.hmrc.agentauthorisation
 
 import javax.inject.Inject
 import play.api.http.{DefaultHttpRequestHandler, HttpConfiguration, HttpErrorHandler, HttpFilters}
+import play.api.mvc.request.RequestTarget
 import play.api.mvc.{Handler, RequestHeader}
 import play.api.routing.Router
 
@@ -43,7 +44,10 @@ class ApiPlatformRequestHandler @Inject()(
     } else if (request.path.startsWith(api)) {
       super.handlerForRequest(request)
     } else if (!request.path.startsWith(context)) {
-      super.handlerForRequest(request.copy(path = context + request.path))
+      super.handlerForRequest(
+        request.withTarget(
+          RequestTarget(path = context + request.path, uriString = request.uri, queryString = request.queryString))
+      )
     } else {
       super.handlerForRequest(request)
     }

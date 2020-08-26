@@ -23,14 +23,15 @@ import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.http.JsonErrorHandler
+import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ErrorHandler @Inject()(auditConnector: AuditConnector)(
+class ErrorHandler @Inject()(auditConnector: AuditConnector, httpAuditEvent: HttpAuditEvent)(
   implicit ec: ExecutionContext,
   configuration: Configuration)
-    extends JsonErrorHandler(configuration, auditConnector) {
+    extends JsonErrorHandler(auditConnector, httpAuditEvent, configuration) {
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     implicit val req = request

@@ -15,10 +15,12 @@
  */
 
 package uk.gov.hmrc.agentauthorisation.actions
+
 import akka.stream.Materializer
 import javax.inject.{Inject, Named, Singleton}
 import play.api.http.HeaderNames
 import play.api.mvc.{Filter, RequestHeader, Result}
+import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse.{errorAcceptHeaderInvalidCustomMessage, errorBadRequestCustomMessage}
 
 import scala.concurrent.Future
@@ -27,9 +29,7 @@ import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
 @Singleton
-class AcceptHeaderFilter @Inject()(@Named("api.supported-versions") apiSupportedVersions: Seq[String])(
-  implicit materializer: Materializer)
-    extends Filter {
+class AcceptHeaderFilter @Inject()(appConfig: AppConfig)(implicit materializer: Materializer) extends Filter {
   override implicit def mat: Materializer = materializer
 
   import AcceptHeaderFilter._
@@ -45,7 +45,7 @@ class AcceptHeaderFilter @Inject()(@Named("api.supported-versions") apiSupported
     val optMatch: Option[Match] = acceptHeader.flatMap(acceptHeaderRegex.findFirstMatchIn)
 
     val acceptType = optMatch.flatMap(getGroup("accept-type"))
-    val isSupportedVersion = optMatch.flatMap(getGroup("version")).fold(false)(apiSupportedVersions.contains)
+    val isSupportedVersion = optMatch.flatMap(getGroup("version")).fold(false)(appConfig.apiSupportedVersions.contains)
     val isSupportedContentType =
       optMatch.flatMap(getGroup("content-type")).fold(false)(c => c.equalsIgnoreCase("json"))
 

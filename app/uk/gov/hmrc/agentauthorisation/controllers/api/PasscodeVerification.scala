@@ -16,18 +16,21 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
+import com.google.inject.{ImplementedBy, Singleton}
 import javax.inject.Inject
-
 import play.api.mvc.Results._
 import play.api.mvc.{Request, Result}
 import play.api.{Configuration, Environment, Mode}
-import uk.gov.hmrc.auth.otac.{Authorised, OtacAuthConnector}
-import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
+import uk.gov.hmrc.agentauthorisation.config.AppConfig
+import uk.gov.hmrc.auth.otac.{Authorised, OtacAuthConnector, PlayOtacAuthConnector}
+import uk.gov.hmrc.http.{CoreGet, HeaderCarrier, SessionKeys, Upstream4xxResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class PasscodeVerificationException(msg: String) extends RuntimeException(msg)
 
+@ImplementedBy(classOf[FrontendPasscodeVerification])
 trait PasscodeVerification {
   def apply[A](body: Boolean => Future[Result])(
     implicit
@@ -36,11 +39,17 @@ trait PasscodeVerification {
     ec: ExecutionContext): Future[Result]
 }
 
+@Singleton
 class FrontendPasscodeVerification @Inject()(
   configuration: Configuration,
   environment: Environment,
-  otacAuthConnector: OtacAuthConnector)
-    extends PasscodeVerification {
+  appConfig: AppConfig,
+  httpClient: HttpClient)
+    extends PasscodeVerification with PlayOtacAuthConnector {
+
+  val serviceUrl: String = appConfig.authBaseUrl
+
+  def http: CoreGet = httpClient
 
   val tokenParam = "p"
   val passcodeEnabledKey = "passcodeAuthentication.enabled"
@@ -95,11 +104,13 @@ class FrontendPasscodeVerification @Inject()(
           }
           case _ => body(false)
         }) { otacToken =>
-          otacAuthConnector
-            .authorise(passcodeRegime, headerCarrier, Option(otacToken))
+          authorise(passcodeRegime, headerCarrier, Option(otacToken))
             .flatMap {
               case Authorised => body(true)
               case _          => body(false)
+            }
+            .recoverWith {
+              case _: Upstream4xxResponse => body(false)
             }
         }
     } else {

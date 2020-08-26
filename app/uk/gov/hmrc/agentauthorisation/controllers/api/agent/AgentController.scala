@@ -24,9 +24,10 @@ import javax.inject.{Inject, Named, Singleton}
 import play.api.Logger
 import play.api.libs.json.Json._
 import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.agentauthorisation.audit.AuditService
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
+import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.connectors.{InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
@@ -39,13 +40,12 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AgentController @Inject()(
-  @Named("get-requests-show-last-days") val getRequestsShowLastDays: Int,
   invitationsConnector: InvitationsConnector,
   invitationService: InvitationService,
   relationshipsConnector: RelationshipsConnector,
@@ -53,10 +53,14 @@ class AgentController @Inject()(
   auditService: AuditService,
   val authConnector: AuthConnector,
   val withVerifiedPasscode: PasscodeVerification,
-  ecp: Provider[ExecutionContext])
-    extends BaseController with AuthActions {
+  ecp: Provider[ExecutionContext],
+  cc: ControllerComponents,
+  appConfig: AppConfig)
+    extends BackendController(cc) with AuthActions {
 
   implicit val ec: ExecutionContext = ecp.get
+
+  val getRequestsShowLastDays = appConfig.showLastDays
 
   import AgentController._
 

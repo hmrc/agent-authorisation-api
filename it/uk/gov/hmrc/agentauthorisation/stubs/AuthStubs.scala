@@ -70,6 +70,20 @@ trait AuthStubs {
             .withStatus(401)
             .withHeader("WWW-Authenticate", "MDTP detail=\"InsufficientConfidenceLevel\"")))
 
+  def givenOtacAuthorised(): Unit =
+    stubFor(
+      get(urlEqualTo("/authorise/read/fooRegime"))
+        .willReturn(
+          aResponse()
+            .withStatus(200)))
+
+  def givenOtacUnAuthorised(): Unit =
+    stubFor(
+      get(urlEqualTo("/authorise/read/fooRegime"))
+        .willReturn(
+          aResponse()
+            .withStatus(401)))
+
   def verifyAuthoriseAttempt(): Unit =
     verify(1, postRequestedFor(urlEqualTo("/auth/authorise")))
 
