@@ -16,16 +16,14 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
-import org.scalatestplus.play.OneServerPerSuite
 import play.api.libs.ws.WSClient
-import uk.gov.hmrc.agentauthorisation.support.Resource
+import uk.gov.hmrc.agentauthorisation.support.{BaseISpec, Resource}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.test.UnitSpec
 
-import scala.language.postfixOps
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.language.postfixOps
 
-class ApiPlatformISpec extends UnitSpec with OneServerPerSuite {
+class ApiPlatformISpec extends BaseISpec {
 
   implicit val ws: WSClient = app.injector.instanceOf[WSClient]
 

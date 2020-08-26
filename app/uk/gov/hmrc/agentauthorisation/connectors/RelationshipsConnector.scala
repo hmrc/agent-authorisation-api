@@ -22,33 +22,34 @@ import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import javax.inject.{Inject, Named, Singleton}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
+import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, MtdItId, Vrn}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RelationshipsConnector @Inject()(
-  @Named("agent-client-relationships-baseUrl") baseUrl: URL,
-  http: HttpPost with HttpGet with HttpPut,
-  metrics: Metrics)
+class RelationshipsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, appConfig: AppConfig)
     extends HttpAPIMonitor {
+
+  val acrUrl = s"${appConfig.acrBaseUrl}/agent-client-relationships"
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   private[connectors] def checkItsaRelationshipUrl(arn: Arn, nino: Nino): URL =
-    new URL(baseUrl, s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-IT/client/NI/${nino.value}")
+    new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-IT/client/NI/${nino.value}")
 
   private[connectors] def checkVatRelationshipUrl(arn: Arn, vrn: Vrn): URL =
-    new URL(baseUrl, s"/agent-client-relationships/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
+    new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
 
   def checkItsaRelationship(arn: Arn, nino: Nino)(
     implicit
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaRelationship-GET") {
-      http.GET[HttpResponse](checkItsaRelationshipUrl(arn, nino).toString) map (_ => true)
+      httpClient.GET[HttpResponse](checkItsaRelationshipUrl(arn, nino).toString) map (_ => true)
     }.recover {
       case _: NotFoundException => false
     }
@@ -58,7 +59,7 @@ class RelationshipsConnector @Inject()(
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-VatRelationship-GET") {
-      http
+      httpClient
         .GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString)
         .map(_ => true)
     }.recover {

@@ -37,7 +37,7 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
   trait BaseSetup {
     implicit val sys = ActorSystem("MyTest")
     implicit val mat = ActorMaterializer()
-    implicit val configuration = Configuration()
+    implicit val configuration = Configuration("bootstrap.errorHandler.warnOnly.statusCodes" -> List(400, 404))
 
     implicit val fakeRequest = FakeRequest()
     val mockAuditConnector = mock[AuditConnector]
@@ -46,7 +46,7 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
 
     when(mockAuditConnector.sendEvent(any())(any(), any())).thenReturn(Future.successful(mockAuditResult))
 
-    val errorHandler = new ErrorHandler(mockAuditConnector)
+    val errorHandler = new ErrorHandler(mockAuditConnector, mockHttpAuditEvent)
   }
 
   "onClientError" should {

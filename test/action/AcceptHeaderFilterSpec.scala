@@ -16,17 +16,42 @@
 
 package action
 
+import org.scalamock.scalatest.MockFactory
+import play.api.Configuration
 import play.api.mvc.{Call, RequestHeader, Result}
 import play.api.test.FakeRequest
 import support.BaseSpec
 import uk.gov.hmrc.agentauthorisation.actions.AcceptHeaderFilter
 import play.api.mvc.Results._
+import uk.gov.hmrc.agentauthorisation.config.AppConfig
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.Future
 
-class AcceptHeaderFilterSpec extends BaseSpec {
+class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
 
-  case class TestAcceptHeaderFilter(supportedVersion: Seq[String]) extends AcceptHeaderFilter(supportedVersion) {
+  val servicesConfig = mock[ServicesConfig]
+  (servicesConfig
+    .baseUrl(_: String))
+    .expects(*)
+    .atLeastOnce()
+    .returning("blah-url")
+  (servicesConfig
+    .getConfString(_: String, _: String))
+    .expects(*, *)
+    .atLeastOnce()
+    .returning("blah")
+  (servicesConfig
+    .getInt(_: String))
+    .expects(*)
+    .atLeastOnce()
+    .returning(30)
+
+  val config = Configuration.apply("api.supported-versions" -> List(1.0))
+
+  val appConfig = new AppConfig(servicesConfig, config)
+
+  case class TestAcceptHeaderFilter(supportedVersion: Seq[String]) extends AcceptHeaderFilter(appConfig) {
     def response(f: RequestHeader => Future[Result])(rh: RequestHeader) = await(super.apply(f)(rh))
   }
 

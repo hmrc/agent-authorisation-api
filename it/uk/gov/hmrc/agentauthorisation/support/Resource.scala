@@ -1,8 +1,7 @@
 package uk.gov.hmrc.agentauthorisation.support
 
 import play.api.http.{HeaderNames, MimeTypes}
-import play.api.libs.ws.{WS, WSClient, WSRequest, WSResponse}
-import play.api.mvc.Results
+import play.api.libs.ws.{DefaultBodyWritables, EmptyBody, WSClient, WSRequest, WSResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.http.ws.WSHttpResponse
 
@@ -26,14 +25,13 @@ object Http {
 
   def postEmpty(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse =
     perform(url) { request =>
-      import play.api.http.Writeable._
-      request.post(Results.EmptyContent())
+      request.post(EmptyBody)
     }
 
   def putEmpty(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse =
     perform(url) { request =>
-      import play.api.http.Writeable._
-      request.put(Results.EmptyContent())
+
+      request.put(EmptyBody)
     }
 
   def delete(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse = perform(url) {

@@ -1,8 +1,6 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import uk.gov.hmrc.agentauthorisation._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
-import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -16,19 +16,19 @@
 
 package support
 
-import java.security.cert.X509Certificate
+import java.net.URI
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.OneAppPerSuite
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.{RemoteConnection, RequestTarget}
 import play.api.mvc.{Headers, RequestHeader}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.UnitSpec
 
-abstract class BaseSpec extends UnitSpec with MockitoSugar with OneAppPerSuite {
+abstract class BaseSpec extends UnitSpec {
   implicit val sys: ActorSystem = ActorSystem("TestSystem")
   implicit val mat: ActorMaterializer = ActorMaterializer()
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -36,16 +36,22 @@ abstract class BaseSpec extends UnitSpec with MockitoSugar with OneAppPerSuite {
   val arn: Arn = Arn("TARN0000001")
 
   def testRequest[A](fakeRequest: FakeRequest[A]): RequestHeader = new RequestHeader {
-    override def id: Long = fakeRequest.id
-    override def tags: Map[String, String] = fakeRequest.tags
-    override def uri: String = fakeRequest.uri
-    override def path: String = fakeRequest.path
     override def method: String = fakeRequest.method
     override def version: String = fakeRequest.version
-    override def queryString: Map[String, Seq[String]] = fakeRequest.queryString
     override def headers: Headers = fakeRequest.headers
-    override def remoteAddress: String = fakeRequest.remoteAddress
-    override def secure: Boolean = fakeRequest.secure
-    override def clientCertificateChain: Option[Seq[X509Certificate]] = fakeRequest.clientCertificateChain
+
+    override def connection: RemoteConnection = RemoteConnection("", false, None)
+
+    override def target: RequestTarget = new RequestTarget {
+      override def uri: URI = URI.create("")
+
+      override def uriString: String = fakeRequest.uri
+
+      override def path: String = fakeRequest.path
+
+      override def queryMap: Map[String, Seq[String]] = fakeRequest.queryString
+    }
+
+    override def attrs: TypedMap = TypedMap.empty
   }
 }
