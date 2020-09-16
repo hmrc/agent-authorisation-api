@@ -69,7 +69,7 @@ See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/
 | Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 #### application/json (application/json) 
-Create a new authorisation request. The request will expire after 14 days.
+Create a new authorisation request. The request will expire after 21 days.
 
 ```
 {
@@ -101,7 +101,7 @@ The authorisation request was created successfully.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Location | string | Location of the authorisation request that was created which will expire after 14 days. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
+| Location | string | Location of the authorisation request that was created which will expire after 21 days. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
 
 ### Response code: 400
 
