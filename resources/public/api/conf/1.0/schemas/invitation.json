@@ -65,7 +65,7 @@
         },
         {
           "enum": [ "Expired" ],
-          "description": "Client did not respond to the Agent's Invitation within 14 days. Only the service can set this status."
+          "description": "Client did not respond to the Agent's Invitation within 21 days. Only the service can set this status."
         }
       ]
     },
