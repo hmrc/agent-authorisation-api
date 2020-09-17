@@ -4,9 +4,8 @@ import play.api.mvc.Result
 import play.api.mvc.Results._
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
-import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException}
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,14 +17,12 @@ class AuthActionsISpec extends BaseISpec {
 
     override def authConnector: AuthConnector = app.injector.instanceOf[AuthConnector]
 
-    def withVerifiedPasscode: PasscodeVerification = app.injector.instanceOf[PasscodeVerification]
-
     implicit val hc = HeaderCarrier()
     implicit val request = FakeRequest().withSession(SessionKeys.authToken -> "Bearer XYZ")
 
     def withAuthorisedAsAgent[A]: Result =
-      await(super.withAuthorisedAsAgent { (arn, isWhitelisted) =>
-        Future.successful(Ok((arn.value, isWhitelisted).toString))
+      await(super.withAuthorisedAsAgent { arn =>
+        Future.successful(Ok(arn.value))
       })
   }
 
@@ -44,7 +41,7 @@ class AuthActionsISpec extends BaseISpec {
       )
       val result = TestController.withAuthorisedAsAgent
       status(result) shouldBe 200
-      bodyOf(result) shouldBe "(fooArn,false)"
+      bodyOf(result) shouldBe "fooArn"
     }
 
     "return 401 UNAUTHORISED when no Bearer Token supplied" in {

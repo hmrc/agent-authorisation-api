@@ -25,7 +25,6 @@ abstract class BaseISpec
         "microservice.services.agent-client-relationships.host"         -> wireMockHost,
         "microservice.services.des.host"                                -> wireMockHost,
         "microservice.services.des.port"                                -> wireMockPort,
-        "passcodeAuthentication.enabled"                                -> true,
         "api.supported-versions"                                        -> Seq("1.0")
       ).configure(additionalConfiguration)
 
