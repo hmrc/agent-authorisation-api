@@ -20,7 +20,6 @@ import play.api.Logger
 import play.api.mvc.{Request, Result}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
-import uk.gov.hmrc.agentauthorisation.controllers.api.PasscodeVerification
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
@@ -31,8 +30,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthActions extends AuthorisedFunctions {
-
-  def withVerifiedPasscode: PasscodeVerification
 
   private val affinityGroupAllEnrolls: Retrieval[Option[AffinityGroup] ~ Enrolments] = affinityGroup and allEnrolments
 
@@ -68,22 +65,19 @@ trait AuthActions extends AuthorisedFunctions {
           Future successful NotAnAgent
       }
 
-  protected def withAuthorisedAsAgent[A](body: (Arn, Boolean) => Future[Result])(
+  protected def withAuthorisedAsAgent[A](body: Arn => Future[Result])(
     implicit
     request: Request[A],
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Result] =
-    withVerifiedPasscode { isWhitelisted =>
-      withEnrolledAsAgent { arn =>
-        body(Arn(arn), isWhitelisted)
-      } recoverWith {
-        case _: InsufficientEnrolments =>
-          Logger(getClass).warn(s"User has Insufficient Enrolments to Login")
-          Future successful NotAnAgent
-        case e: AuthorisationException =>
-          Logger(getClass).warn(s"User has Missing Bearer Token in Header or: $e")
-          Future successful standardUnauthorised
-      }
+    withEnrolledAsAgent { arn =>
+      body(Arn(arn))
+    } recoverWith {
+      case _: InsufficientEnrolments =>
+        Logger(getClass).warn(s"User has Insufficient Enrolments to Login")
+        Future successful NotAnAgent
+      case e: AuthorisationException =>
+        Logger(getClass).warn(s"User has Missing Bearer Token in Header or: $e")
+        Future successful standardUnauthorised
     }
-
 }

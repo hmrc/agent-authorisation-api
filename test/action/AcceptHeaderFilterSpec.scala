@@ -46,6 +46,11 @@ class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
     .expects(*)
     .atLeastOnce()
     .returning(30)
+  (servicesConfig
+    .getString(_: String))
+    .expects(*)
+    .atLeastOnce()
+    .returning("some config string")
 
   val config = Configuration.apply("api.supported-versions" -> List(1.0))
 
