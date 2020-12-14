@@ -18,8 +18,8 @@ package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZoneOffset}
-
 import com.google.inject.Provider
+
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.Json._
@@ -34,7 +34,7 @@ import uk.gov.hmrc.agentauthorisation.models
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentauthorisation.services.{InvitationService, RelationshipService}
+import uk.gov.hmrc.agentauthorisation.services.{InvitationService, PlatformAnalyticsService, RelationshipService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
@@ -50,6 +50,7 @@ class AgentController @Inject()(
   relationshipsConnector: RelationshipsConnector,
   relationshipService: RelationshipService,
   auditService: AuditService,
+  platformAnalyticsService: PlatformAnalyticsService,
   val authConnector: AuthConnector,
   ecp: Provider[ExecutionContext],
   cc: ControllerComponents,
@@ -106,6 +107,7 @@ class AgentController @Inject()(
                 val id = pendingInv.get.href.toString.split("/").toStream.last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+                ga("get-authorisation-request", pendingInvitation.service.headOption)
                 Ok(
                   toJson(pendingInvitation
                     .copy(href = newInvitationUrl))
@@ -117,6 +119,7 @@ class AgentController @Inject()(
                 val id = respondedInv.get.href.toString.split("/").toStream.last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+                ga("get-authorisation-request", respondedInvitation.service.headOption)
                 Ok(toJson(respondedInvitation.copy(href = newInvitationUrl))
                   .as[JsObject])
               case Some(RespondedInvitation(respondedInvitation)) =>
@@ -140,6 +143,7 @@ class AgentController @Inject()(
             .map {
               case Some(204) =>
                 auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Success")
+                ga("cancel-authorisation-request", None)
                 NoContent
               case Some(404) => InvitationNotFound
               case Some(403) => NoPermissionOnAgency
@@ -262,6 +266,7 @@ class AgentController @Inject()(
                              .getInvitationApi(arn, InvitationId(invitationId))
                              .url
                            auditService.sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, "Success")
+                           ga("create-authorisation-request", Some(agentInvitation.service.toString))
                            Future successful NoContent.withHeaders(LOCATION -> locationLink)
                          }
                          .recoverWith {
@@ -332,6 +337,7 @@ class AgentController @Inject()(
       case Itsa =>
         val res = for {
           result <- relationshipsConnector.checkItsaRelationship(arn, Nino(relationshipRequest.clientId))
+          _      <- ga("check-relationship", Some(relationshipRequest.service.toString))
         } yield result
         res.map {
           case true => NoContent
@@ -340,22 +346,26 @@ class AgentController @Inject()(
             RelationshipNotFound
         }
       case Vat =>
-        relationshipsConnector
-          .checkVatRelationship(arn, Vrn(relationshipRequest.clientId))
-          .map {
-            case true => NoContent
-            case false =>
-              Logger(getClass).warn(s"No VAT Relationship Found")
-              RelationshipNotFound
-          }
+        val res = for {
+          result <- relationshipsConnector.checkVatRelationship(arn, Vrn(relationshipRequest.clientId))
+          _      <- ga("check-relationship", Some(relationshipRequest.service.toString))
+        } yield result
+        res.map {
+          case true => NoContent
+          case false =>
+            Logger(getClass).warn(s"No VAT Relationship Found")
+            RelationshipNotFound
+        }
     }
 
   def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAsAgent { arn =>
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
-        val previousDate =
+        ga("get-authorisation-requests", None)
+        val previousDate = {
           LocalDate.now(ZoneOffset.UTC).minusDays(getRequestsShowLastDays)
+        }
         invitationService
           .getAllInvitations(arn, previousDate)
           .map(invitations => {
@@ -400,6 +410,8 @@ class AgentController @Inject()(
     }
   }
 
+  private def ga(action: String, label: Option[String])(implicit hc: HeaderCarrier) =
+    platformAnalyticsService.sendEvent(action, label)
 }
 
 object AgentController {
