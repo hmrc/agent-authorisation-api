@@ -44,4 +44,7 @@ class AppConfig @Inject()(servicesConfig: ServicesConfig, config: Configuration)
 
   val apiType = servicesConfig.getString("api.access.type")
 
+  val platformAnalyticsBaseUrl = baseUrl("platform-analytics")
+  val gaTrackingId: String = servicesConfig.getString("google-analytics.token")
+
 }
