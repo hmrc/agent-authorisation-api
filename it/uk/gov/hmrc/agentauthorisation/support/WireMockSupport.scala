@@ -17,9 +17,9 @@
 package uk.gov.hmrc.agentauthorisation.support
 
 import java.net.URL
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.common.Notifier
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
@@ -43,9 +43,13 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
   val wireMockHost = "localhost"
   val wireMockBaseUrlAsString = s"http://$wireMockHost:$wireMockPort"
   val wireMockBaseUrl = new URL(wireMockBaseUrlAsString)
+
+  // Override this to get debug logging
+  lazy val notifier: Option[Notifier] = None
+
   protected implicit val implicitWireMockBaseUrl: WireMockBaseUrl = WireMockBaseUrl(wireMockBaseUrl)
 
-  protected def basicWireMockConfig(): WireMockConfiguration = wireMockConfig()
+  protected def basicWireMockConfig(): WireMockConfiguration = notifier.fold(wireMockConfig()){ n => wireMockConfig().notifier(n) }
 
   private val wireMockServer = new WireMockServer(basicWireMockConfig().port(wireMockPort))
 

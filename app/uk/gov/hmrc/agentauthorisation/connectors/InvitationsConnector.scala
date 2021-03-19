@@ -19,7 +19,6 @@ package uk.gov.hmrc.agentauthorisation.connectors
 import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import javax.inject.{Inject, Singleton}
@@ -30,8 +29,9 @@ import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, Service, StoredInvitation}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException, Upstream4xxResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.agentauthorisation.connectors.Syntax._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,6 +40,8 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
     extends HttpAPIMonitor {
 
   val acaUrl = s"${appConfig.acaBaseUrl}/agent-client-authorisation"
+
+  import uk.gov.hmrc.http.HttpReads.Implicits._
 
   override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
@@ -79,13 +81,19 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[String]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
-      httpClient.POST[AgentInvitation, HttpResponse](
-        createInvitationUrl(arn).toString,
-        agentInvitation,
-        Seq("Origin" -> "agent-authorisation-api")
-      ) map { r =>
-        r.header("InvitationId")
-      }
+      val url = createInvitationUrl(arn).toString
+      httpClient
+        .POST[AgentInvitation, HttpResponse](
+          url,
+          agentInvitation,
+          Seq("Origin" -> "agent-authorisation-api")
+        )
+        .map {
+          case r if r.status.isSuccess => r.header("InvitationId")
+          case r =>
+            throw UpstreamErrorResponse
+              .apply(s"POST of '$url' returned ${r.status}. Response body: '${r.body}'", r.status)
+        }
     }
 
   def checkPostcodeForClient(nino: Nino, postcode: String)(
@@ -95,12 +103,11 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
     monitor(s"ConsumedAPI-CheckPostcode-GET") {
       httpClient
         .GET[HttpResponse](checkPostcodeUrl(nino, postcode).toString)
-        .map(_ => Some(true))
-    }.recover {
-      case notMatched: Upstream4xxResponse if notMatched.message.contains("POSTCODE_DOES_NOT_MATCH") =>
-        Some(false)
-      case notEnrolled: Upstream4xxResponse if notEnrolled.message.contains("CLIENT_REGISTRATION_NOT_FOUND") =>
-        None
+        .map {
+          case r if r.status.isSuccess                               => Some(true)
+          case r if r.body.contains("POSTCODE_DOES_NOT_MATCH")       => Some(false)
+          case r if r.body.contains("CLIENT_REGISTRATION_NOT_FOUND") => None
+        }
     }
 
   def checkVatRegDateForClient(vrn: Vrn, registrationDateKnownFact: LocalDate)(
@@ -110,11 +117,11 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
     monitor(s"ConsumedAPI-CheckVatRegDate-GET") {
       httpClient
         .GET[HttpResponse](checkVatRegisteredClientUrl(vrn, registrationDateKnownFact).toString)
-        .map(_ => Some(true))
-    }.recover {
-      case ex: Upstream4xxResponse if ex.upstreamResponseCode == 403 =>
-        Some(false)
-      case _: NotFoundException => None
+        .map {
+          case r if r.status.isSuccess => Some(true)
+          case r if r.status == 403    => Some(false)
+          case _                       => None
+        }
     }
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(
@@ -122,7 +129,9 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
     headerCarrier: HeaderCarrier,
     executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
-      httpClient.GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
+      httpClient
+        .GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
+        .map(si => { println("stiv"); println(si); si }) // Here
     }.recoverWith {
       case _ => Future successful None
     }
@@ -134,12 +143,10 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
     monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
       httpClient
         .PUT[String, HttpResponse](cancelInvitationUrl(arn, invitationId).toString, "")
-        .map(response => Some(response.status))
-    }.recover {
-      case _: NotFoundException => Some(404)
-      case ex: Upstream4xxResponse if ex.message.contains("INVALID_INVITATION_STATUS") =>
-        Some(500)
-      case _ => Some(403)
+        .map {
+          case r if r.body.contains("INVALID_INVITATION_STATUS") => Some(500)
+          case response                                          => Some(response.status)
+        }
     }
 
   def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(

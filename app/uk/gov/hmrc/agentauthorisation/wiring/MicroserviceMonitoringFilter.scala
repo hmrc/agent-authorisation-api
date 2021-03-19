@@ -25,9 +25,7 @@ import com.kenshoo.play.metrics.Metrics
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.mvc.{Filter, RequestHeader, Result}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException, Upstream4xxResponse, Upstream5xxResponse}
-import uk.gov.hmrc.play.HeaderCarrierConverter.fromHeadersAndSession
-
+import uk.gov.hmrc.http.{HttpException, Upstream4xxResponse, Upstream5xxResponse}
 import scala.concurrent.duration.NANOSECONDS
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -61,10 +59,7 @@ object KeyToPatternMappingFromRoutes {
 abstract class MonitoringFilter(kenshooRegistry: MetricRegistry)(implicit ec: ExecutionContext)
     extends Filter with MonitoringKeyMatcher {
 
-  override def apply(nextFilter: (RequestHeader) => Future[Result])(requestHeader: RequestHeader): Future[Result] = {
-
-    implicit val hc: HeaderCarrier = fromHeadersAndSession(requestHeader.headers)
-
+  override def apply(nextFilter: (RequestHeader) => Future[Result])(requestHeader: RequestHeader): Future[Result] =
     findMatchingKey(requestHeader.uri) match {
       case Some(key) =>
         monitor(s"API-$key-${requestHeader.method}") {
@@ -74,16 +69,13 @@ abstract class MonitoringFilter(kenshooRegistry: MetricRegistry)(implicit ec: Ex
         Logger.debug(s"API-Not-Monitored: ${requestHeader.method}-${requestHeader.uri}")
         nextFilter(requestHeader)
     }
-  }
 
-  private def monitor(serviceName: String)(
-    function: => Future[Result])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  private def monitor(serviceName: String)(function: => Future[Result])(implicit ec: ExecutionContext): Future[Result] =
     timer(serviceName) {
       function
     }
 
-  private def timer(serviceName: String)(
-    function: => Future[Result])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+  private def timer(serviceName: String)(function: => Future[Result])(implicit ec: ExecutionContext): Future[Result] = {
     val start = System.nanoTime()
     function.andThen {
       case Success(result) =>

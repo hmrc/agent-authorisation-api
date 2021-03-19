@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneOffset, ZonedDateTime}
+import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.time.format.DateTimeFormatter
 
 import play.api.libs.json._

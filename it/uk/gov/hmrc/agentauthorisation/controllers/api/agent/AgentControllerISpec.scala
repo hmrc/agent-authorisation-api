@@ -6,7 +6,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.contentAsJson
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
+import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults.{VatRegDateDoesNotMatch, _}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
@@ -378,13 +378,13 @@ class AgentControllerISpec extends BaseISpec {
       verifyAgentClientInvitationSubmittedEvent(
         arn.value,
         validNino.value,
-        "ni",
-        "Fail",
-        "HMRC-MTD-IT",
-        Some(
-          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''")
+        clientIdType = "ni",
+        result = "Fail",
+        service = "HMRC-MTD-IT",
+        failure = Some(
+          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400. Response body: ''"
+        )
       )
-
     }
 
     "return a future failed when the invitation creation failed for VAT" in {
@@ -404,7 +404,7 @@ class AgentControllerISpec extends BaseISpec {
         "Fail",
         "HMRC-MTD-VAT",
         Some(
-          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400 (Bad Request). Response body ''")
+          s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400. Response body: ''")
       )
     }
   }

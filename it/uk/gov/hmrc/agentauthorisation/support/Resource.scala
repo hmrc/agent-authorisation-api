@@ -1,7 +1,7 @@
 package uk.gov.hmrc.agentauthorisation.support
 
 import play.api.http.{HeaderNames, MimeTypes}
-import play.api.libs.ws.{DefaultBodyWritables, EmptyBody, WSClient, WSRequest, WSResponse}
+import play.api.libs.ws.{EmptyBody, WSClient, WSRequest, WSResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.http.ws.WSHttpResponse
 
@@ -20,7 +20,7 @@ object Http {
     hc: HeaderCarrier,
     ec: ExecutionContext,
     ws: WSClient): HttpResponse = perform(url) { request =>
-    request.withHeaders(headers: _*).post(body)
+    request.addHttpHeaders(headers: _*).post(body)
   }
 
   def postEmpty(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse =
@@ -43,9 +43,9 @@ object Http {
     implicit
     hc: HeaderCarrier,
     ec: ExecutionContext,
-    ws: WSClient): WSHttpResponse =
+    ws: WSClient) =
     await(
-      fun(ws.url(url).withHeaders(hc.headers: _*).withRequestTimeout(20000 milliseconds)).map(new WSHttpResponse(_)))
+      fun(ws.url(url).addHttpHeaders(hc.headers: _*).withRequestTimeout(20000 milliseconds)).map(WSHttpResponse(_)))
 
   private def await[A](future: Future[A]) = Await.result(future, Duration(10, SECONDS))
 

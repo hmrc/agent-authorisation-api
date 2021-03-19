@@ -23,7 +23,6 @@ import uk.gov.hmrc.agentauthorisation.models.AnalyticsRequest
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
 import play.api.Logger
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
