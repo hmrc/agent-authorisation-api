@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.auth
 
 import play.api.Logger
-import play.api.mvc.{Request, Result}
+import play.api.mvc.Result
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -44,7 +44,6 @@ trait AuthActions extends AuthorisedFunctions {
 
   protected def withEnrolledAsAgent[A](body: String => Future[Result])(
     implicit
-    request: Request[A],
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Result] =
     authorised(AuthProviders(GovernmentGateway))
@@ -67,7 +66,6 @@ trait AuthActions extends AuthorisedFunctions {
 
   protected def withAuthorisedAsAgent[A](body: Arn => Future[Result])(
     implicit
-    request: Request[A],
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Result] =
     withEnrolledAsAgent { arn =>

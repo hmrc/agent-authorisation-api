@@ -1,7 +1,6 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import java.time.{LocalDate, ZoneOffset}
-
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}

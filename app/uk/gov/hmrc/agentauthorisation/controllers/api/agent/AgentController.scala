@@ -197,9 +197,7 @@ class AgentController @Inject()(
   }
 
   private def checkKnownFactAndRelationship(arn: Arn, relationshipRequest: RelationshipRequest)(
-    implicit
-    hc: HeaderCarrier,
-    request: Request[_]): Future[Result] =
+    implicit hc: HeaderCarrier): Future[Result] =
     if (checkKnownFactValid(relationshipRequest.service, relationshipRequest.knownFact)) {
       for {
         hasKnownFact <- checkKnownFactMatches(
@@ -331,8 +329,7 @@ class AgentController @Inject()(
 
   private def checkRelationship(relationshipRequest: RelationshipRequest, arn: Arn)(
     implicit
-    hc: HeaderCarrier,
-    request: Request[_]) =
+    hc: HeaderCarrier) =
     relationshipRequest.service match {
       case Itsa =>
         val res = for {

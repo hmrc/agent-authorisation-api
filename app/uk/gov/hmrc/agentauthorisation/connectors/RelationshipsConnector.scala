@@ -17,16 +17,17 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import java.net.URL
-
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, MtdItId, Vrn}
+import uk.gov.hmrc.agentauthorisation.connectors.Syntax.intOps
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Vrn}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,9 +50,8 @@ class RelationshipsConnector @Inject()(httpClient: HttpClient, metrics: Metrics,
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaRelationship-GET") {
-      httpClient.GET[HttpResponse](checkItsaRelationshipUrl(arn, nino).toString) map (_ => true)
-    }.recover {
-      case _: NotFoundException => false
+      val url = checkItsaRelationshipUrl(arn, nino).toString
+      httpClient.GET[HttpResponse](url) map handle(url)
     }
 
   def checkVatRelationship(arn: Arn, vrn: Vrn)(
@@ -59,10 +59,16 @@ class RelationshipsConnector @Inject()(httpClient: HttpClient, metrics: Metrics,
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-VatRelationship-GET") {
-      httpClient
-        .GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString)
-        .map(_ => true)
-    }.recover {
-      case _: NotFoundException => false
+      val url = checkVatRelationshipUrl(arn, vrn).toString
+      httpClient.GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString) map handle(url)
     }
+
+  private val handle = (url: String) =>
+    (r: HttpResponse) =>
+      r match {
+        case r if r.status == 404    => false
+        case r if r.status.isSuccess => true
+        case r =>
+          throw UpstreamErrorResponse.apply(s"GET of '$url' returned ${r.status}. Response body: '${r.body}'", r.status)
+  }
 }

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.actions
 
 import akka.stream.Materializer
-import javax.inject.{Inject, Named, Singleton}
+import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames
 import play.api.mvc.{Filter, RequestHeader, Result}
 import uk.gov.hmrc.agentauthorisation.config.AppConfig

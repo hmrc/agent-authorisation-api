@@ -51,6 +51,7 @@ lazy val root = (project in file("."))
     ),
     libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it"),
     routesImport += "uk.gov.hmrc.agentauthorisation.binders.UrlBinders._",
+    routesImport -= "controllers.Assets.Asset",
     publishingSettings,
     scoverageSettings,
     unmanagedResourceDirectories in Compile += baseDirectory.value / "resources",

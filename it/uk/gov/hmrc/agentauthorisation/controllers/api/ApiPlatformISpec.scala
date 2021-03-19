@@ -21,7 +21,6 @@ import uk.gov.hmrc.agentauthorisation.support.{BaseISpec, Resource}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.language.postfixOps
 
 class ApiPlatformISpec extends BaseISpec {
 

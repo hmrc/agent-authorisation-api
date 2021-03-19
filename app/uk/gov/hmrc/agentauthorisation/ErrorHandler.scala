@@ -33,9 +33,7 @@ class ErrorHandler @Inject()(auditConnector: AuditConnector, httpAuditEvent: Htt
   configuration: Configuration)
     extends JsonErrorHandler(auditConnector, httpAuditEvent, configuration) {
 
-  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-    implicit val req = request
-
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
     super.onClientError(request, statusCode, message).map { auditedError =>
       Logger(getClass).warn(s"Client Side Error: $message from request: $request statusCode: $statusCode")
       statusCode match {
@@ -45,16 +43,12 @@ class ErrorHandler @Inject()(auditConnector: AuditConnector, httpAuditEvent: Htt
         case _            => auditedError
       }
     }
-  }
 
-  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
-    implicit val req: RequestHeader = request
-
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     super
       .onServerError(request, exception)
       .map(_ => {
         Logger(getClass).warn(s"Server Side Error: $exception from request: $request")
         standardInternalServerError
       })
-  }
 }

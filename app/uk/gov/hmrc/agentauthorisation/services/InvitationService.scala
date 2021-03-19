@@ -21,7 +21,7 @@ import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -43,12 +43,6 @@ class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[Boolean]] =
     invitationsConnector.checkPostcodeForClient(nino, postcode)
-
-  def checkVatRegDateMatches(vrn: Vrn, vatRegDate: LocalDate)(
-    implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[Boolean]] =
-    invitationsConnector.checkVatRegDateForClient(vrn, vatRegDate)
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(
     implicit
