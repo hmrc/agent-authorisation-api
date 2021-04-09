@@ -50,6 +50,10 @@ lazy val root = (project in file("."))
       Resolver.jcenterRepo
     ),
     libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it"),
+    libraryDependencies ++= Seq(
+      compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.4.4" cross CrossVersion.full),
+      "com.github.ghik" % "silencer-lib" % "1.4.4" % Provided cross CrossVersion.full
+    ),
     routesImport += "uk.gov.hmrc.agentauthorisation.binders.UrlBinders._",
     routesImport -= "controllers.Assets.Asset",
     publishingSettings,
@@ -57,7 +61,18 @@ lazy val root = (project in file("."))
     unmanagedResourceDirectories in Compile += baseDirectory.value / "resources",
     majorVersion := 0,
     scalafmtOnCompile in Compile := true,
-    scalafmtOnCompile in Test := true
+    scalafmtOnCompile in Test := true,
+    scalacOptions ++= Seq(
+      //"-Xfatal-warnings",
+      "-Ypartial-unification",
+      "-Xlint:-missing-interpolator,_",
+      "-Yno-adapted-args",
+      "-Ywarn-dead-code",
+      "-deprecation",
+      "-feature",
+      "-unchecked",
+      "-language:implicitConversions",
+      "-P:silencer:pathFilters=views;routes")
   )
   .configs(IntegrationTest)
   .settings(
