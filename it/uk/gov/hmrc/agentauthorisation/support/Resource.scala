@@ -7,6 +7,7 @@ import uk.gov.hmrc.play.http.ws.WSHttpResponse
 
 import scala.concurrent.duration.{Duration, SECONDS, _}
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.language.postfixOps
 
 object Http {
 

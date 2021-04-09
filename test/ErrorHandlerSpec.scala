@@ -28,9 +28,10 @@ import uk.gov.hmrc.play.test.UnitSpec
 import org.mockito.ArgumentMatchers._
 import play.api.Configuration
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.model.DataEvent
 
-import scala.concurrent.Future
-
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
@@ -44,7 +45,8 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
     val mockAuditResult = mock[AuditResult]
     val mockHttpAuditEvent = mock[HttpAuditEvent]
 
-    when(mockAuditConnector.sendEvent(any())(any(), any())).thenReturn(Future.successful(mockAuditResult))
+    when(mockAuditConnector.sendEvent(any[DataEvent]())(any[HeaderCarrier](), any[ExecutionContext]()))
+      .thenReturn(Future.successful(mockAuditResult))
 
     val errorHandler = new ErrorHandler(mockAuditConnector, mockHttpAuditEvent)
   }

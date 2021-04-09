@@ -26,11 +26,13 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @ImplementedBy(classOf[PlatformAnalyticsConnectorImpl])
 trait PlatformAnalyticsConnector {
   def sendEvent(request: AnalyticsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done]
 }
+
 @Singleton
 class PlatformAnalyticsConnectorImpl @Inject()(appConfig: AppConfig, http: HttpClient)
     extends PlatformAnalyticsConnector with HttpErrorFunctions {
