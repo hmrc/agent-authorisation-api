@@ -1,5 +1,4 @@
 import play.core.PlayVersion
-import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
 lazy val scoverageSettings = {
@@ -16,21 +15,21 @@ lazy val scoverageSettings = {
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc" %% "bootstrap-play-26" % "1.14.0",
-  "uk.gov.hmrc" %% "auth-client" % "3.0.0-play-26",
+  "uk.gov.hmrc" %% "bootstrap-backend-play-27" % "5.6.0",
+  "uk.gov.hmrc" %% "auth-client" % "5.6.0-play-27",
   "com.github.blemale" %% "scaffeine" % "4.0.1",
-  "uk.gov.hmrc" %% "agent-kenshoo-monitoring" % "4.4.0",
-  "uk.gov.hmrc" %% "agent-mtd-identifiers" % "0.23.0-play-26",
-  "uk.gov.hmrc" %% "play-whitelist-filter" % "3.4.0-play-26",
-  "uk.gov.hmrc" %% "play-hal" % "2.1.0-play-26",
-  "uk.gov.hmrc" %% "play-hmrc-api" % "4.1.0-play-26"
+  "uk.gov.hmrc" %% "agent-kenshoo-monitoring" % "4.7.0-play-27",
+  "uk.gov.hmrc" %% "agent-mtd-identifiers" % "0.25.0-play-27",
+  "uk.gov.hmrc" %% "play-allowlist-filter" % "1.0.0-play-27",
+  "uk.gov.hmrc" %% "play-hal" % "2.1.0-play-27",
+  "uk.gov.hmrc" %% "play-hmrc-api" % "6.4.0-play-27"
 )
 
 def testDeps(scope: String) = Seq(
   "uk.gov.hmrc" %% "hmrctest" % "3.9.0-play-26" % scope,
   "org.scalatest" %% "scalatest" % "3.0.8" % scope,
   "org.mockito" % "mockito-core" % "2.27.0" % scope,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % scope,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % scope,
   "com.github.tomakehurst" % "wiremock-jre8" % "2.27.1" % scope,
   "org.pegdown" % "pegdown" % "1.6.0" % scope,
   "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
@@ -46,6 +45,7 @@ lazy val root = (project in file("."))
     resolvers ++= Seq(
       Resolver.typesafeRepo("releases"),
     ),
+    resolvers += "HMRC-local-artefacts-maven" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases-local",
     libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it"),
     libraryDependencies ++= Seq(
       compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.4.4" cross CrossVersion.full),
@@ -79,6 +79,6 @@ lazy val root = (project in file("."))
     parallelExecution in IntegrationTest := false,
     scalafmtOnCompile in IntegrationTest := true
   )
-  .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
+  .enablePlugins(PlayScala, SbtDistributablesPlugin)
 
 inConfig(IntegrationTest)(scalafmtCoreSettings)
