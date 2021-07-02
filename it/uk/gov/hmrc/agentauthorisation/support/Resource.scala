@@ -46,7 +46,7 @@ object Http {
     ec: ExecutionContext,
     ws: WSClient) =
     await(
-      fun(ws.url(url).addHttpHeaders(hc.headers: _*).withRequestTimeout(20000 milliseconds)).map(WSHttpResponse(_)))
+      fun(ws.url(url).addHttpHeaders(hc.headersForUrl(HeaderCarrier.Config())(url): _*).withRequestTimeout(20000 milliseconds)).map(WSHttpResponse(_)))
 
   private def await[A](future: Future[A]) = Await.result(future, Duration(10, SECONDS))
 
