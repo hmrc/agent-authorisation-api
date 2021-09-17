@@ -34,9 +34,6 @@ The aim is for the API to mirror the current process that happens through the Ag
 * The client accesses the link and signs in using their a Government Gateway login details to accept the agent's request
 * The agent can check if they have been authorised by a client.
 
-The detailed guide how to create required client data in the External Tests (Sandbox) environment 
-can be found at <https://test-www.tax.service.gov.uk/agents-external-stubs/help/agent-authorisation-api>
-
 ### Versioning
 When an API changes in a way that is backwards-incompatible, we increase the version number of the API. 
 See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) for more on
