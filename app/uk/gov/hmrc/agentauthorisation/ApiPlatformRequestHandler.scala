@@ -21,6 +21,7 @@ import play.api.http.{DefaultHttpRequestHandler, HttpConfiguration, HttpErrorHan
 import play.api.mvc.request.RequestTarget
 import play.api.mvc.{Handler, RequestHeader}
 import play.api.routing.Router
+import play.core.DefaultWebCommands
 
 /**
   * Normalise the request path. The API platform strips the context
@@ -32,7 +33,13 @@ class ApiPlatformRequestHandler @Inject()(
   errorHandler: HttpErrorHandler,
   configuration: HttpConfiguration,
   filters: HttpFilters)
-    extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters) {
+    extends DefaultHttpRequestHandler(
+      new DefaultWebCommands,
+      None,
+      router,
+      errorHandler,
+      configuration,
+      filters.filters) {
 
   val context = "/agents"
   val health = "/ping"

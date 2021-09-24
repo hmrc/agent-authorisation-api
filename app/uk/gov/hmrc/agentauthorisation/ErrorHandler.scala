@@ -22,7 +22,7 @@ import play.api.http.Status._
 import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.http.JsonErrorHandler
+import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 
 import scala.concurrent.{ExecutionContext, Future}

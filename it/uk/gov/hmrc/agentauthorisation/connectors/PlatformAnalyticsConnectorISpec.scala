@@ -3,6 +3,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 import akka.Done
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models.{AnalyticsRequest, Event}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.http.HeaderCarrier

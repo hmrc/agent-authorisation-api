@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package binders
+package uk.gov.hmrc.agentauthorisation.binders
 
-import uk.gov.hmrc.agentauthorisation.binders.{ErrorConstants, UrlBinders}
+import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.agentmtdidentifiers.model.InvitationId
-import uk.gov.hmrc.play.test.UnitSpec
 
 class BindersSpec extends UnitSpec {
 

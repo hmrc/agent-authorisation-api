@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package action
+package uk.gov.hmrc.agentauthorisation.action
 
 import org.scalamock.scalatest.MockFactory
 import play.api.Configuration
+import play.api.mvc.Results._
 import play.api.mvc.{Call, RequestHeader, Result}
 import play.api.test.FakeRequest
-import support.BaseSpec
+import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.actions.AcceptHeaderFilter
-import play.api.mvc.Results._
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
+import uk.gov.hmrc.agentauthorisation.support.BaseSpec
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.Future

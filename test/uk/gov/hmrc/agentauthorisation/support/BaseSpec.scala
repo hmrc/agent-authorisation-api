@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package support
-
-import java.net.URI
+package uk.gov.hmrc.agentauthorisation.support
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
+import akka.stream.testkit.NoMaterializer
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request.{RemoteConnection, RequestTarget}
 import play.api.mvc.{Headers, RequestHeader}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.test.UnitSpec
+
+import java.net.URI
 
 abstract class BaseSpec extends UnitSpec {
   implicit val sys: ActorSystem = ActorSystem("TestSystem")
-  implicit val mat: ActorMaterializer = ActorMaterializer()
+  implicit val mat: Materializer = NoMaterializer
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   val arn: Arn = Arn("TARN0000001")
