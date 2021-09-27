@@ -1,10 +1,9 @@
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-import akka.util.Timeout
 import play.api.libs.json.Json._
 import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.test.FakeRequest
-import play.api.test.Helpers.contentAsJson
+import play.api.test.{FakeRequest, Helpers}
+import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults.{VatRegDateDoesNotMatch, _}
 import uk.gov.hmrc.agentauthorisation.models._
@@ -13,7 +12,6 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
-import scala.concurrent.duration.Duration
 
 class AgentControllerISpec extends BaseISpec {
 
@@ -150,12 +148,10 @@ class AgentControllerISpec extends BaseISpec {
         "MTDITID",
         validPostcode)
 
-
-
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
       status(result) shouldBe 204
-      result.header.headers("Location") shouldBe s"/agents/TARN0000001/invitations/ABERULMHCKKW3"
+      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
       verifyPlatformAnalyticsEventWasSent("create-authorisation-request",Some("HMRC-MTD-IT"))
     }
@@ -181,7 +177,7 @@ class AgentControllerISpec extends BaseISpec {
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
 
       status(result) shouldBe 204
-      result.header.headers("Location") shouldBe s"/agents/TARN0000001/invitations/CZTW1KY6RTAAT"
+      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/CZTW1KY6RTAAT")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Success", "HMRC-MTD-VAT", None)
       verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-VAT"))
     }
@@ -417,8 +413,6 @@ class AgentControllerISpec extends BaseISpec {
       val requestITSA = FakeRequest("GET", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}")
         .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
 
-      implicit val timeout: Timeout = Timeout(Duration.Zero)
-
       "return 200 and a json body of a pending invitation" in {
 
         givenGetITSAInvitationStub(arn, "Pending")
@@ -427,7 +421,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
-        contentAsJson(result) shouldBe toJson(pendingItsaInvitation).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe toJson(pendingItsaInvitation).as[JsObject]
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
       }
 
@@ -438,7 +432,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
-        contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
       }
 
@@ -536,8 +530,6 @@ class AgentControllerISpec extends BaseISpec {
       val requestVAT = FakeRequest("GET", s"/agents/${arn.value}/invitations/${invitationIdVAT.value}")
         .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
 
-      implicit val timeout: Timeout = Timeout(Duration.Zero)
-
       "return 200 and a json body of invitation" in {
 
         givenGetVATInvitationStub(arn, "Pending")
@@ -545,7 +537,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
         status(result) shouldBe 200
-        contentAsJson(result) shouldBe toJson(pendingVatInvitation).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe toJson(pendingVatInvitation).as[JsObject]
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-VAT"))
       }
 
@@ -556,7 +548,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
         status(result) shouldBe 200
-        contentAsJson(result) shouldBe toJson(respondedVatInvitation).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe toJson(respondedVatInvitation).as[JsObject]
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-VAT"))
       }
 
@@ -944,15 +936,13 @@ class AgentControllerISpec extends BaseISpec {
         val request = FakeRequest("GET", s"/agents/${arn.value}/invitations")
           .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
 
-        implicit val timeout: Timeout = Timeout(Duration.Zero)
-
         "return 200 and a json body of a pending invitation filtering out PIR and TERS invitations" in {
           givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
           givenPlatformAnalyticsEventWasSent()
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 200
-          contentAsJson(result) shouldBe toJson(gettingPendingInvitations)
+          Helpers.contentAsJson(result) shouldBe toJson(gettingPendingInvitations)
           verifyPlatformAnalyticsEventWasSent("get-authorisation-requests", None)
         }
 

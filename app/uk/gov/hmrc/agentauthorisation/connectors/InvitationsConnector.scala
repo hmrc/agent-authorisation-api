@@ -30,7 +30,7 @@ import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, Service, StoredIn
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.agentauthorisation.connectors.Syntax._
 
 import scala.concurrent.{ExecutionContext, Future}

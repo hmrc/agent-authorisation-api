@@ -17,15 +17,16 @@
 package uk.gov.hmrc.agentauthorisation.wiring
 
 import java.util.regex.{Matcher, Pattern}
-
 import akka.stream.Materializer
 import app.Routes
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
+
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.{Filter, RequestHeader, Result}
 import uk.gov.hmrc.http.{HttpException, Upstream4xxResponse, Upstream5xxResponse}
+
 import scala.concurrent.duration.NANOSECONDS
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -37,7 +38,7 @@ class MicroserviceMonitoringFilter @Inject()(metrics: Metrics, routes: Routes, v
   override def keyToPatternMapping: Seq[(String, String)] = KeyToPatternMappingFromRoutes(routes, Set())
 }
 
-object KeyToPatternMappingFromRoutes {
+object KeyToPatternMappingFromRoutes extends Logging {
   def apply(routes: Routes, placeholders: Set[String]): Seq[(String, String)] =
     routes.documentation.map {
       case (method, route, _) =>
@@ -51,13 +52,13 @@ object KeyToPatternMappingFromRoutes {
             } else p)
           .mkString("__")
         val pattern = r.replace("$", ":")
-        Logger.info(s"$key-$method -> $pattern")
+        logger.info(s"$key-$method -> $pattern")
         (key, pattern)
     }
 }
 
 abstract class MonitoringFilter(kenshooRegistry: MetricRegistry)(implicit ec: ExecutionContext)
-    extends Filter with MonitoringKeyMatcher {
+    extends Filter with MonitoringKeyMatcher with Logging {
 
   override def apply(nextFilter: (RequestHeader) => Future[Result])(requestHeader: RequestHeader): Future[Result] =
     findMatchingKey(requestHeader.uri) match {
@@ -66,7 +67,7 @@ abstract class MonitoringFilter(kenshooRegistry: MetricRegistry)(implicit ec: Ex
           nextFilter(requestHeader)
         }
       case None =>
-        Logger.debug(s"API-Not-Monitored: ${requestHeader.method}-${requestHeader.uri}")
+        logger.debug(s"API-Not-Monitored: ${requestHeader.method}-${requestHeader.uri}")
         nextFilter(requestHeader)
     }
 

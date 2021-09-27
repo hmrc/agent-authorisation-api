@@ -15,7 +15,7 @@
  */
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.testkit.NoMaterializer
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
@@ -24,10 +24,10 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.ErrorHandler
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
-import uk.gov.hmrc.play.test.UnitSpec
 import org.mockito.ArgumentMatchers._
 import play.api.Configuration
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
+import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.model.DataEvent
 
@@ -37,7 +37,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
   trait BaseSetup {
     implicit val sys = ActorSystem("MyTest")
-    implicit val mat = ActorMaterializer()
+    implicit val mat = NoMaterializer
     implicit val configuration = Configuration("bootstrap.errorHandler.warnOnly.statusCodes" -> List(400, 404))
 
     implicit val fakeRequest = FakeRequest()
@@ -57,19 +57,19 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
     }
 
     "return ErrorNotFound on 404 Not Found" in new Setup(NOT_FOUND) {
-      jsonBodyOf(response) shouldBe jsonBodyOf(standardNotFound)
+      contentAsJson(response) shouldBe contentAsJson(standardNotFound)
     }
 
     "return ErrorGenericBadRequest on 400 Bad Request" in new Setup(BAD_REQUEST) {
-      jsonBodyOf(response) shouldBe jsonBodyOf(standardBadRequest)
+      contentAsJson(response) shouldBe contentAsJson(standardBadRequest)
     }
 
     "return ErrorUnauthorized on 401 Unauthorized" in new Setup(UNAUTHORIZED) {
-      jsonBodyOf(response) shouldBe jsonBodyOf(standardUnauthorised)
+      contentAsJson(response) shouldBe contentAsJson(standardUnauthorised)
     }
 
     "return a statusCode of 405 with the provided message on 405 Method Not Allowed" in new Setup(METHOD_NOT_ALLOWED) {
-      jsonBodyOf(response) shouldBe Json.obj("statusCode" -> METHOD_NOT_ALLOWED, "message" -> "A message")
+      contentAsJson(response) shouldBe Json.obj("statusCode" -> METHOD_NOT_ALLOWED, "message" -> "A message")
     }
   }
 
@@ -77,7 +77,7 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
     "return ErrorInternalServerError" in new BaseSetup {
       val response = await(errorHandler.onServerError(fakeRequest, new RuntimeException("Internal Server Error")))
 
-      jsonBodyOf(response) shouldBe jsonBodyOf(standardInternalServerError)
+      contentAsJson(response) shouldBe contentAsJson(standardInternalServerError)
     }
   }
 }

@@ -1,5 +1,7 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
+import play.api.test.Helpers._
+
 import java.time.{LocalDate, ZoneOffset}
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}

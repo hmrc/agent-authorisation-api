@@ -20,6 +20,8 @@ package uk.gov.hmrc.agentauthorisation
 import com.github.tomakehurst.wiremock.client.WireMock._
 import play.api.http.Status.{NO_CONTENT, OK}
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import play.api.test.Helpers
 import uk.gov.hmrc.agentauthorisation.controllers.api.{DocumentationController, RamlController}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 
@@ -47,7 +49,7 @@ class PlatformIntegrationSpec extends BaseISpec {
       val result = documentationController.definition()(request)
       status(result) shouldBe OK
 
-      val jsonResponse = await(jsonBodyOf(result))
+      val jsonResponse = Helpers.contentAsJson(result)
 
       val versions: Seq[String] = (jsonResponse \\ "version") map (_.as[String])
       val endpointNames: Seq[Seq[String]] = (jsonResponse \\ "endpoints").map(_ \\ "endpointName").map(_.map(_.as[String]))
@@ -61,7 +63,7 @@ class PlatformIntegrationSpec extends BaseISpec {
       val result = ramlController.raml("1.0", "application.raml")(request)
 
       status(result) shouldBe OK
-      await(bodyOf(result)) should startWith("#%RAML 1.0")
+      Helpers.contentAsString(result) should startWith("#%RAML 1.0")
     }
   }
 }

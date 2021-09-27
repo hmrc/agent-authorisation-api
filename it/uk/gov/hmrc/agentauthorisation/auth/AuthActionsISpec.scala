@@ -3,6 +3,7 @@ package uk.gov.hmrc.agentauthorisation.auth
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -68,7 +69,7 @@ class AuthActionsISpec extends BaseISpec {
            |  ]}
            |]}""".stripMargin
       )
-      val result = await(TestController.withAuthorisedAsAgent)
+      val result = TestController.withAuthorisedAsAgent
       result shouldBe NotAnAgent
     }
 
@@ -83,7 +84,7 @@ class AuthActionsISpec extends BaseISpec {
            |  ]}
            |]}""".stripMargin
       )
-      val result = await(TestController.withAuthorisedAsAgent)
+      val result = TestController.withAuthorisedAsAgent
       result shouldBe AgentNotSubscribed
     }
   }

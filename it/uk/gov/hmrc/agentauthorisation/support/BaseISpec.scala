@@ -5,7 +5,6 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.agentauthorisation.stubs._
-import uk.gov.hmrc.play.test.UnitSpec
 
 abstract class BaseISpec
     extends UnitSpec with GuiceOneServerPerSuite with WireMockSupport with AuthStubs with ACAStubs with DataStreamStubs
