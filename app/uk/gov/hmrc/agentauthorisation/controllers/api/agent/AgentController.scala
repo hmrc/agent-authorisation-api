@@ -38,7 +38,7 @@ import uk.gov.hmrc.agentauthorisation.services.{InvitationService, PlatformAnaly
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -303,6 +303,12 @@ class AgentController @Inject()(
                      Future successful ClientRegistrationNotFound
                  }
       } yield result
+    }.recover {
+      case e: UpstreamErrorResponse if e.getMessage == "VAT_RECORD_CLIENT_INSOLVENT_TRUE" =>
+        Logger(getClass).warn(s"Invitation creation failed: ${e.getMessage}")
+        auditService
+          .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
+        VatClientInsolvent
     } else {
       Logger(getClass).warn(s"Invalid Format for supplied Known Fact")
       Future successful knownFactFormatInvalid(agentInvitation.service)

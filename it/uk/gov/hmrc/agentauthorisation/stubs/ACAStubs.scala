@@ -78,12 +78,15 @@ trait ACAStubs {
                          |}
            """.stripMargin)))
 
-  def checkClientIdAndVatRegDate(vrn: Vrn, date: LocalDate, responseStatus: Int) =
+  def checkClientIdAndVatRegDate(vrn: Vrn, date: LocalDate, responseStatus: Int, clientInsolvent: Boolean = false) = {
+    val responseBody = if(responseStatus == 403) if(clientInsolvent) "VAT_RECORD_CLIENT_INSOLVENT_TRUE" else "VAT_REGISTRATION_DATE_DOES_NOT_MATCH" else ""
     stubFor(
       get(urlEqualTo(
         s"/agent-client-authorisation/known-facts/organisations/vat/${vrn.value}/registration-date/${date.toString}"))
         .willReturn(aResponse()
-          .withStatus(responseStatus)))
+          .withStatus(responseStatus)
+          .withBody(responseBody)))
+  }
 
   def verifyCheckVatRegisteredClientStubAttempt(vrn: Vrn, date: LocalDate): Unit = {
     val vrnEncoded = encodePathSegment(vrn.value)
