@@ -361,6 +361,21 @@ class AgentControllerISpec extends BaseISpec {
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
+    "return 403 VAT_CLIENT_INSOLVENT when the VAT customer is insolvent" in {
+      checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 403, true)
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+
+      status(result) shouldBe 403
+      await(result) shouldBe VatClientInsolvent
+      verifyAgentClientInvitationSubmittedEvent(
+        arn.value,
+        validVrn.value,
+        "vrn",
+        "Fail",
+        "HMRC-MTD-VAT",
+        Some("VAT_RECORD_CLIENT_INSOLVENT_TRUE"))
+    }
+
     "return a future failed when the invitation creation failed for ITSA" in {
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       givenNoPendingInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")

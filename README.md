@@ -232,6 +232,12 @@ The authorisation request was created successfully.
   "message": "The client has already authorised the agent for this service. The agent does not need ask the client for this authorisation again."
 }
 ```
+```
+{
+    "code": "VAT_CLIENT_INSOLVENT"
+    "message": "The VAT registration number belongs to a customer that is insolvent."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |

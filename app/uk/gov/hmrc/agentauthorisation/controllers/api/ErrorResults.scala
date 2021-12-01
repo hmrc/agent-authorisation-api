@@ -73,6 +73,15 @@ object ErrorResults {
         "VAT_REG_DATE_DOES_NOT_MATCH",
         "The VAT registration date provided does not match HMRC's record for this client.")))
 
+  val VatClientInsolvent: Result = Forbidden(
+    toJson(
+      ErrorBody(
+        "VAT_CLIENT_INSOLVENT",
+        "The Vat registration number belongs to a customer that is insolvent."
+      )
+    )
+  )
+
   val ClientRegistrationNotFound: Result = Forbidden(
     toJson(
       ErrorBody("CLIENT_REGISTRATION_NOT_FOUND", "The details provided for this client do not match HMRC's records.")))
