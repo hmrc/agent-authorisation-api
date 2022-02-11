@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,8 +121,8 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
           case r if r.status.isSuccess => Some(true)
           case r if r.status == 403 & r.body.contains("VAT_RECORD_CLIENT_INSOLVENT_TRUE") =>
             throw UpstreamErrorResponse(r.body, r.status)
-          case r if r.status == 403 => Some(false)
-          case _                    => None
+          case r if Seq(403, 423).contains(r.status) => Some(false)
+          case _                                     => None
         }
     }
 
