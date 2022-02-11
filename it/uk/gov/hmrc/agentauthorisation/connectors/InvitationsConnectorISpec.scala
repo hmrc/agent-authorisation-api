@@ -119,6 +119,13 @@ class InvitationsConnectorISpec extends BaseISpec {
       result shouldBe Some(false)
     }
 
+    "return false when the check returns a Locked response" in {
+      checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 423)
+      val result = await(connector.checkVatRegDateForClient(validVrn, LocalDate.parse(validVatRegDate)))
+
+      result shouldBe Some(false)
+    }
+
     "return None when the client registration is not found" in {
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 404)
       val result = await(connector.checkVatRegDateForClient(validVrn, LocalDate.parse(validVatRegDate)))
