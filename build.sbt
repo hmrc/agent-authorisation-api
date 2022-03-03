@@ -1,6 +1,8 @@
 import play.core.PlayVersion
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
+ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % "always"
+
 lazy val scoverageSettings = {
   import scoverage.ScoverageKeys
   Seq(
@@ -9,17 +11,17 @@ lazy val scoverageSettings = {
     ScoverageKeys.coverageMinimum := 80.00,
     ScoverageKeys.coverageFailOnMinimum := false,
     ScoverageKeys.coverageHighlighting := true,
-    parallelExecution in Test := false
+    Test / parallelExecution := false
   )
 }
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "5.9.0",
+  "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "5.20.0",
   "com.github.blemale" %% "scaffeine" % "5.1.1",
   "uk.gov.hmrc" %% "agent-kenshoo-monitoring" % "4.8.0-play-28",
-  "uk.gov.hmrc" %% "agent-mtd-identifiers" % "0.25.0-play-27",
-  "uk.gov.hmrc" %% "play-allowlist-filter" % "1.0.0-play-28",
+  "uk.gov.hmrc" %% "agent-mtd-identifiers" % "0.33.0-play-28",
+  "uk.gov.hmrc" %% "play-allowlist-filter" % "1.1.0",
   "uk.gov.hmrc" %% "play-hal" % "3.1.0-play-28",
   "uk.gov.hmrc" %% "play-hmrc-api" % "6.4.0-play-28"
 )
@@ -53,10 +55,10 @@ lazy val root = (project in file("."))
     routesImport -= "controllers.Assets.Asset",
     publishingSettings,
     scoverageSettings,
-    unmanagedResourceDirectories in Compile += baseDirectory.value / "resources",
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     majorVersion := 0,
-    scalafmtOnCompile in Compile := true,
-    scalafmtOnCompile in Test := true,
+    Compile / scalafmtOnCompile := true,
+    Test / scalafmtOnCompile := true,
     scalacOptions ++= Seq(
       "-Xfatal-warnings",
       "-Ypartial-unification",
@@ -71,11 +73,10 @@ lazy val root = (project in file("."))
   )
   .configs(IntegrationTest)
   .settings(
-    Keys.fork in IntegrationTest := false,
+    IntegrationTest / Keys.fork := false,
     Defaults.itSettings,
-    unmanagedSourceDirectories in IntegrationTest += baseDirectory(_ / "it").value,
-    parallelExecution in IntegrationTest := false,
-    scalafmtOnCompile in IntegrationTest := true
+    IntegrationTest / unmanagedSourceDirectories += baseDirectory(_ / "it").value,
+    IntegrationTest / parallelExecution := false
   )
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
 
