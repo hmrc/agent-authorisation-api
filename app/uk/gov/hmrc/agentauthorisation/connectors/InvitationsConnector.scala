@@ -21,6 +21,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
+import play.api.http.Status.{FORBIDDEN, LOCKED}
+
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
@@ -119,10 +121,10 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
         .GET[HttpResponse](checkVatRegisteredClientUrl(vrn, registrationDateKnownFact).toString)
         .map {
           case r if r.status.isSuccess => Some(true)
-          case r if r.status == 403 & r.body.contains("VAT_RECORD_CLIENT_INSOLVENT_TRUE") =>
+          case r if r.status == FORBIDDEN & r.body.contains("VAT_RECORD_CLIENT_INSOLVENT_TRUE") =>
             throw UpstreamErrorResponse(r.body, r.status)
-          case r if Seq(403, 423).contains(r.status) => Some(false)
-          case _                                     => None
+          case r if Seq(FORBIDDEN, LOCKED).contains(r.status) => Some(false)
+          case _                                              => None
         }
     }
 
