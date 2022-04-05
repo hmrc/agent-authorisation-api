@@ -24,7 +24,7 @@ import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.views.txt
 
-case class ApiAccess(`type`: String, whitelistedApplicationIds: Seq[String])
+case class ApiAccess(`type`: String, allowlistedApplicationIds: Seq[String])
 
 object ApiAccess {
   implicit lazy val formats = Json.format[ApiAccess]

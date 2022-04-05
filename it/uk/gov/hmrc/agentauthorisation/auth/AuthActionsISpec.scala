@@ -29,7 +29,7 @@ class AuthActionsISpec extends BaseISpec {
 
   "withAuthorisedAsAgent" should {
 
-    "call body with arn and isWhitelisted flag when valid agent" in {
+    "call body with arn and isAllowlisted flag when valid agent" in {
       givenAuthorisedFor(
         "{}",
         s"""{
