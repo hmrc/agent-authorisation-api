@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.auth
 
 import play.api.Logger
-import play.api.mvc.Result
+import play.api.mvc.{Request, Result}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -26,6 +26,7 @@ import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -66,8 +67,9 @@ trait AuthActions extends AuthorisedFunctions {
 
   protected def withAuthorisedAsAgent[A](body: Arn => Future[Result])(
     implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Result] =
+    ec: ExecutionContext,
+    request: Request[_]): Future[Result] = {
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     withEnrolledAsAgent { arn =>
       body(Arn(arn))
     } recoverWith {
@@ -78,4 +80,5 @@ trait AuthActions extends AuthorisedFunctions {
         Logger(getClass).warn(s"User has Missing Bearer Token in Header or: $e")
         Future successful standardUnauthorised
     }
+  }
 }

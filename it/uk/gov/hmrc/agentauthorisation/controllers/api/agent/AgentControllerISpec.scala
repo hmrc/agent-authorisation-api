@@ -130,6 +130,7 @@ class AgentControllerISpec extends BaseISpec {
 
     val request = FakeRequest("POST", s"/agents/${arn.value}/invitations")
       .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
+      .withSession(SessionKeys.authToken -> "Bearer XYZ")
     val createInvitation = controller.createInvitationApi(arn)
 
     "return 204 when invitation is successfully created for ITSA" in {
@@ -427,6 +428,7 @@ class AgentControllerISpec extends BaseISpec {
       val getInvitationItsaApi = controller.getInvitationApi(arn, invitationIdITSA)
       val requestITSA = FakeRequest("GET", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}")
         .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
+        .withSession(SessionKeys.authToken -> "Bearer XYZ")
 
       "return 200 and a json body of a pending invitation" in {
 
@@ -544,6 +546,7 @@ class AgentControllerISpec extends BaseISpec {
       val getInvitationVatApi = controller.getInvitationApi(arn, invitationIdVAT)
       val requestVAT = FakeRequest("GET", s"/agents/${arn.value}/invitations/${invitationIdVAT.value}")
         .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
+        .withSession(SessionKeys.authToken -> "Bearer XYZ")
 
       "return 200 and a json body of invitation" in {
 
@@ -655,6 +658,7 @@ class AgentControllerISpec extends BaseISpec {
       val cancelInvitationItsaApi = controller.cancelInvitationApi(arn, invitationIdITSA)
       val requestITSA = FakeRequest("DELETE", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}/cancel")
         .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
+        .withSession(SessionKeys.authToken -> "Bearer XYZ")
 
 
       "return 204 for a successful cancellation" in {
@@ -757,6 +761,7 @@ class AgentControllerISpec extends BaseISpec {
       val checkRelationshipApi = controller.checkRelationshipApi(arn)
       val request = FakeRequest("POST", s"/agents/$arn/relationships")
         .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
+        .withSession(SessionKeys.authToken -> "Bearer XYZ")
 
       "return 204 when the relationship is active for ITSA" in {
         getStatusRelationshipItsa(arn.value, validNino, 200)
@@ -950,6 +955,7 @@ class AgentControllerISpec extends BaseISpec {
         val getInvitations = controller.getInvitationsApi(arn)
         val request = FakeRequest("GET", s"/agents/${arn.value}/invitations")
           .withHeaders( "Accept" -> s"application/vnd.hmrc.1.0+json")
+          .withSession(SessionKeys.authToken -> "Bearer XYZ")
 
         "return 200 and a json body of a pending invitation filtering out PIR and TERS invitations" in {
           givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
