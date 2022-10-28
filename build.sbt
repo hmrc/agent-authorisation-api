@@ -3,6 +3,8 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % "always"
 
+val silencerVersion = "1.7.8"
+
 lazy val scoverageSettings = {
   import scoverage.ScoverageKeys
   Seq(
@@ -17,13 +19,13 @@ lazy val scoverageSettings = {
 
 lazy val compileDeps = Seq(
   ws,
-  "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "5.20.0",
+  "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "7.8.0",
   "com.github.blemale" %% "scaffeine" % "5.1.1",
   "uk.gov.hmrc" %% "agent-kenshoo-monitoring" % "4.8.0-play-28",
-  "uk.gov.hmrc" %% "agent-mtd-identifiers" % "0.33.0-play-28",
+  "uk.gov.hmrc" %% "agent-mtd-identifiers" % "0.47.0-play-28",
   "uk.gov.hmrc" %% "play-allowlist-filter" % "1.1.0",
   "uk.gov.hmrc" %% "play-hal" % "3.1.0-play-28",
-  "uk.gov.hmrc" %% "play-hmrc-api" % "6.4.0-play-28"
+  "uk.gov.hmrc" %% "play-hmrc-api" % "7.0.0-play-28"
 )
 
 def testDeps(scope: String) = Seq(
@@ -40,7 +42,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "agent-authorisation-api",
     organization := "uk.gov.hmrc",
-    scalaVersion := "2.12.10",
+    scalaVersion := "2.12.15",
     PlayKeys.playDefaultPort := 9433,
     resolvers ++= Seq(
       Resolver.typesafeRepo("releases"),
@@ -48,8 +50,8 @@ lazy val root = (project in file("."))
     resolvers += "HMRC-local-artefacts-maven" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases-local",
     libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it"),
     libraryDependencies ++= Seq(
-      compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.4.4" cross CrossVersion.full),
-      "com.github.ghik" % "silencer-lib" % "1.4.4" % Provided cross CrossVersion.full
+      compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
+      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
     ),
     routesImport += "uk.gov.hmrc.agentauthorisation.binders.UrlBinders._",
     routesImport -= "controllers.Assets.Asset",
