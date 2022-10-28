@@ -66,6 +66,14 @@
         {
           "enum": [ "Expired" ],
           "description": "Client did not respond to the Agent's Invitation within 21 days. Only the service can set this status."
+        },
+        {
+          "enum": [ "Deauthorised" ],
+          "description": "The client had accepted the invitation, forming a relationship. The relationship has since been terminated."
+        },
+        {
+         "enum": [ "Partialauth" ],
+          "description": "The client has accepted an invitation of a type that gives the agent only the power to sign up the client for Income Tax For Self Assessment tax service."
         }
       ]
     },
@@ -90,7 +98,9 @@
             { "enum": ["Accepted"] },
             { "enum": ["Rejected"] },
             { "enum": ["Cancelled"] },
-            { "enum": ["Expired"] }
+            { "enum": ["Expired"] },
+            { "enum": ["Partialauth"] },
+            { "enum":  ["Deauthorised"]}
           ]
         }
       }
