@@ -1,1 +1,1 @@
-The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-mtd-identifiers/blob/master/src/main/scala/uk/gov/hmrc/agentmtdidentifiers/model/Arn.scala)
+The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-mtd-identifiers/blob/main/src/main/scala/uk/gov/hmrc/agentmtdidentifiers/model/Arn.scala)
