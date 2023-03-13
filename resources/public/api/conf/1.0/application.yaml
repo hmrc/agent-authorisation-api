@@ -1,0 +1,1319 @@
+openapi: 3.0.0
+info:
+  title: Agent Authorisation
+  description: >-
+    You can find the changelog in the [agent-authorisation-api](https://github.com/hmrc/agent-authorisation-api/blob/main/CHANGE_LOG.md) GitHub repository.
+
+    Agents often use software to perform services for their clients. The API will benefit these agents as it allows them to create a request for authorisation to act on a client's behalf for a specific Making Tax Digital service directly through software.
+
+
+    This process involves the agent providing their own personal identifier and some information about the client that they wish to act on behalf of.
+
+    This generates a link that the agent can send to their client. The client can then follow this link to authorise the agent  for a service.
+
+
+    This API will save an agent time as they currently need to use an Agent Services user interface to create an authorisation request using their agent services account.
+
+    The aim is for the API to mirror the current process that happens through the Agent Services user interface:
+
+
+    * An agent uses a third-party application or software to request a new authorisation
+
+    * An agent identifier - the Agent Reference Number (ARN) - is passed to the API
+
+    * The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
+
+    * The agent enters the identifier for the client they are requesting authorisation from, for example:
+        * National Insurance number (NINO)
+        * VAT registration number (VRN)
+    * If required by the service the agent enters an additional identifier for the client, for example, the client's postcode or VAT registration date
+
+    * The API returns a link for the client to follow to authorise the agent and the date when the authorisation request will expire
+
+    * The agent sends the link to the client they wish to act on behalf of
+
+    * If the agent changes their mind, they can cancel the authorisation request as long as the client has not responded to it
+
+    * The client accesses the link and signs in using their a Government Gateway login details to accept the agent's request
+
+    * The agent can check if they have been authorised by a client.
+  contact: {}
+  version: '1.0'
+servers:
+- url: https://api.service.hmrc.gov.uk/
+  variables: {}
+paths:
+  /agents/{arn}/invitations:
+    post:
+      tags:
+      - agents
+      summary: Create a new authorisation
+      operationId: Createanewauthorisation
+      parameters:
+      - name: arn
+        in: path
+        description: The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-mtd-identifiers/blob/main/src/main/scala/uk/gov/hmrc/agentmtdidentifiers/model/Arn.scala)
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: AARN9999999
+      requestBody:
+        description: Create a new authorisation request. The request will expire after 21 days.
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - $ref: '#/components/schemas/AgentsInvitationsrequest'
+              - $ref: '#/components/schemas/AgentsInvitationsrequest1'
+              description: Create a new authorisation request. The request will expire after 21 days.
+              example:
+                service:
+                - MTD-IT
+                clientType: personal
+                clientIdType: ni
+                clientId: AA999999A
+                knownFact: AA11 1AA
+            examples:
+              example-1:
+                value:
+                  service:
+                  - MTD-IT
+                  clientType: personal
+                  clientIdType: ni
+                  clientId: AA999999A
+                  knownFact: AA11 1AA
+              example-2:
+                value:
+                  service:
+                  - MTD-VAT
+                  clientType: business
+                  clientIdType: vrn
+                  clientId: '101747696'
+                  knownFact: 2007-05-18
+        required: true
+      responses:
+        '204':
+          description: The authorisation request was created successfully.
+          headers:
+            Location:
+              description: Location of the authorisation request.
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    description: Location of the authorisation request.
+                    example: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+                  example: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+          content: {}
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: SERVICE_NOT_SUPPORTED
+                    message: The service requested is not supported. Check the API documentation to find which services are supported.
+              examples:
+                invitationNotFound:
+                  description: The service requested is not supported. Check the API documentation to find which services are supported.
+                  value:
+                    code: SERVICE_NOT_SUPPORTED
+                    message: The service requested is not supported. Check the API documentation to find which services are supported.
+                invalidInvitationStatus:
+                  description: The client type requested is not supported. Check the API documentation to find which client types are supported.
+                  value:
+                    code: CLIENT_TYPE_NOT_SUPPORTED
+                    message: The client type requested is not supported. Check the API documentation to find which client types are supported.
+                invalidClientId:
+                  description: Client identifier must be in the correct format. Check the API documentation to find the correct format.
+                  value:
+                    code: CLIENT_ID_FORMAT_INVALID
+                    message: Client identifier must be in the correct format. Check the API documentation to find the correct format.
+                clientIdMatchesService:
+                  description: The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use.
+                  value:
+                    code: CLIENT_ID_DOES_NOT_MATCH_SERVICE
+                    message: The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use.
+                invalidPostcode:
+                  description: Postcode must be in the correct format. Check the API documentation to find the correct format.
+                  value:
+                    code: POSTCODE_FORMAT_INVALID
+                    message: Postcode must be in the correct format. Check the API documentation to find the correct format.
+                invalidVatRegistrationDate:
+                  description: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
+                  value:
+                    code: VAT_REG_DATE_FORMAT_INVALID
+                    message: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
+                badRequestUnsupportedVersion:
+                  description: Missing or unsupported version found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported version number
+                badRequestUnsupportedContentType:
+                  description: Missing or unsupported found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported content-type.
+                badRequest:
+                  description: Bad Request
+                  value:
+                    code: BAD_REQUEST
+                    message: Bad Request
+        '403':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: CLIENT_REGISTRATION_NOT_FOUND
+                    message: The details provided for this client do not match HMRC's records.
+              examples:
+                clientRegistrationNotFound:
+                  description: The details provided for this client do not match HMRC's records.
+                  value:
+                    code: CLIENT_REGISTRATION_NOT_FOUND
+                    message: The details provided for this client do not match HMRC's records.
+                postcodeDoesNotMatch:
+                  description: The postcode provided does not match HMRC's record for the client.
+                  value:
+                    code: POSTCODE_DOES_NOT_MATCH
+                    message: The postcode provided does not match HMRC's record for the client.
+                vatRegistrationDateDoesNotMatch:
+                  description: The VAT registration date provided does not match HMRC's record for the client.
+                  value:
+                    code: VAT_REG_DATE_DOES_NOT_MATCH
+                    message: The VAT registration date provided does not match HMRC's record for the client.
+                duplicateAuthorisationRequest:
+                  description: A pending invitation already exists between the agent and client for this service.
+                  value:
+                    code: DUPLICATE_AUTHORISATION_REQUEST
+                    message: An authorisation request for this service has already been created and is awaiting the client’s response.
+                alreadyAuthorised:
+                  description: An active relationship already exists between the agent and client for this service.
+                  value:
+                    code: ALREADY_AUTHORISED
+                    message: The client has already authorised the agent for this service. The agent does not need ask the client for this authorisation again.
+                notAnAgent:
+                  description: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                  value:
+                    code: NOT_AN_AGENT
+                    message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                agentNotSubscribed:
+                  description: This agent needs to create an agent services account before they can use this service.
+                  value:
+                    code: AGENT_NOT_SUBSCRIBED
+                    message: This agent needs to create an agent services account before they can use this service.
+                noPermissionOnAgency:
+                  description: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+                  value:
+                    code: NO_PERMISSION_ON_AGENCY
+                    message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+        '406':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+              examples:
+                acceptHeaderMissing:
+                  description: Missing 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+                acceptHeaderInvalid:
+                  description: Invalid 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Invalid 'Accept' header
+        '401':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+              examples:
+                unauthorizedRequest:
+                  description: Bearer token is missing or not authorized.
+                  value:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+        '500':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+              examples:
+                internalServerRequest:
+                  description: INTERNAL_SERVER_ERROR
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+      deprecated: false
+    get:
+      tags:
+      - agents
+      summary: Get all authorisation requests for the last 30 days
+      operationId: Getallauthorisationrequestsforthelast30days
+      parameters:
+      - name: arn
+        in: path
+        description: The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-mtd-identifiers/blob/main/src/main/scala/uk/gov/hmrc/agentmtdidentifiers/model/Arn.scala)
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: AARN9999999
+      responses:
+        '200':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentsInvitationsresponse'
+                description: Returns all authorisation requests for the last 30 days.
+                example:
+                - _links:
+                    self:
+                      href: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+                  created: 2019-01-21T14:27:44.620Z
+                  arn: AARN9999999
+                  service:
+                  - MTD-IT
+                  status: Pending
+                  expiresOn: 2019-02-04T00:00:00:000Z
+                  clientActionUrl: https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1
+                - _links:
+                    self:
+                      href: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+                  created: 2019-01-21T14:27:44.620Z
+                  arn: AARN9999999
+                  service:
+                  - MTD-IT
+                  status: Accepted
+                  updated: 2019-01-21T14:27:44.620Z
+              examples:
+                pending and responded:
+                  value:
+                  - _links:
+                      self:
+                        href: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+                    created: 2019-01-21T14:27:44.620Z
+                    arn: AARN9999999
+                    service:
+                    - MTD-IT
+                    status: Pending
+                    expiresOn: 2019-02-04T00:00:00:000Z
+                    clientActionUrl: https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1
+                  - _links:
+                      self:
+                        href: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+                    created: 2019-01-21T14:27:44.620Z
+                    arn: AARN9999999
+                    service:
+                    - MTD-IT
+                    status: Accepted
+                    updated: 2019-01-21T14:27:44.620Z
+        '204':
+          description: The agent has no authorisation requests for the last 30 days.
+          headers: {}
+          content: {}
+        '403':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: NOT_AN_AGENT
+                    message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+              examples:
+                notAnAgent:
+                  description: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                  value:
+                    code: NOT_AN_AGENT
+                    message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                agentNotSubscribed:
+                  description: This agent needs to create an agent services account before they can use this service.
+                  value:
+                    code: AGENT_NOT_SUBSCRIBED
+                    message: This agent needs to create an agent services account before they can use this service.
+                noPermissionOnAgency:
+                  description: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+                  value:
+                    code: NO_PERMISSION_ON_AGENCY
+                    message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported version number
+              examples:
+                badRequestUnsupportedVersion:
+                  description: Missing or unsupported version found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported version number
+                badRequestUnsupportedContentType:
+                  description: Missing or unsupported found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported content-type.
+                badRequest:
+                  description: Bad Request
+                  value:
+                    code: BAD_REQUEST
+                    message: Bad Request
+        '406':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+              examples:
+                acceptHeaderMissing:
+                  description: Missing 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+                acceptHeaderInvalid:
+                  description: Invalid 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Invalid 'Accept' header
+        '401':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+              examples:
+                unauthorizedRequest:
+                  description: Bearer token is missing or not authorized.
+                  value:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+        '500':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+              examples:
+                internalServerRequest:
+                  description: INTERNAL_SERVER_ERROR
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+      deprecated: false
+  /agents/{arn}/invitations/{invitationId}:
+    get:
+      tags:
+      - agents
+      summary: Get an invitation by id
+      operationId: Getaninvitationbyid
+      parameters:
+      - name: arn
+        in: path
+        description: The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-mtd-identifiers/blob/main/src/main/scala/uk/gov/hmrc/agentmtdidentifiers/model/Arn.scala)
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: AARN9999999
+      - name: invitationId
+        in: path
+        description: A unique authorisation request ID
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: CS5AK7O8FPC43
+      responses:
+        '200':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/AgentsInvitationsresponse1'
+                - description: Returns the authorisation request.
+                  example:
+                    _links:
+                      self:
+                        href: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+                    created: 2019-01-21T14:27:44.620Z
+                    expiresOn: 2019-02-04T00:00:00.00
+                    arn: AARN9999999
+                    service:
+                    - MTD-IT
+                    status: Pending
+                    clientActionUrl: https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1
+              examples:
+                pending:
+                  value:
+                    _links:
+                      self:
+                        href: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+                    created: 2019-01-21T14:27:44.620Z
+                    expiresOn: 2019-02-04T00:00:00.00
+                    arn: AARN9999999
+                    service:
+                    - MTD-IT
+                    status: Pending
+                    clientActionUrl: https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1
+                responded:
+                  value:
+                    _links:
+                      self:
+                        href: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+                    created: 2019-01-21T14:27:44.620Z
+                    updated: 2019-01-21T14:27:44.620Z
+                    arn: AARN9999999
+                    service:
+                    - MTD-VAT
+                    status: Accepted
+        '403':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: NOT_AN_AGENT
+                    message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+              examples:
+                notAnAgent:
+                  description: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                  value:
+                    code: NOT_AN_AGENT
+                    message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                agentNotSubscribed:
+                  description: This agent needs to create an agent services account before they can use this service.
+                  value:
+                    code: AGENT_NOT_SUBSCRIBED
+                    message: This agent needs to create an agent services account before they can use this service.
+                noPermissionOnAgency:
+                  description: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+                  value:
+                    code: NO_PERMISSION_ON_AGENCY
+                    message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVITATION_NOT_FOUND
+                    message: The authorisation request cannot be found.
+              examples:
+                invitationNotFound:
+                  description: The authorisation request cannot be found.
+                  value:
+                    code: INVITATION_NOT_FOUND
+                    message: The authorisation request cannot be found.
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported version number
+              examples:
+                badRequestUnsupportedVersion:
+                  description: Missing or unsupported version found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported version number
+                badRequestUnsupportedContentType:
+                  description: Missing or unsupported found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported content-type.
+                badRequest:
+                  description: Bad Request
+                  value:
+                    code: BAD_REQUEST
+                    message: Bad Request
+        '406':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+              examples:
+                acceptHeaderMissing:
+                  description: Missing 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+                acceptHeaderInvalid:
+                  description: Invalid 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Invalid 'Accept' header
+        '401':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+              examples:
+                unauthorizedRequest:
+                  description: Bearer token is missing or not authorized.
+                  value:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+        '500':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+              examples:
+                internalServerRequest:
+                  description: INTERNAL_SERVER_ERROR
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+      deprecated: false
+    delete:
+      tags:
+      - agents
+      summary: Cancel an invitation by id
+      operationId: Cancelaninvitationbyid
+      parameters:
+      - name: arn
+        in: path
+        description: The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-mtd-identifiers/blob/main/src/main/scala/uk/gov/hmrc/agentmtdidentifiers/model/Arn.scala)
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: AARN9999999
+      - name: invitationId
+        in: path
+        description: A unique authorisation request ID
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: CS5AK7O8FPC43
+      responses:
+        '204':
+          description: The authorisation request has been cancelled successfully.
+          headers: {}
+          content: {}
+        '403':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVALID_INVITATION_STATUS
+                    message: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
+              examples:
+                invalidInvitationStatus:
+                  description: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
+                  value:
+                    code: INVALID_INVITATION_STATUS
+                    message: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
+                notAnAgent:
+                  description: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                  value:
+                    code: NOT_AN_AGENT
+                    message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                agentNotSubscribed:
+                  description: This agent needs to create an agent services account before they can use this service.
+                  value:
+                    code: AGENT_NOT_SUBSCRIBED
+                    message: This agent needs to create an agent services account before they can use this service.
+                noPermissionOnAgency:
+                  description: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+                  value:
+                    code: NO_PERMISSION_ON_AGENCY
+                    message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVITATION_NOT_FOUND
+                    message: The authorisation request cannot be found.
+              examples:
+                invitationNotFound:
+                  description: The authorisation request cannot be found.
+                  value:
+                    code: INVITATION_NOT_FOUND
+                    message: The authorisation request cannot be found.
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported version number
+              examples:
+                badRequestUnsupportedVersion:
+                  description: Missing or unsupported version found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported version number
+                badRequestUnsupportedContentType:
+                  description: Missing or unsupported found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported content-type.
+                badRequest:
+                  description: Bad Request
+                  value:
+                    code: BAD_REQUEST
+                    message: Bad Request
+        '406':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+              examples:
+                acceptHeaderMissing:
+                  description: Missing 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+                acceptHeaderInvalid:
+                  description: Invalid 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Invalid 'Accept' header
+        '401':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+              examples:
+                unauthorizedRequest:
+                  description: Bearer token is missing or not authorized.
+                  value:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+        '500':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+              examples:
+                internalServerRequest:
+                  description: INTERNAL_SERVER_ERROR
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+      deprecated: false
+  /agents/{arn}/relationships:
+    post:
+      tags:
+      - agents
+      summary: Get Status of a Relationship
+      operationId: GetStatusofaRelationship
+      parameters:
+      - name: arn
+        in: path
+        description: The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-mtd-identifiers/blob/main/src/main/scala/uk/gov/hmrc/agentmtdidentifiers/model/Arn.scala)
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: AARN9999999
+      requestBody:
+        description: Check Relationship based on the details received.
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - $ref: '#/components/schemas/AgentsRelationshipsrequest'
+              - $ref: '#/components/schemas/AgentsRelationshipsrequest1'
+              description: Check Relationship based on the details received.
+              example:
+                service:
+                - MTD-IT
+                clientIdType: ni
+                clientId: AA999999A
+                knownFact: AA11 1AA
+            examples:
+              example-1:
+                value:
+                  service:
+                  - MTD-IT
+                  clientIdType: ni
+                  clientId: AA999999A
+                  knownFact: AA11 1AA
+              example-2:
+                value:
+                  service:
+                  - MTD-VAT
+                  clientIdType: vrn
+                  clientId: '101747696'
+                  knownFact: 2007-05-18
+        required: true
+      responses:
+        '204':
+          description: Relationship is active. Agent is authorised to act for the client.
+          headers: {}
+          content: {}
+        '403':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: CLIENT_REGISTRATION_NOT_FOUND
+                    message: The details provided for this client do not match HMRC's records.
+              examples:
+                clientRegistrationNotFound:
+                  description: The details provided for this client do not match HMRC's records.
+                  value:
+                    code: CLIENT_REGISTRATION_NOT_FOUND
+                    message: The details provided for this client do not match HMRC's records.
+                postcodeDoesNotMatch:
+                  description: The postcode provided does not match HMRC's record for the client.
+                  value:
+                    code: POSTCODE_DOES_NOT_MATCH
+                    message: The postcode provided does not match HMRC's record for the client.
+                vatRegistrationDateDoesNotMatch:
+                  description: The VAT registration date provided does not match HMRC's record for the client.
+                  value:
+                    code: VAT_REG_DATE_DOES_NOT_MATCH
+                    message: The VAT registration date provided does not match HMRC's record for the client.
+                notAnAgent:
+                  description: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                  value:
+                    code: NOT_AN_AGENT
+                    message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+                agentNotSubscribed:
+                  description: This agent needs to create an agent services account before they can use this service.
+                  value:
+                    code: AGENT_NOT_SUBSCRIBED
+                    message: This agent needs to create an agent services account before they can use this service.
+                noPermissionOnAgency:
+                  description: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+                  value:
+                    code: NO_PERMISSION_ON_AGENCY
+                    message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: RELATIONSHIP_NOT_FOUND
+                    message: Relationship is inactive. Agent is not authorised to act for this client.
+              examples:
+                notfoundrelationship:
+                  description: Relationship is inactive. Agent is not authorised to act for this client.
+                  value:
+                    code: RELATIONSHIP_NOT_FOUND
+                    message: Relationship is inactive. Agent is not authorised to act for this client.
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: SERVICE_NOT_SUPPORTED
+                    message: The service requested is not supported. Check the API documentation to find which services are supported.
+              examples:
+                invitationNotFound:
+                  description: The service requested is not supported. Check the API documentation to find which services are supported.
+                  value:
+                    code: SERVICE_NOT_SUPPORTED
+                    message: The service requested is not supported. Check the API documentation to find which services are supported.
+                invalidClientId:
+                  description: Client identifier must be in the correct format. Check the API documentation to find the correct format.
+                  value:
+                    code: CLIENT_ID_FORMAT_INVALID
+                    message: Client identifier must be in the correct format. Check the API documentation to find the correct format.
+                clientIdMatchesService:
+                  description: The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use.
+                  value:
+                    code: CLIENT_ID_DOES_NOT_MATCH_SERVICE
+                    message: The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use.
+                invalidPostcode:
+                  description: Postcode must be in the correct format. Check the API documentation to find the correct format.
+                  value:
+                    code: POSTCODE_FORMAT_INVALID
+                    message: Postcode must be in the correct format. Check the API documentation to find the correct format.
+                invalidVatRegistrationDate:
+                  description: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
+                  value:
+                    code: VAT_REG_DATE_FORMAT_INVALID
+                    message: VAT registration date must be in the correct format. Check the API documentation to find the correct format.
+                badRequestUnsupportedVersion:
+                  description: Missing or unsupported version found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported version number
+                badRequestUnsupportedContentType:
+                  description: Missing or unsupported found in 'Accept' header.
+                  value:
+                    code: BAD_REQUEST
+                    message: Missing or unsupported content-type.
+                badRequest:
+                  description: Bad Request
+                  value:
+                    code: BAD_REQUEST
+                    message: Bad Request
+        '406':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+              examples:
+                acceptHeaderMissing:
+                  description: Missing 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Missing 'Accept' header.
+                acceptHeaderInvalid:
+                  description: Invalid 'Accept' header.
+                  value:
+                    code: ACCEPT_HEADER_INVALID
+                    message: Invalid 'Accept' header
+        '401':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+              examples:
+                unauthorizedRequest:
+                  description: Bearer token is missing or not authorized.
+                  value:
+                    code: UNAUTHORIZED
+                    message: Bearer token is missing or not authorized.
+        '500':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+              examples:
+                internalServerRequest:
+                  description: INTERNAL_SERVER_ERROR
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: Internal server error.
+      deprecated: false
+components:
+  schemas:
+    errorResponse:
+      title: errorResponse
+      required:
+      - code
+      type: object
+      properties:
+        code:
+          type: string
+    AgentsInvitationsrequest:
+      title: AgentsInvitationsrequest
+      required:
+      - service
+      - clientType
+      - clientIdType
+      - clientId
+      - knownFact
+      type: object
+      properties:
+        service: {}
+        clientType: {}
+        clientIdType: {}
+        clientId:
+          pattern: ^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ]?\d{2}?\d{2}?\d{2}?[A-D]{1}$
+          type: string
+          description: National Insurance Number
+        knownFact:
+          pattern: ^([A-Za-z][A-Za-z]\d\d|[A-Za-z][A-Za-z]\d|[A-Za-z]\d|[A-Za-z]\d\d|[A-Za-z]\d[A-Za-z]|[A-Za-z]{2}\d[A-Za-z]) {0,1}\d[A-Za-z]{2}$
+          type: string
+          description: Postcode
+      description: Report income or expenses through software
+    AgentsInvitationsrequest1:
+      title: AgentsInvitationsrequest1
+      required:
+      - service
+      - clientType
+      - clientIdType
+      - clientId
+      - knownFact
+      type: object
+      properties:
+        service: {}
+        clientType:
+          oneOf:
+          - $ref: '#/components/schemas/ClientType'
+          - $ref: '#/components/schemas/ClientType1'
+        clientIdType: {}
+        clientId:
+          pattern: ^[0-9]{1,9}$
+          type: string
+          description: VAT Registration Number
+        knownFact:
+          type: string
+          description: VAT Registration Date
+          format: date
+      description: Report their VAT returns through software
+    AgentsInvitationsresponse:
+      title: AgentsInvitationsresponse
+      required:
+      - _links
+      - service
+      - arn
+      - created
+      - status
+      type: object
+      properties:
+        _links:
+          allOf:
+          - $ref: '#/components/schemas/Links'
+          - description: No description available.
+        service:
+          maxItems: 1
+          type: array
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/Service'
+            - $ref: '#/components/schemas/Service1'
+          description: What do you want the client to authorise you to do?
+        arn:
+          type: string
+          description: The Agent Registration Number for the calling agency
+        created:
+          type: string
+          description: Creation time of the request (RFC3339 / ISO8601 format)
+        updated:
+          type: string
+          description: Update time of the request (RFC3339 / ISO8601 format)
+        expiresOn:
+          type: string
+          description: Expiration time of the request (RFC3339 / ISO8601 format)
+        status:
+          oneOf:
+          - $ref: '#/components/schemas/Status'
+          - $ref: '#/components/schemas/Status1'
+          - $ref: '#/components/schemas/Status2'
+          - $ref: '#/components/schemas/Status3'
+          - $ref: '#/components/schemas/Status4'
+          - $ref: '#/components/schemas/Status5'
+          - $ref: '#/components/schemas/Status6'
+          description: The current status of the invitation
+        clientActionUrl:
+          type: string
+          description: Link for the client to authorise/reject this agent's invitation.
+    AgentsInvitationsresponse1:
+      title: AgentsInvitationsresponse1
+      required:
+      - _links
+      - service
+      - arn
+      - created
+      - status
+      type: object
+      properties:
+        _links:
+          allOf:
+          - $ref: '#/components/schemas/Links'
+          - description: No description available.
+        service:
+          maxItems: 1
+          type: array
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/Service'
+            - $ref: '#/components/schemas/Service1'
+          description: What do you want the client to authorise you to do?
+        arn:
+          pattern: ^[A-Z]ARN[0-9]{7}$
+          type: string
+          description: The Agent Registration Number for the calling agency
+        created:
+          type: string
+          description: Creation time of the request (RFC3339 / ISO8601 format)
+        updated:
+          type: string
+          description: Update time of the request (RFC3339 / ISO8601 format)
+        expiresOn:
+          type: string
+          description: Expiration time of the request (RFC3339 / ISO8601 format)
+        status:
+          oneOf:
+          - $ref: '#/components/schemas/Status'
+          - $ref: '#/components/schemas/Status1'
+          - $ref: '#/components/schemas/Status2'
+          - $ref: '#/components/schemas/Status3'
+          - $ref: '#/components/schemas/Status74'
+          - $ref: '#/components/schemas/Status5'
+          - $ref: '#/components/schemas/Status6'
+          description: The current status of the invitation
+        clientActionUrl:
+          type: string
+          description: Link for the client to authorise/reject this agent's invitation.
+    AgentsRelationshipsrequest:
+      title: AgentsRelationshipsrequest
+      required:
+      - service
+      - clientIdType
+      - clientId
+      - knownFact
+      type: object
+      properties:
+        service: {}
+        clientIdType: {}
+        clientId:
+          pattern: ^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ]?\d{2}?\d{2}?\d{2}?[A-D]{1}$
+          type: string
+          description: National Insurance Number
+        knownFact:
+          pattern: ^([A-Za-z][A-Za-z]\d\d|[A-Za-z][A-Za-z]\d|[A-Za-z]\d|[A-Za-z]\d\d|[A-Za-z]\d[A-Za-z]|[A-Za-z]{2}\d[A-Za-z]) {0,1}\d[A-Za-z]{2}$
+          type: string
+          description: Postcode
+      description: Report income or expenses through software
+    AgentsRelationshipsrequest1:
+      title: AgentsRelationshipsrequest1
+      required:
+      - service
+      - clientIdType
+      - clientId
+      - knownFact
+      type: object
+      properties:
+        service: {}
+        clientIdType: {}
+        clientId:
+          pattern: ^[0-9]{1,9}$
+          type: string
+          description: VAT Registration Number
+        knownFact:
+          type: string
+          description: VAT Registration Date
+          format: date
+      description: Report their VAT returns through software
+    ClientType:
+      title: ClientType
+      enum:
+      - personal
+      type: string
+      description: Request authorisation from an individual or sole trader
+    ClientType1:
+      title: ClientType1
+      enum:
+      - business
+      type: string
+      description: Request authorisation from a company or partnership
+    Links:
+      title: Links
+      required:
+      - self
+      type: object
+      properties:
+        self:
+          allOf:
+          - $ref: '#/components/schemas/Self'
+          - description: A link to the current resource.
+      description: No description available.
+    Self:
+      title: Self
+      required:
+      - href
+      type: object
+      properties:
+        href:
+          type: string
+          description: No description available.
+      description: A link to the current resource.
+    Service:
+      title: Service
+      enum:
+      - MTD-IT
+      type: string
+      description: Report income or expenses through software
+    Service1:
+      title: Service1
+      enum:
+      - MTD-VAT
+      type: string
+      description: Report their VAT returns through software
+    Status:
+      title: Status
+      enum:
+      - Pending
+      type: string
+      description: The invitation has been created, it has not been accepted or rejected by the client. Only the service can set this status.
+    Status1:
+      title: Status1
+      enum:
+      - Accepted
+      type: string
+      description: The client has accepted the invitation. Only the client can set this status.
+    Status2:
+      title: Status2
+      enum:
+      - Rejected
+      type: string
+      description: The client has rejected the invitation. Only the client can set this status.
+    Status3:
+      title: Status3
+      enum:
+      - Cancelled
+      type: string
+      description: The agency has cancelled the invitation. Only the agency can set this status.
+    Status4:
+      title: Status4
+      enum:
+      - Expired
+      type: string
+      description: Client did not respond to the Agent's Invitation within 14 days. Only the service can set this status.
+    Status5:
+      title: Status5
+      enum:
+      - Deauthorised
+      type: string
+      description: The client had accepted the invitation, forming a relationship. The relationship has since been terminated.
+    Status6:
+      title: Status6
+      enum:
+      - Partialauth
+      type: string
+      description: The client has accepted an invitation of a type that gives the agent only the power to sign up the client for Income Tax For Self Assessment tax service.
+    Status74:
+      title: Status74
+      enum:
+      - Expired
+      type: string
+      description: Client did not respond to the Agent's Invitation within 21 days. Only the service can set this status.
+tags:
+- name: agents
+  description: ''
