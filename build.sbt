@@ -1,42 +1,9 @@
-import play.core.PlayVersion
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
+import AppDependencies.{compileDeps, testDeps}
+import CodeCoverageSettings.scoverageSettings
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % "always"
 
 val silencerVersion = "1.7.8"
-
-lazy val scoverageSettings = {
-  import scoverage.ScoverageKeys
-  Seq(
-    // Semicolon-separated list of regexs matching classes to exclude
-    ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.Routes;.*\.RoutesPrefix;.*Filters?;MicroserviceAuditConnector;Module;GraphiteStartUp;.*\.Reverse[^.]*""",
-    ScoverageKeys.coverageMinimumStmtTotal := 80.00,
-    ScoverageKeys.coverageFailOnMinimum := false,
-    ScoverageKeys.coverageHighlighting := true,
-    Test / parallelExecution := false
-  )
-}
-
-lazy val compileDeps = Seq(
-  ws,
-  "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "7.8.0",
-  "com.github.blemale" %% "scaffeine" % "5.1.1",
-  "uk.gov.hmrc" %% "agent-kenshoo-monitoring" % "4.8.0-play-28",
-  "uk.gov.hmrc" %% "agent-mtd-identifiers" % "0.47.0-play-28",
-  "uk.gov.hmrc" %% "play-allowlist-filter" % "1.1.0",
-  "uk.gov.hmrc" %% "play-hal" % "3.1.0-play-28",
-  "uk.gov.hmrc" %% "play-hmrc-api" % "7.0.0-play-28"
-)
-
-def testDeps(scope: String) = Seq(
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % scope,
-  "org.scalatestplus" %% "mockito-3-12" % "3.2.10.0" % scope,
-  "org.pegdown" % "pegdown" % "1.6.0" % scope,
-  "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-  "org.scalamock" %% "scalamock" % "4.4.0" % scope,
-  "com.github.tomakehurst" % "wiremock-jre8" % "2.26.2" % scope,
-  "com.vladsch.flexmark" %  "flexmark-all" % "0.35.10" % scope
-)
 
 lazy val root = (project in file("."))
   .settings(
@@ -47,7 +14,6 @@ lazy val root = (project in file("."))
     resolvers ++= Seq(
       Resolver.typesafeRepo("releases"),
     ),
-    resolvers += "HMRC-local-artefacts-maven" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases-local",
     libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it"),
     libraryDependencies ++= Seq(
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
@@ -55,7 +21,6 @@ lazy val root = (project in file("."))
     ),
     routesImport += "uk.gov.hmrc.agentauthorisation.binders.UrlBinders._",
     routesImport -= "controllers.Assets.Asset",
-    publishingSettings,
     scoverageSettings,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     majorVersion := 0,

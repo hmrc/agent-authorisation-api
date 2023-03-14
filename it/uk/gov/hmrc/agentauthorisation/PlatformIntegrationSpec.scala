@@ -22,13 +22,13 @@ import play.api.http.Status.{NO_CONTENT, OK}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.Helpers
-import uk.gov.hmrc.agentauthorisation.controllers.api.{DocumentationController, RamlController}
+import uk.gov.hmrc.agentauthorisation.controllers.api.{DocumentationController, YamlController}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 
 class PlatformIntegrationSpec extends BaseISpec {
 
   val documentationController = app.injector.instanceOf[DocumentationController]
-  val ramlController = app.injector.instanceOf[RamlController]
+  val yamlController = app.injector.instanceOf[YamlController]
   val request = FakeRequest()
 
   override def beforeEach() {
@@ -59,11 +59,11 @@ class PlatformIntegrationSpec extends BaseISpec {
       }.foreach { case (version, endpointName) => verifyDocumentationPresent(version, endpointName) }
     }
 
-    "provide raml documentation" in {
-      val result = ramlController.raml("1.0", "application.raml")(request)
+    "provide yaml documentation" in {
+      val result = yamlController.yaml("1.0", "application.yaml")(request)
 
       status(result) shouldBe OK
-      Helpers.contentAsString(result) should startWith("#%RAML 1.0")
+      Helpers.contentAsString(result) should startWith("openapi: 3.0.3")
     }
   }
 }
