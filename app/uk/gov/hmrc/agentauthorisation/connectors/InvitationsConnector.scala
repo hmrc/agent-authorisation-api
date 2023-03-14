@@ -135,7 +135,6 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
       httpClient
         .GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
-        .map(si => { println("stiv"); println(si); si }) // Here
     }.recoverWith {
       case _ => Future successful None
     }
