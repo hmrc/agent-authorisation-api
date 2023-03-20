@@ -994,7 +994,7 @@ Changes made to ```application.yaml``` may be previewed on localhost:
 
 1. Start ```agent-authorisation-api``` using ```sbt run```
 2. Clone [api-documentation-frontend](https://github.com/hmrc/api-documentation-frontend), cd into the folder and start the service using the command ```./run_local_with_dependencies.sh```
-3. In the browser go to http://localhost:9680/api-documentation/docs/openapi/preview
+3. In the browser go to [http://localhost:9680/api-documentation/docs/openapi/preview](http://localhost:9680/api-documentation/docs/openapi/preview)
 4. Enter the location of the YAML file into the Preview OpenAPI box: ```http://localhost:9433/api/conf/1.0/application.yaml``` 
 
 
