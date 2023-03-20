@@ -4,12 +4,12 @@
       "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
     }
   },
-  "created": "2019-01-21T14:27:44.620Z",
+  "created": "2019-01-21T14:27:44.620",
   "arn": "AARN9999999",
   "service": ["MTD-IT"],
   "status": "Pending",
-  "expiresOn": "2019-02-04T00:00:00:000Z",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1"
+  "expiresOn": "2019-02-11T00:00:00:000",
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1"
 },
   {
     "_links": {
@@ -17,10 +17,10 @@
         "href": "/agents/AARN9999999/invitations/CS5AK7O8FPC43"
       }
     },
-    "created": "2019-01-21T14:27:44.620Z",
+    "created": "2019-01-21T14:27:44.620",
     "arn": "AARN9999999",
     "service": ["MTD-IT"],
     "status": "Accepted",
-    "updated": "2019-01-21T14:27:44.620Z"
+    "updated": "2019-01-21T14:27:44.620"
   }
 ]

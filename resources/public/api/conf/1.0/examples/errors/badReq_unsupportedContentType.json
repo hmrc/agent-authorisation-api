@@ -1,0 +1,4 @@
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported content-type."
+}

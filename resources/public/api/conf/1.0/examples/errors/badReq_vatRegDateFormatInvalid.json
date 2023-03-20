@@ -1,0 +1,4 @@
+{
+  "code": "VAT_REG_DATE_FORMAT_INVALID",
+  "message": "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
+}

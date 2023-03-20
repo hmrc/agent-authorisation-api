@@ -1,0 +1,4 @@
+{
+  "code": "SERVICE_NOT_SUPPORTED",
+  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
+}

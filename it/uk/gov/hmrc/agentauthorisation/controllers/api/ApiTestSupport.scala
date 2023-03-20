@@ -39,7 +39,7 @@ abstract class ApiTestSupport(implicit ws: WSClient, hc: HeaderCarrier, ec: Exec
 
   private val definitionPath = "/api/definition"
   private val xmlDocumentationPath = "/api/documentation"
-  private val ramlPath = "/api/conf"
+  private val yamlPath = "/api/conf"
 
   private def definitionsJson = new Resource(definitionPath.toString, runningPort).get().json
 
@@ -52,15 +52,15 @@ abstract class ApiTestSupport(implicit ws: WSClient, hc: HeaderCarrier, ec: Exec
     (response.status, Try(XML.loadString(response.body)))
   }
 
-  def ramlByVersion(api: JsValue): (String, String) = {
-    val (apiVersion: String, response: HttpResponse) = ramlResponseByVersion(api)
+  def yamlByVersion(api: JsValue): (String, String) = {
+    val (apiVersion: String, response: HttpResponse) = yamlResponseByVersion(api)
     require(response.status == 200)
     apiVersion -> response.body
   }
 
-  def ramlResponseByVersion(api: JsValue): (String, HttpResponse) = {
+  def yamlResponseByVersion(api: JsValue): (String, HttpResponse) = {
     val apiVersion: String = (api \ "version").as[String]
-    val response: HttpResponse = new Resource(s"$ramlPath/$apiVersion/application.raml", runningPort).get()
+    val response: HttpResponse = new Resource(s"$yamlPath/$apiVersion/application.yaml", runningPort).get()
     apiVersion -> response
   }
 

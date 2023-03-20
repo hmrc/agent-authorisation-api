@@ -1,0 +1,4 @@
+{
+  "code": "VAT_REG_DATE_DOES_NOT_MATCH",
+  "message": "The VAT registration date provided does not match HMRC's record for the client."
+}

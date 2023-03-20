@@ -1,0 +1,4 @@
+{
+ "code": "INVALID_INVITATION_STATUS",
+  "message": "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired."
+}

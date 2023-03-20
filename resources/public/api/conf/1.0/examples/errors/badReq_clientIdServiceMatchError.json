@@ -1,0 +1,4 @@
+{
+  "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
+  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
+}

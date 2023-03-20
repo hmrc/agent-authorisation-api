@@ -1,0 +1,4 @@
+{
+  "code": "DUPLICATE_AUTHORISATION_REQUEST",
+  "message": "An authorisation request for this service has already been created and is awaiting the client’s response."
+}
