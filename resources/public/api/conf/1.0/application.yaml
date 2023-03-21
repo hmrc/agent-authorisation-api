@@ -4,6 +4,7 @@ info:
   title: Agent Authorisation
   version: '1.0'
   description: >-
+    #Overview
     You can find the changelog in the [agent-authorisation-api](https://github.com/hmrc/agent-authorisation-api/blob/main/CHANGE_LOG.md) GitHub repository.
 
     Agents often use software to perform services for their clients. The API will benefit these agents as it allows them to create a request for authorisation to act on a client's behalf for a specific Making Tax Digital service directly through software.
@@ -513,7 +514,6 @@ paths:
           - write:sent-invitations
       parameters:
       - $ref: '#/components/parameters/arnParameter'
-      - $ref: '#/components/parameters/authHeader'
       - $ref: '#/components/parameters/acceptHeader'
       - $ref: '#/components/parameters/contentTypeHeader'
       requestBody:
@@ -559,7 +559,6 @@ paths:
           - read:sent-invitations
       parameters:
       - $ref: '#/components/parameters/arnParameter'
-      - $ref: '#/components/parameters/authHeader'
       - $ref: '#/components/parameters/acceptHeader'
       responses:
         '200':
@@ -600,7 +599,6 @@ paths:
       parameters:
       - $ref: '#/components/parameters/arnParameter'
       - $ref: '#/components/parameters/invitationIdParameter'
-      - $ref: '#/components/parameters/authHeader'
       - $ref: '#/components/parameters/acceptHeader'
       responses:
         '200':
@@ -640,7 +638,6 @@ paths:
       parameters:
       - $ref: '#/components/parameters/arnParameter'
       - $ref: '#/components/parameters/invitationIdParameter'
-      - $ref: '#/components/parameters/authHeader'
       - $ref: '#/components/parameters/acceptHeader'
       - $ref: '#/components/parameters/contentTypeHeader'
       responses:
@@ -670,7 +667,6 @@ paths:
           - read:check-relationship
       parameters:
       - $ref: '#/components/parameters/arnParameter'
-      - $ref: '#/components/parameters/authHeader'
       - $ref: '#/components/parameters/acceptHeader'
       - $ref: '#/components/parameters/contentTypeHeader'
       requestBody:
