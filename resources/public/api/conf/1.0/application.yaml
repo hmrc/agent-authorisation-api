@@ -4,42 +4,11 @@ info:
   title: Agent Authorisation
   version: '1.0'
   description: >-
-    #Overview
+
+    # Changelog
+
     You can find the changelog in the [agent-authorisation-api](https://github.com/hmrc/agent-authorisation-api/blob/main/CHANGE_LOG.md) GitHub repository.
 
-    Agents often use software to perform services for their clients. The API will benefit these agents as it allows them to create a request for authorisation to act on a client's behalf for a specific Making Tax Digital service directly through software.
-
-
-    This process involves the agent providing their own personal identifier and some information about the client that they wish to act on behalf of.
-
-    This generates a link that the agent can send to their client. The client can then follow this link to authorise the agent  for a service.
-
-
-    This API will save an agent time as they currently need to use an Agent Services user interface to create an authorisation request using their agent services account.
-
-    The aim is for the API to mirror the current process that happens through the Agent Services user interface:
-
-
-    * An agent uses a third-party application or software to request a new authorisation
-
-    * An agent identifier - the Agent Reference Number (ARN) - is passed to the API
-
-    * The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
-
-    * The agent enters the identifier for the client they are requesting authorisation from, for example:
-        * National Insurance number (NINO)
-        * VAT registration number (VRN)
-    * If required by the service the agent enters an additional identifier for the client, for example, the client's postcode or VAT registration date
-
-    * The API returns a link for the client to follow to authorise the agent and the date when the authorisation request will expire
-
-    * The agent sends the link to the client they wish to act on behalf of
-
-    * If the agent changes their mind, they can cancel the authorisation request as long as the client has not responded to it
-
-    * The client accesses the link and signs in using their a Government Gateway login details to accept the agent's request
-
-    * The agent can check if they have been authorised by a client.
 
 servers:
   - url: https://test-api.service.hmrc.gov.uk/
@@ -505,7 +474,7 @@ paths:
   /agents/{arn}/invitations:
     post:
       tags:
-      - agents
+      - Agents
       summary: Create a new authorisation
       description: Create a new authorisation request. The request will expire after 21 days.
       operationId: Createanewauthorisation
@@ -551,7 +520,7 @@ paths:
       deprecated: false
     get:
       tags:
-      - agents
+      - Agents
       summary: Get all authorisation requests for the last 30 days
       operationId: Getallauthorisationrequestsforthelast30days
       security:
@@ -590,7 +559,7 @@ paths:
   /agents/{arn}/invitations/{invitationId}:
     get:
       tags:
-      - agents
+      - Agents
       summary: Get an invitation by id
       operationId: Getaninvitationbyid
       security:
@@ -629,7 +598,7 @@ paths:
       deprecated: false
     delete:
       tags:
-      - agents
+      - Agents
       summary: Cancel an invitation by id
       operationId: Cancelaninvitationbyid
       security:
@@ -659,7 +628,7 @@ paths:
   /agents/{arn}/relationships:
     post:
       tags:
-      - agents
+      - Agents
       summary: Get Status of a Relationship
       operationId: GetStatusofaRelationship
       security:
@@ -700,5 +669,5 @@ paths:
       deprecated: false
 
 tags:
-- name: agents
+- name: Agents
   description: ''
