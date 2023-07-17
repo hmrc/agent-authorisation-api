@@ -41,7 +41,7 @@ class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
   def checkPostcodeMatches(nino: Nino, postcode: String)(
     implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[Boolean]] =
+    ec: ExecutionContext): Future[KnownFactCheckResult] =
     invitationsConnector.checkPostcodeForClient(nino, postcode)
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(

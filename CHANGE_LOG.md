@@ -1,3 +1,7 @@
+## [0.112.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.107.0) 17 July 2023
+
+* Update documentation to include additional Overview section
+
 ## [0.100.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.100.0) 28 October 2022
 
 * Update documentation to include authorisation request statuses Deauthorised and Partialauth

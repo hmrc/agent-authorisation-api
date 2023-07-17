@@ -16,25 +16,23 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import java.net.URL
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import play.api.http.Status.{FORBIDDEN, LOCKED}
-
-import javax.inject.{Inject, Singleton}
+import play.api.http.Status.{FORBIDDEN, LOCKED, NOT_FOUND, NO_CONTENT}
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, Service, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.connectors.Syntax._
+import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.agentauthorisation.connectors.Syntax._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
 
+import java.net.URL
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -101,30 +99,35 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
   def checkPostcodeForClient(nino: Nino, postcode: String)(
     implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[Boolean]] =
+    ec: ExecutionContext): Future[KnownFactCheckResult] =
     monitor(s"ConsumedAPI-CheckPostcode-GET") {
       httpClient
         .GET[HttpResponse](checkPostcodeUrl(nino, postcode).toString)
-        .map {
-          case r if r.status.isSuccess                               => Some(true)
-          case r if r.body.contains("POSTCODE_DOES_NOT_MATCH")       => Some(false)
-          case r if r.body.contains("CLIENT_REGISTRATION_NOT_FOUND") => None
+        .map { response =>
+          response.status match {
+            case NO_CONTENT => KnownFactCheckPassed
+            case FORBIDDEN =>
+              KnownFactCheckFailed((response.json \ "code").as[String])
+            case other => KnownFactCheckFailed(s"Failed due to status $other")
+          }
         }
     }
 
   def checkVatRegDateForClient(vrn: Vrn, registrationDateKnownFact: LocalDate)(
     implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[Boolean]] =
+    ec: ExecutionContext): Future[KnownFactCheckResult] =
     monitor(s"ConsumedAPI-CheckVatRegDate-GET") {
       httpClient
         .GET[HttpResponse](checkVatRegisteredClientUrl(vrn, registrationDateKnownFact).toString)
-        .map {
-          case r if r.status.isSuccess => Some(true)
-          case r if r.status == FORBIDDEN & r.body.contains("VAT_RECORD_CLIENT_INSOLVENT_TRUE") =>
-            throw UpstreamErrorResponse(r.body, r.status)
-          case r if Seq(FORBIDDEN, LOCKED).contains(r.status) => Some(false)
-          case _                                              => None
+        .map { response =>
+          response.status match {
+            case NO_CONTENT => KnownFactCheckPassed
+            case FORBIDDEN  => KnownFactCheckFailed((response.json \ "code").as[String])
+            case NOT_FOUND  => KnownFactCheckFailed("VAT_RECORD_NOT_FOUND")
+            case LOCKED     => KnownFactCheckFailed("MIGRATION_IN_PROGRESS")
+            case other      => KnownFactCheckFailed(s"Failed due to status $other")
+          }
         }
     }
 

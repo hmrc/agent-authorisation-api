@@ -5,6 +5,10 @@ info:
   version: '1.0'
   description: >-
 
+    # Overview
+
+    You can find more information about this API in the [agent-authorisation-api](https://github.com/hmrc/agent-authorisation-api/blob/main/README.md) GitHub repository.
+
     # Changelog
 
     You can find the changelog in the [agent-authorisation-api](https://github.com/hmrc/agent-authorisation-api/blob/main/CHANGE_LOG.md) GitHub repository.

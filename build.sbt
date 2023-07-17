@@ -3,7 +3,6 @@ import CodeCoverageSettings.scoverageSettings
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % "always"
 
-val silencerVersion = "1.7.8"
 
 lazy val root = (project in file("."))
   .settings(
@@ -15,10 +14,6 @@ lazy val root = (project in file("."))
       Resolver.typesafeRepo("releases"),
     ),
     libraryDependencies ++= compileDeps ++ testDeps("test") ++ testDeps("it"),
-    libraryDependencies ++= Seq(
-      compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
-    ),
     routesImport += "uk.gov.hmrc.agentauthorisation.binders.UrlBinders._",
     routesImport -= "controllers.Assets.Asset",
     scoverageSettings,
@@ -36,7 +31,10 @@ lazy val root = (project in file("."))
       "-feature",
       "-unchecked",
       "-language:implicitConversions",
-      "-P:silencer:pathFilters=views;routes")
+      "-Wconf:src=target/.*:s", // silence warnings from compiled files
+      "-Wconf:src=*routes:s", // silence warnings from routes files
+      "-Wconf:src=*html:w", // silence html warnings as they are wrong
+    )
   )
   .configs(IntegrationTest)
   .settings(

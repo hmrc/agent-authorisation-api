@@ -2,8 +2,9 @@ package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import play.api.libs.json.Json._
 import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.test.{FakeRequest, Helpers}
+import play.api.mvc.Results.InternalServerError
 import play.api.test.Helpers._
+import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults.{VatRegDateDoesNotMatch, _}
 import uk.gov.hmrc.agentauthorisation.models._
@@ -318,7 +319,7 @@ class AgentControllerISpec extends BaseISpec {
         "vrn",
         "Fail",
         "HMRC-MTD-VAT",
-        Some("VAT_REG_DATE_DOES_NOT_MATCH"))
+        Some("VAT_REGISTRATION_DATE_DOES_NOT_MATCH"))
     }
 
     "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
@@ -374,6 +375,21 @@ class AgentControllerISpec extends BaseISpec {
         "Fail",
         "HMRC-MTD-VAT",
         Some("VAT_RECORD_CLIENT_INSOLVENT_TRUE"))
+    }
+
+    "return 500 Internal Server Error when the VAT record is being migrated to ETMP" in {
+      checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 423, false)
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+
+      status(result) shouldBe 500
+      await(result) shouldBe InternalServerError
+      verifyAgentClientInvitationSubmittedEvent(
+        arn.value,
+        validVrn.value,
+        "vrn",
+        "Fail",
+        "HMRC-MTD-VAT",
+        Some("MIGRATION_IN_PROGRESS"))
     }
 
     "return a future failed when the invitation creation failed for ITSA" in {
