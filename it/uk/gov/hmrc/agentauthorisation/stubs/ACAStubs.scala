@@ -79,13 +79,17 @@ trait ACAStubs {
            """.stripMargin)))
 
   def checkClientIdAndVatRegDate(vrn: Vrn, date: LocalDate, responseStatus: Int, clientInsolvent: Boolean = false) = {
-    val responseBody = if(responseStatus == 403) if(clientInsolvent) "VAT_RECORD_CLIENT_INSOLVENT_TRUE" else "VAT_REGISTRATION_DATE_DOES_NOT_MATCH" else ""
+    val responseCode = if(responseStatus == 403) if(clientInsolvent) "VAT_RECORD_CLIENT_INSOLVENT_TRUE" else "VAT_REGISTRATION_DATE_DOES_NOT_MATCH" else ""
     stubFor(
       get(urlEqualTo(
         s"/agent-client-authorisation/known-facts/organisations/vat/${vrn.value}/registration-date/${date.toString}"))
         .willReturn(aResponse()
           .withStatus(responseStatus)
-          .withBody(responseBody)))
+          .withBody(
+              s"""{
+                 |"code": "$responseCode"
+                 |}""".stripMargin
+            )))
   }
 
   def verifyCheckVatRegisteredClientStubAttempt(vrn: Vrn, date: LocalDate): Unit = {

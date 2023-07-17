@@ -16,11 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneOffset}
 import com.google.inject.Provider
-
-import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.Json._
 import play.api.libs.json._
@@ -38,9 +34,12 @@ import uk.gov.hmrc.agentauthorisation.services.{InvitationService, PlatformAnaly
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, ZoneOffset}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -199,19 +198,20 @@ class AgentController @Inject()(
   private def checkKnownFactAndRelationship(arn: Arn, relationshipRequest: RelationshipRequest)(
     implicit hc: HeaderCarrier): Future[Result] =
     if (checkKnownFactValid(relationshipRequest.service, relationshipRequest.knownFact)) {
-      for {
-        hasKnownFact <- checkKnownFactMatches(
-                         relationshipRequest.service,
-                         relationshipRequest.clientId,
-                         relationshipRequest.knownFact)
-        result <- hasKnownFact match {
-                   case Some(true) => checkRelationship(relationshipRequest, arn)
-                   case Some(false) =>
-                     Logger(getClass).warn(s"Postcode does not match for ${relationshipRequest.service}")
-                     Future successful knownFactDoesNotMatch(relationshipRequest.service)
-                   case _ => Future successful ClientRegistrationNotFound
-                 }
-      } yield result
+
+      checkKnownFactMatches(relationshipRequest.service, relationshipRequest.clientId, relationshipRequest.knownFact)
+        .flatMap {
+          case KnownFactCheckPassed => checkRelationship(relationshipRequest, arn)
+          case KnownFactCheckFailed(reason) if reason.contains("DOES_NOT_MATCH") =>
+            Logger(getClass).warn(s"Postcode does not match for ${relationshipRequest.service}")
+            Future successful knownFactDoesNotMatch(relationshipRequest.service)
+          case KnownFactCheckFailed(reason) if reason.contains("NOT_FOUND") =>
+            Logger(getClass).warn(s"Client registration not found")
+            Future successful ClientRegistrationNotFound
+          case KnownFactCheckFailed(reason) =>
+            Logger(getClass).warn(s"Known fact check failed due to: $reason")
+            Future successful InternalServerError
+        }
     } else {
       Logger(getClass).warn(s"Invalid Format for supplied Known Fact")
       Future successful knownFactFormatInvalid(relationshipRequest.service)
@@ -246,69 +246,50 @@ class AgentController @Inject()(
     hc: HeaderCarrier,
     request: Request[_]): Future[Result] =
     if (checkKnownFactValid(agentInvitation.service, agentInvitation.knownFact)) {
-      for {
-        hasKnownFact <- checkKnownFactMatches(
-                         agentInvitation.service,
-                         agentInvitation.clientId,
-                         agentInvitation.knownFact)
-        result <- hasKnownFact match {
-                   case Some(true) =>
-                     checkForPendingInvitationOrActiveRelationship(
-                       arn,
-                       agentInvitation.clientId,
-                       agentInvitation.service)(
-                       successResult = invitationService
-                         .createInvitation(arn, agentInvitation)
-                         .flatMap { invitationId =>
-                           val locationLink = routes.AgentController
-                             .getInvitationApi(arn, InvitationId(invitationId))
-                             .url
-                           auditService.sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, "Success")
-                           ga("create-authorisation-request", Some(agentInvitation.service.toString))
-                           Future successful NoContent.withHeaders(LOCATION -> locationLink)
-                         }
-                         .recoverWith {
-                           case e =>
-                             Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
-                             auditService
-                               .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
-                             Future.failed(e)
-                         })
-                   case Some(false) =>
-                     agentInvitation.service match {
-                       case Itsa =>
-                         auditService.sendAgentInvitationSubmitted(
-                           arn,
-                           "",
-                           agentInvitation,
-                           "Fail",
-                           Some("POSTCODE_DOES_NOT_MATCH"))
-                       case Vat =>
-                         auditService.sendAgentInvitationSubmitted(
-                           arn,
-                           "",
-                           agentInvitation,
-                           "Fail",
-                           Some("VAT_REG_DATE_DOES_NOT_MATCH"))
-                     }
-                     Future successful knownFactDoesNotMatch(agentInvitation.service)
-                   case _ =>
-                     auditService.sendAgentInvitationSubmitted(
-                       arn,
-                       "",
-                       agentInvitation,
-                       "Fail",
-                       Some("CLIENT_REGISTRATION_NOT_FOUND"))
-                     Logger(getClass).warn(s"Client Registration Not Found")
-                     Future successful ClientRegistrationNotFound
-                 }
-      } yield result
-    }.recover {
-      case e: UpstreamErrorResponse if e.getMessage == "VAT_RECORD_CLIENT_INSOLVENT_TRUE" =>
-        Logger(getClass).warn(s"Invitation creation failed: ${e.getMessage}")
-        auditService
-          .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
-        VatClientInsolvent
+
+      checkKnownFactMatches(
+        agentInvitation.service,
+        agentInvitation.clientId,
+        agentInvitation.knownFact
+      ).flatMap {
+        case KnownFactCheckPassed =>
+          checkForPendingInvitationOrActiveRelationship(arn, agentInvitation.clientId, agentInvitation.service)(
+            successResult = invitationService
+              .createInvitation(arn, agentInvitation)
+              .flatMap { invitationId =>
+                val locationLink = routes.AgentController
+                  .getInvitationApi(arn, InvitationId(invitationId))
+                  .url
+                auditService.sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, "Success")
+                ga("create-authorisation-request", Some(agentInvitation.service.toString))
+                Future successful NoContent.withHeaders(LOCATION -> locationLink)
+              }
+              .recoverWith {
+                case e =>
+                  Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
+                  auditService
+                    .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
+                  Future.failed(e)
+              })
+        case KnownFactCheckFailed(reason) if reason.contains("DOES_NOT_MATCH") =>
+          auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(reason))
+          Future successful knownFactDoesNotMatch(agentInvitation.service)
+        case KnownFactCheckFailed(reason) if reason.contains("NOT_FOUND") =>
+          auditService
+            .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("CLIENT_REGISTRATION_NOT_FOUND"))
+          Logger(getClass).warn(s"Client Registration Not Found")
+          Future successful ClientRegistrationNotFound
+        case KnownFactCheckFailed(reason) if reason.contains("CLIENT_INSOLVENT") =>
+          Logger(getClass).warn(s"Invitation creation failed: $reason")
+          auditService
+            .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(reason))
+          Future successful VatClientInsolvent
+        case KnownFactCheckFailed(reason) =>
+          Logger(getClass).warn(s"invitation creation failed: $reason")
+          auditService
+            .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(reason))
+          Future successful InternalServerError
+      }
     } else {
       Logger(getClass).warn(s"Invalid Format for supplied Known Fact")
       Future successful knownFactFormatInvalid(agentInvitation.service)
@@ -324,7 +305,7 @@ class AgentController @Inject()(
 
   private def checkKnownFactMatches(service: Service, clientId: String, knownFact: String)(
     implicit
-    hc: HeaderCarrier) =
+    hc: HeaderCarrier): Future[KnownFactCheckResult] =
     service match {
       case Itsa =>
         invitationsConnector.checkPostcodeForClient(Nino(clientId), knownFact)

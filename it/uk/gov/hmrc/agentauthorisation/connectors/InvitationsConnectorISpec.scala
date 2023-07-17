@@ -5,7 +5,7 @@ import play.api.test.Helpers._
 import java.time.{LocalDate, ZoneOffset}
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, KnownFactCheckFailed, KnownFactCheckPassed, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.domain.Nino
@@ -82,55 +82,55 @@ class InvitationsConnectorISpec extends BaseISpec {
   }
 
   "checkPostcodeForClient" should {
-    "return true when the nino and postcode do match" in {
+    "return KnownFactCheckPassed when the nino and postcode do match" in {
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       val result = await(connector.checkPostcodeForClient(validNino, validPostcode))
 
-      result shouldBe Some(true)
+      result shouldBe KnownFactCheckPassed
     }
 
-    "return false when the nino and postcode do not match" in {
+    "return KnownFactCheckFailed when the nino and postcode do not match" in {
       givenNonMatchingClientIdAndPostcode(validNino, validPostcode)
       val result = await(connector.checkPostcodeForClient(validNino, validPostcode))
 
-      result shouldBe Some(false)
+      result shouldBe KnownFactCheckFailed("POSTCODE_DOES_NOT_MATCH")
     }
 
-    "return None when the client registration is not found" in {
+    "return KnownFactFailed when the client registration is not found" in {
       givenNotEnrolledClientITSA(validNino, validPostcode)
       val result = await(connector.checkPostcodeForClient(validNino, validPostcode))
 
-      result shouldBe None
+      result shouldBe KnownFactCheckFailed("CLIENT_REGISTRATION_NOT_FOUND")
     }
   }
 
   "checkVatRegDateForClient" should {
-    "return true when the Vrn and VAT registration date do match" in {
+    "return KnownFactCheckPassed when the Vrn and VAT registration date do match" in {
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
       val result = await(connector.checkVatRegDateForClient(validVrn, LocalDate.parse(validVatRegDate)))
 
-      result shouldBe Some(true)
+      result shouldBe KnownFactCheckPassed
     }
 
-    "return false when the Vrn and VAT registration date do not match" in {
+    "return KnownFactCheckFailed when the Vrn and VAT registration date do not match" in {
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 403)
       val result = await(connector.checkVatRegDateForClient(validVrn, LocalDate.parse(validVatRegDate)))
 
-      result shouldBe Some(false)
+      result shouldBe KnownFactCheckFailed("VAT_REGISTRATION_DATE_DOES_NOT_MATCH")
     }
 
-    "return false when the check returns a Locked response" in {
+    "return KnownFactCheckFailed when the check returns a Locked response" in {
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 423)
       val result = await(connector.checkVatRegDateForClient(validVrn, LocalDate.parse(validVatRegDate)))
 
-      result shouldBe Some(false)
+      result shouldBe KnownFactCheckFailed("MIGRATION_IN_PROGRESS")
     }
 
-    "return None when the client registration is not found" in {
+    "return KnownFactCheckFailed when the client registration is not found" in {
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 404)
       val result = await(connector.checkVatRegDateForClient(validVrn, LocalDate.parse(validVatRegDate)))
 
-      result shouldBe None
+      result shouldBe KnownFactCheckFailed("VAT_RECORD_NOT_FOUND")
     }
   }
 
