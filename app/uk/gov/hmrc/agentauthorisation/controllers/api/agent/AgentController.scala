@@ -208,6 +208,9 @@ class AgentController @Inject()(
           case KnownFactCheckFailed(reason) if reason.contains("NOT_FOUND") =>
             Logger(getClass).warn(s"Client registration not found")
             Future successful ClientRegistrationNotFound
+          case KnownFactCheckFailed(reason) if reason.contains("CLIENT_INSOLVENT") =>
+            Logger(getClass).warn(s"Known fact check failed: $reason")
+            Future successful VatClientInsolvent
           case KnownFactCheckFailed(reason) =>
             Logger(getClass).warn(s"Known fact check failed due to: $reason")
             Future successful InternalServerError

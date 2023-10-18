@@ -937,7 +937,14 @@ class AgentControllerISpec extends BaseISpec {
         status(result) shouldBe 403
         await(result) shouldBe NotAnAgent
         verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      }
 
+      "return 403 VAT_CLIENT_INSOLVENT when the when the VAT customer is insolvent" in {
+        checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 403, true)
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+
+        status(result) shouldBe 403
+        await(result) shouldBe VatClientInsolvent
       }
 
       "return 403 NOT_PERMISSION_ON_AGENCY when the logged in user does not have an HMRC-AS-AGENT enrolment" in {
