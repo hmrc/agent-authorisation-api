@@ -926,6 +926,12 @@ Relationship is active. Agent is authorised to act for the client.
   "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
+```
+{
+    "code": "VAT_CLIENT_INSOLVENT"
+    "message": "The VAT registration number belongs to a customer that is insolvent."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
