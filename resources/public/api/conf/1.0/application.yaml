@@ -190,6 +190,9 @@ components:
             noPermissionOnAgency:
               value:
                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+            vatClientInsolvent:
+              value:
+                $ref: './examples/errors/forbidden_vatClientInsolvent.json'
     forbiddenGetInvitations:
       description: Forbidden
       content:
@@ -225,6 +228,9 @@ components:
             noPermissionOnAgency:
               value:
                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+            vatClientInsolvent:
+              value:
+                $ref: './examples/errors/forbidden_vatClientInsolvent.json'
     badRequestResponses:
       description: Bad Request
       content:

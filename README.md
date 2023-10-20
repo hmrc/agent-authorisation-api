@@ -61,9 +61,10 @@ See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/
 
 ###### Headers
 
-| Name | Type | Description | Required | Examples |
-|:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Name         | Type | Description | Required | Examples |
+|:-------------|:----:|:------------|:--------:|---------:|
+| Accept       | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Content-Type | string | application/json| true| application/json|
 
 #### application/json (application/json) 
 Create a new authorisation request. The request will expire after 21 days.
@@ -234,7 +235,7 @@ The authorisation request was created successfully.
 ```
 ```
 {
-    "code": "VAT_CLIENT_INSOLVENT"
+    "code": "VAT_CLIENT_INSOLVENT",
     "message": "The VAT registration number belongs to a customer that is insolvent."
 }
 ```
@@ -283,6 +284,15 @@ The authorisation request was created successfully.
 | code |  string |  | true |  |
 
 ---
+
+### /agents/{arn}/invitations
+
+* **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
+  * Type: string
+
+  * Required: true
+
+
 #### **GET** *(secured)*:
 
 ###### Headers
@@ -324,10 +334,6 @@ Returns all authorisation requests for the last 30 days.
   }
 ]
 ```
-
-##### *application/json*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
 
 ### Response code: 204
 The agent has no authorisation requests for the last 30 days.
@@ -476,7 +482,7 @@ Returns the authorisation request.
   "arn": "AARN9999999",
   "service": ["MTD-IT"],
   "status": "Pending",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1"
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1"
 }
 ```
 ```
@@ -493,10 +499,6 @@ Returns the authorisation request.
   "status": "Accepted"
 }
 ```
-
-##### *application/json*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
 
 ### Response code: 400
 
@@ -784,6 +786,8 @@ The authorisation request has been cancelled successfully.
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
 | Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Content-Type| string | application/json| true| application/json|
+
 
 #### application/json (application/json) 
 Check Relationship based on the details received.
@@ -805,9 +809,6 @@ Check Relationship based on the details received.
 }
 ```
 
-##### *application/json*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
 
 ### Response code: 204
 Relationship is active. Agent is authorised to act for the client.

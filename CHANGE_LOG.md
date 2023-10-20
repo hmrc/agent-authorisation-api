@@ -1,3 +1,7 @@
+## [0.114.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.107.0) 20 October 2023
+
+* POST   /agents/:arn/relationships returns 403 instead of 500 when VAT client is insolvent
+
 ## [0.112.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.107.0) 17 July 2023
 
 * Update documentation to include additional Overview section
