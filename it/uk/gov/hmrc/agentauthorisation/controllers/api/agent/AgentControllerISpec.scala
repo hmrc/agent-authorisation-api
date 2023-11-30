@@ -322,7 +322,7 @@ class AgentControllerISpec extends BaseISpec {
         Some("VAT_REGISTRATION_DATE_DOES_NOT_MATCH"))
     }
 
-    "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
+    "return 403 NOT_AN_AGENT when the logged in user does not have an HMRC-AS-AGENT enrolment" in {
       givenUnauthorisedForInsufficientEnrolments()
       val result = createInvitation(request.withJsonBody(jsonBodyITSA))
 
@@ -339,7 +339,7 @@ class AgentControllerISpec extends BaseISpec {
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
-    "return 403 DUPLICATE_AUTHORISATION_EXCEPTION when there is already a pending invitation" in {
+    "return 403 DUPLICATE_AUTHORISATION_REQUEST when there is already a pending invitation" in {
       givenPendingInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
 
@@ -347,6 +347,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe DuplicateAuthorisationRequest
+      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
@@ -359,6 +360,7 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe AlreadyAuthorised
+      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
