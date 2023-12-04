@@ -354,7 +354,7 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 403 ALREADY_AUTHORISED when there is already an active relationship" in {
-      givenOnlyActiveInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
+      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
       getStatusRelationshipItsa(arn.value, validNino, 200)
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
 

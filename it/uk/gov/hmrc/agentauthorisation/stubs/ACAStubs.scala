@@ -297,12 +297,12 @@ trait ACAStubs {
     )
   }
 
-  def givenOnlyActiveInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+  def givenOnlyAcceptedInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
     val body = service match {
       case "HMRC-MTD-IT" =>
-        invitation(arn, "Active", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+        invitation(arn, "Accepted", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
       case "HMRC-MTD-VAT" =>
-        invitation(arn, "Active", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
+        invitation(arn, "Accepted", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
     }
 
     stubFor(

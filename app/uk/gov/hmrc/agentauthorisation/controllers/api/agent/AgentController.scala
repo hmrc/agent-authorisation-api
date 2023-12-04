@@ -230,12 +230,8 @@ class AgentController @Inject()(
       allInvitationsForClient
         .flatMap(
           _.find(_.status == "Pending") match {
-            case Some(inv) =>
-              val invitationId: String = inv.href.split("/").last
-              val locationLink: String = routes.AgentController
-                .getInvitationApi(arn, InvitationId(invitationId))
-                .url
-              Future successful DuplicateAuthorisationRequest.withHeaders(LOCATION -> locationLink)
+            case Some(invitation) =>
+              Future successful DuplicateAuthorisationRequest.withHeaders(LOCATION -> getLocationLink(arn, invitation))
             case None => whenNoPendingInvitationFound
           }
         )
@@ -247,13 +243,9 @@ class AgentController @Inject()(
           if (hasRelationship) {
             allInvitationsForClient
               .flatMap(
-                _.find(_.status == "Active") match {
-                  case Some(inv) =>
-                    val invitationId: String = inv.href.split("/").last
-                    val locationLink: String = routes.AgentController
-                      .getInvitationApi(arn, InvitationId(invitationId))
-                      .url
-                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
+                _.find(_.status == "Accepted") match {
+                  case Some(invitation) =>
+                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
                   case None => whenNoActiveRelationshipFound
                 }
               )
@@ -418,6 +410,9 @@ class AgentController @Inject()(
 
   private def ga(action: String, label: Option[String])(implicit hc: HeaderCarrier) =
     platformAnalyticsService.sendEvent(action, label)
+
+  private def getLocationLink(arn: Arn, invitation: StoredInvitation): String =
+    routes.AgentController.getInvitationApi(arn, InvitationId(invitation.href.split("/").last)).url
 }
 
 object AgentController {
