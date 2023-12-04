@@ -223,13 +223,38 @@ class AgentController @Inject()(
   private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
     successResult: => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
+//    val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
+//      .getAllInvitationsForClient(arn, clientId, service)
+//
+//    Thread.sleep(1000)
+//    println("€€€€€€€€€############¢¢¢¢¢¢¢¢¢¢¢¢¢¢∞∞∞∞∞∞∞∞∞∞∞∞∞§§§§§§§§§§§§§¶¶¶¶¶¶¶¶¶¶¶•••••••••ªªªªªªªª")
+//    println(allInvitationsForClient.toString)
+//    println("€€€€€€€€€############¢¢¢¢¢¢¢¢¢¢¢¢¢¢∞∞∞∞∞∞∞∞∞∞∞∞∞§§§§§§§§§§§§§¶¶¶¶¶¶¶¶¶¶¶•••••••••ªªªªªªªª")
+//
+//    def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
+//      invitationsConnector
+//        .pendingInvitationsExistForClient(arn, clientId, service)
+//        .flatMap(
+//          invitations =>
+//            if (invitations) Future successful DuplicateAuthorisationRequest
+//            else whenNoPendingInvitationFound
+//        )
+
+    val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
+      .getAllInvitationsForClient(arn, clientId, service)
+
     def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
-      invitationsConnector
-        .pendingInvitationsExistForClient(arn, clientId, service)
+      allInvitationsForClient
         .flatMap(
-          pendingInvitationExists =>
-            if (pendingInvitationExists) Future successful DuplicateAuthorisationRequest
-            else whenNoPendingInvitationFound
+          _.find(_.status == "Pending") match {
+            case Some(inv) =>
+              val invitationId: String = inv.href.split("/").last
+              val locationLink: String = routes.AgentController
+                .getInvitationApi(arn, InvitationId(invitationId))
+                .url
+              Future successful DuplicateAuthorisationRequest.withHeaders(LOCATION -> locationLink)
+            case None => whenNoPendingInvitationFound
+          }
         )
 
     def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] =
