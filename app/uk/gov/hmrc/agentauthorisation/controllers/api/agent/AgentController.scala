@@ -223,23 +223,6 @@ class AgentController @Inject()(
   private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
     successResult: => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
-//    val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
-//      .getAllInvitationsForClient(arn, clientId, service)
-//
-//    Thread.sleep(1000)
-//    println("€€€€€€€€€############¢¢¢¢¢¢¢¢¢¢¢¢¢¢∞∞∞∞∞∞∞∞∞∞∞∞∞§§§§§§§§§§§§§¶¶¶¶¶¶¶¶¶¶¶•••••••••ªªªªªªªª")
-//    println(allInvitationsForClient.toString)
-//    println("€€€€€€€€€############¢¢¢¢¢¢¢¢¢¢¢¢¢¢∞∞∞∞∞∞∞∞∞∞∞∞∞§§§§§§§§§§§§§¶¶¶¶¶¶¶¶¶¶¶•••••••••ªªªªªªªª")
-//
-//    def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
-//      invitationsConnector
-//        .pendingInvitationsExistForClient(arn, clientId, service)
-//        .flatMap(
-//          invitations =>
-//            if (invitations) Future successful DuplicateAuthorisationRequest
-//            else whenNoPendingInvitationFound
-//        )
-
     val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
       .getAllInvitationsForClient(arn, clientId, service)
 
@@ -260,10 +243,21 @@ class AgentController @Inject()(
     def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] =
       relationshipService
         .hasActiveRelationship(arn, clientId, service)
-        .flatMap(
-          hasRelationship =>
-            if (hasRelationship) Future successful AlreadyAuthorised
-            else whenNoActiveRelationshipFound)
+        .flatMap(hasRelationship =>
+          if (hasRelationship) {
+            allInvitationsForClient
+              .flatMap(
+                _.find(_.status == "Active") match {
+                  case Some(inv) =>
+                    val invitationId: String = inv.href.split("/").last
+                    val locationLink: String = routes.AgentController
+                      .getInvitationApi(arn, InvitationId(invitationId))
+                      .url
+                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
+                  case None => whenNoActiveRelationshipFound
+                }
+              )
+          } else whenNoActiveRelationshipFound)
 
     checkPendingInvitationExists(
       whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult))
