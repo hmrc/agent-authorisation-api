@@ -263,6 +263,40 @@ trait ACAStubs {
                          |}
            """.stripMargin)))
 
+  def givenOnlyPendingInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+    val body = service match {
+      case "HMRC-MTD-IT" =>
+        invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case "HMRC-MTD-VAT" =>
+        invitation(arn, "Pending", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
+    }
+
+    stubFor(
+      get(
+        urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+      ).withQueryParam("clientId", equalTo(clientId.value))
+        .withQueryParam("service", equalTo(service))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""{"_links": {
+        "invitations": [
+          {
+            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+          }
+        ],
+        "self": {
+          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+        }
+      },
+      "_embedded": {
+        "invitations": [$body]
+      }
+    }""".stripMargin)
+        )
+    )
+  }
+
   def givenPendingInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
     val body = service match {
       case "HMRC-MTD-IT" =>
@@ -322,5 +356,62 @@ trait ACAStubs {
                      |        "invitations": []
                      |      }
                      |    }""".stripMargin)))
+  }
+
+  def givenOnlyActiveInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+    val body = service match {
+      case "HMRC-MTD-IT" =>
+        invitation(arn, "Active", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case "HMRC-MTD-VAT" =>
+        invitation(arn, "Active", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
+    }
+
+    stubFor(
+      get(
+        urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+      ).withQueryParam("clientId", equalTo(clientId.value))
+        .withQueryParam("service", equalTo(service))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""{"_links": {
+                         |        "invitations": [
+                         |          {
+                         |            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+                         |          }
+                         |        ],
+                         |        "self": {
+                         |          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+                         |        }
+                         |      },
+                         |      "_embedded": {
+                         |        "invitations": [$body]
+                         |      }
+                         |    }""".stripMargin)))
+  }
+
+  def givenNoInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+    stubFor(
+      get(
+        urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+      ).withQueryParam("clientId", equalTo(clientId.value))
+        .withQueryParam("service", equalTo(service))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""{"_links": {
+                         |        "invitations": [
+                         |          {
+                         |            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+                         |          }
+                         |        ],
+                         |        "self": {
+                         |          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+                         |        }
+                         |      },
+                         |      "_embedded": {
+                         |        "invitations": []
+                         |      }
+                         |    }""".stripMargin)))
   }
 }

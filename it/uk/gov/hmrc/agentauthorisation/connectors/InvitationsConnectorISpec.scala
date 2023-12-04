@@ -203,6 +203,22 @@ class InvitationsConnectorISpec extends BaseISpec {
     }
   }
 
+  "getAllInvitationsForClient" should {
+    "return non empty when invitations exist" in {
+      givenOnlyPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
+      val result = await(connector.getAllInvitationsForClient(arn, nino, Itsa))
+
+      assert(result.nonEmpty)
+    }
+
+    "return empty when invitations do not exist" in {
+      givenNoInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
+      val result = await(connector.getAllInvitationsForClient(arn, nino, Itsa))
+
+      assert(result.isEmpty)
+    }
+  }
+
   "getAllPendingInvitationsForClient" should {
     "return true when pending invitations exist" in {
       givenPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
