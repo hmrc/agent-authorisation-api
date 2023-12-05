@@ -2,6 +2,7 @@ package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import play.api.libs.json.Json._
 import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.mvc.Result
 import play.api.mvc.Results.InternalServerError
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Helpers}
@@ -13,6 +14,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.SessionKeys
 
 import java.time.LocalDate
+import scala.concurrent.Future
 
 class AgentControllerISpec extends BaseISpec {
 
@@ -134,7 +136,7 @@ class AgentControllerISpec extends BaseISpec {
     val createInvitation = controller.createInvitationApi(arn)
 
     "return 204 when invitation is successfully created for ITSA" in {
-      givenNoPendingInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
+      givenNoInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
       getStatusRelationshipItsa(arn.value, validNino, 404)
       givenPlatformAnalyticsEventWasSent()
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
@@ -158,7 +160,7 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 204 when invitation is successfully created for VAT" in {
-      givenNoPendingInvitationsExistForClient(arn, validVrn, "HMRC-MTD-VAT")
+      givenNoInvitationsExistForClient(arn, validVrn, "HMRC-MTD-VAT")
       getStatusRelationshipVat(arn.value, validVrn, 404)
       givenPlatformAnalyticsEventWasSent()
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
@@ -322,7 +324,7 @@ class AgentControllerISpec extends BaseISpec {
         Some("VAT_REGISTRATION_DATE_DOES_NOT_MATCH"))
     }
 
-    "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {
+    "return 403 NOT_AN_AGENT when the logged in user does not have an HMRC-AS-AGENT enrolment" in {
       givenUnauthorisedForInsufficientEnrolments()
       val result = createInvitation(request.withJsonBody(jsonBodyITSA))
 
@@ -339,26 +341,28 @@ class AgentControllerISpec extends BaseISpec {
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
-    "return 403 DUPLICATE_AUTHORISATION_EXCEPTION when there is already a pending invitation" in {
-      givenPendingInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
+    "return 403 DUPLICATE_AUTHORISATION_REQUEST when there is already a pending invitation" in {
+      givenOnlyPendingInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+      val locationLink: String = "/agents/TARN0000001/invitations/foo"
+      val result: Future[Result] = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
       status(result) shouldBe 403
-      await(result) shouldBe DuplicateAuthorisationRequest
+      await(result) shouldBe DuplicateAuthorisationRequest.withHeaders(LOCATION -> locationLink)
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 403 ALREADY_AUTHORISED when there is already an active relationship" in {
-      givenNoPendingInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
+      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
       getStatusRelationshipItsa(arn.value, validNino, 200)
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
 
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+      val locationLink: String = "/agents/TARN0000001/invitations/foo"
+      val result: Future[Result] = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
       status(result) shouldBe 403
-      await(result) shouldBe AlreadyAuthorised
+      await(result) shouldBe AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
@@ -394,7 +398,7 @@ class AgentControllerISpec extends BaseISpec {
 
     "return a future failed when the invitation creation failed for ITSA" in {
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
-      givenNoPendingInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
+      givenNoInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
       getStatusRelationshipItsa(arn.value, validNino, 404)
       failedCreateInvitation(arn)
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
@@ -415,7 +419,7 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return a future failed when the invitation creation failed for VAT" in {
-      givenNoPendingInvitationsExistForClient(arn, validVrn, "HMRC-MTD-VAT")
+      givenNoInvitationsExistForClient(arn, validVrn, "HMRC-MTD-VAT")
       getStatusRelationshipVat(arn.value, validVrn, 404)
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
       failedCreateInvitation(arn)

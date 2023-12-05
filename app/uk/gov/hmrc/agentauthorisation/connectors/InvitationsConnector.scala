@@ -71,9 +71,9 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
         .format(isoDateFormat)}"
     )
 
-  private[connectors] def getAllPendingInvitationsForClientUrl(arn: Arn, clientId: String, service: Service): URL =
+  private[connectors] def getAllInvitationsForClientUrl(arn: Arn, clientId: String, service: Service): URL =
     new URL(
-      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?status=Pending&clientId=$clientId&service=${service.toString}"
+      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?clientId=$clientId&service=${service.toString}"
     )
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
@@ -168,15 +168,15 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
         })
     }
 
-  def pendingInvitationsExistForClient(arn: Arn, clientId: String, service: Service)(
+  def getAllInvitationsForClient(arn: Arn, clientId: String, service: Service)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Boolean] =
+    ec: ExecutionContext): Future[Seq[StoredInvitation]] =
     monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {
-      val url = getAllPendingInvitationsForClientUrl(arn, clientId, service)
+      val url = getAllInvitationsForClientUrl(arn, clientId, service)
       httpClient
         .GET[JsObject](url.toString)
         .map(obj => {
           (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]
-        }.nonEmpty)
+        })
     }
 }

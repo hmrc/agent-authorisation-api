@@ -263,7 +263,7 @@ trait ACAStubs {
                          |}
            """.stripMargin)))
 
-  def givenPendingInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+  def givenOnlyPendingInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
     val body = service match {
       case "HMRC-MTD-IT" =>
         invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
@@ -274,8 +274,7 @@ trait ACAStubs {
     stubFor(
       get(
         urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
-      ).withQueryParam("status", equalTo("Pending"))
-        .withQueryParam("clientId", equalTo(clientId.value))
+      ).withQueryParam("clientId", equalTo(clientId.value))
         .withQueryParam("service", equalTo(service))
         .willReturn(
           aResponse()
@@ -298,29 +297,60 @@ trait ACAStubs {
     )
   }
 
-  def givenNoPendingInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String) = {
+  def givenOnlyAcceptedInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+    val body = service match {
+      case "HMRC-MTD-IT" =>
+        invitation(arn, "Accepted", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case "HMRC-MTD-VAT" =>
+        invitation(arn, "Accepted", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
+    }
+
     stubFor(
       get(
         urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
-      ).withQueryParam("status", equalTo("Pending"))
-        .withQueryParam("clientId", equalTo(clientId.value))
+      ).withQueryParam("clientId", equalTo(clientId.value))
         .withQueryParam("service", equalTo(service))
         .willReturn(
           aResponse()
             .withStatus(200)
-        .withBody(s"""{"_links": {
-                     |        "invitations": [
-                     |          {
-                     |            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
-                     |          }
-                     |        ],
-                     |        "self": {
-                     |          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
-                     |        }
-                     |      },
-                     |      "_embedded": {
-                     |        "invitations": []
-                     |      }
-                     |    }""".stripMargin)))
+            .withBody(s"""{"_links": {
+                         |        "invitations": [
+                         |          {
+                         |            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+                         |          }
+                         |        ],
+                         |        "self": {
+                         |          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+                         |        }
+                         |      },
+                         |      "_embedded": {
+                         |        "invitations": [$body]
+                         |      }
+                         |    }""".stripMargin)))
+  }
+
+  def givenNoInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+    stubFor(
+      get(
+        urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+      ).withQueryParam("clientId", equalTo(clientId.value))
+        .withQueryParam("service", equalTo(service))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""{"_links": {
+                         |        "invitations": [
+                         |          {
+                         |            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+                         |          }
+                         |        ],
+                         |        "self": {
+                         |          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+                         |        }
+                         |      },
+                         |      "_embedded": {
+                         |        "invitations": []
+                         |      }
+                         |    }""".stripMargin)))
   }
 }

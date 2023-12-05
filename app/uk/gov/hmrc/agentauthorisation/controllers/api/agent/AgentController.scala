@@ -223,22 +223,33 @@ class AgentController @Inject()(
   private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
     successResult: => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
+    val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
+      .getAllInvitationsForClient(arn, clientId, service)
+
     def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
-      invitationsConnector
-        .pendingInvitationsExistForClient(arn, clientId, service)
+      allInvitationsForClient
         .flatMap(
-          pendingInvitationExists =>
-            if (pendingInvitationExists) Future successful DuplicateAuthorisationRequest
-            else whenNoPendingInvitationFound
+          _.find(_.status == "Pending") match {
+            case Some(invitation) =>
+              Future successful DuplicateAuthorisationRequest.withHeaders(LOCATION -> getLocationLink(arn, invitation))
+            case None => whenNoPendingInvitationFound
+          }
         )
 
     def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] =
       relationshipService
         .hasActiveRelationship(arn, clientId, service)
-        .flatMap(
-          hasRelationship =>
-            if (hasRelationship) Future successful AlreadyAuthorised
-            else whenNoActiveRelationshipFound)
+        .flatMap(hasRelationship =>
+          if (hasRelationship) {
+            allInvitationsForClient
+              .flatMap(
+                _.find(_.status == "Accepted") match {
+                  case Some(invitation) =>
+                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
+                  case None => whenNoActiveRelationshipFound
+                }
+              )
+          } else whenNoActiveRelationshipFound)
 
     checkPendingInvitationExists(
       whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult))
@@ -399,6 +410,9 @@ class AgentController @Inject()(
 
   private def ga(action: String, label: Option[String])(implicit hc: HeaderCarrier) =
     platformAnalyticsService.sendEvent(action, label)
+
+  private def getLocationLink(arn: Arn, invitation: StoredInvitation): String =
+    routes.AgentController.getInvitationApi(arn, InvitationId(invitation.href.split("/").last)).url
 }
 
 object AgentController {
