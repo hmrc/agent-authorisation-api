@@ -179,7 +179,10 @@ The authorisation request was created successfully.
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |
 |:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
+| code |  string |  |   true   |  |
+| Location | string | Location of the authorisation request |  true*   | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
+
+* Location header is only required for "DUPLICATE_AUTHORISATION_REQUEST" and "ALREADY_AUTHORISED"
 
 ### Response code: 403
 

@@ -1,8 +1,13 @@
-## [0.114.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.107.0) 20 October 2023
+## [0.115.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.115.0) 05 December 2023
+
+* Set Location header (/agents/:arn/invitations/:invitationId) on the Create authorisation request endpoint for the
+  DuplicateAuthorisationRequest and the AlreadyAuthorised responses
+
+## [0.114.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.114.0) 20 October 2023
 
 * POST   /agents/:arn/relationships returns 403 instead of 500 when VAT client is insolvent
 
-## [0.112.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.107.0) 17 July 2023
+## [0.112.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.112.0) 17 July 2023
 
 * Update documentation to include additional Overview section
 
