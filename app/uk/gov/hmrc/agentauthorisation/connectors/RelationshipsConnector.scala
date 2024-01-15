@@ -32,7 +32,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RelationshipsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, appConfig: AppConfig)
+class RelationshipsConnector @Inject() (httpClient: HttpClient, metrics: Metrics, appConfig: AppConfig)
     extends HttpAPIMonitor {
 
   val acrUrl = s"${appConfig.acrBaseUrl}/agent-client-relationships"
@@ -45,19 +45,13 @@ class RelationshipsConnector @Inject()(httpClient: HttpClient, metrics: Metrics,
   private[connectors] def checkVatRelationshipUrl(arn: Arn, vrn: Vrn): URL =
     new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
 
-  def checkItsaRelationship(arn: Arn, nino: Nino)(
-    implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Boolean] =
+  def checkItsaRelationship(arn: Arn, nino: Nino)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaRelationship-GET") {
       val url = checkItsaRelationshipUrl(arn, nino).toString
       httpClient.GET[HttpResponse](url) map handle(url)
     }
 
-  def checkVatRelationship(arn: Arn, vrn: Vrn)(
-    implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Boolean] =
+  def checkVatRelationship(arn: Arn, vrn: Vrn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-VatRelationship-GET") {
       val url = checkVatRelationshipUrl(arn, vrn).toString
       httpClient.GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString) map handle(url)
@@ -70,5 +64,5 @@ class RelationshipsConnector @Inject()(httpClient: HttpClient, metrics: Metrics,
         case r if r.status.isSuccess => true
         case r =>
           throw UpstreamErrorResponse.apply(s"GET of '$url' returned ${r.status}. Response body: '${r.body}'", r.status)
-  }
+      }
 }

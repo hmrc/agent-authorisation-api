@@ -28,10 +28,10 @@ import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ErrorHandler @Inject()(auditConnector: AuditConnector, httpAuditEvent: HttpAuditEvent)(
-  implicit ec: ExecutionContext,
-  configuration: Configuration)
-    extends JsonErrorHandler(auditConnector, httpAuditEvent, configuration) {
+class ErrorHandler @Inject() (auditConnector: AuditConnector, httpAuditEvent: HttpAuditEvent)(implicit
+  ec: ExecutionContext,
+  configuration: Configuration
+) extends JsonErrorHandler(auditConnector, httpAuditEvent, configuration) {
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
     super.onClientError(request, statusCode, message).map { auditedError =>
@@ -47,8 +47,8 @@ class ErrorHandler @Inject()(auditConnector: AuditConnector, httpAuditEvent: Htt
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     super
       .onServerError(request, exception)
-      .map(_ => {
+      .map { _ =>
         Logger(getClass).warn(s"Server Side Error: $exception from request: $request")
         standardInternalServerError
-      })
+      }
 }

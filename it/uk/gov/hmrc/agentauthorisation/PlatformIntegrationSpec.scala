@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.agentauthorisation
 
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import play.api.http.Status.{NO_CONTENT, OK}
 import play.api.test.FakeRequest
@@ -24,6 +23,7 @@ import play.api.test.Helpers._
 import play.api.test.Helpers
 import uk.gov.hmrc.agentauthorisation.controllers.api.{DocumentationController, YamlController}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
+import scala.collection.immutable
 
 class PlatformIntegrationSpec extends BaseISpec {
 
@@ -31,7 +31,7 @@ class PlatformIntegrationSpec extends BaseISpec {
   val yamlController = app.injector.instanceOf[YamlController]
   val request = FakeRequest()
 
-  override def beforeEach() {
+  override def beforeEach(): Unit = {
     stubFor(post(urlMatching("/registration")).willReturn(aResponse().withStatus(NO_CONTENT)))
     super.beforeEach()
   }
@@ -39,24 +39,32 @@ class PlatformIntegrationSpec extends BaseISpec {
   "microservice" should {
 
     "provide definition endpoint and documentation endpoint for each api" in {
-      def verifyDocumentationPresent(version: String, endpointName: String) {
+      def verifyDocumentationPresent(version: String, endpointName: String): Unit =
         withClue(s"Getting documentation version '$version' of endpoint '$endpointName'") {
           val documentationResult = documentationController.documentation(version, endpointName)(request)
           status(documentationResult) shouldBe OK
         }
-      }
 
       val result = documentationController.definition()(request)
       status(result) shouldBe OK
 
       val jsonResponse = Helpers.contentAsJson(result)
 
-      val versions: Seq[String] = (jsonResponse \\ "version") map (_.as[String])
-      val endpointNames: Seq[Seq[String]] = (jsonResponse \\ "endpoints").map(_ \\ "endpointName").map(_.map(_.as[String]))
+      val versions: Seq[String] = (jsonResponse \\ "version").to(immutable.Seq) map (_.as[String])
+      val endpointNames: Seq[Seq[String]] =
+        (jsonResponse \\ "endpoints")
+          .to(immutable.Seq)
+          .map(_ \\ "endpointName")
+          .to(immutable.Seq)
+          .map(_.to(immutable.Seq))
+          .map(_.asInstanceOf[Seq[String]])
 
-      versions.zip(endpointNames).flatMap {
-        case (version, endpoint) => endpoint.map(endpointName => (version, endpointName))
-      }.foreach { case (version, endpointName) => verifyDocumentationPresent(version, endpointName) }
+      versions
+        .zip(endpointNames)
+        .flatMap { case (version, endpoint) =>
+          endpoint.map(endpointName => (version, endpointName))
+        }
+        .foreach { case (version, endpointName) => verifyDocumentationPresent(version, endpointName) }
     }
 
     "provide yaml documentation" in {

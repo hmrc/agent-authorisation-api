@@ -23,23 +23,22 @@ import play.api.mvc.{Handler, RequestHeader}
 import play.api.routing.Router
 import play.core.DefaultWebCommands
 
-/**
-  * Normalise the request path. The API platform strips the context
-  * '/agents' from the URL before forwarding the request.
-  * Re-add it here if necessary.
+/** Normalise the request path. The API platform strips the context '/agents' from the URL before forwarding the
+  * request. Re-add it here if necessary.
   */
-class ApiPlatformRequestHandler @Inject()(
+class ApiPlatformRequestHandler @Inject() (
   router: Router,
   errorHandler: HttpErrorHandler,
   configuration: HttpConfiguration,
-  filters: HttpFilters)
-    extends DefaultHttpRequestHandler(
+  filters: HttpFilters
+) extends DefaultHttpRequestHandler(
       new DefaultWebCommands,
       None,
       router,
       errorHandler,
       configuration,
-      filters.filters) {
+      filters.filters
+    ) {
 
   val context = "/agents"
   val health = "/ping"
@@ -53,7 +52,8 @@ class ApiPlatformRequestHandler @Inject()(
     } else if (!request.path.startsWith(context)) {
       super.handlerForRequest(
         request.withTarget(
-          RequestTarget(path = context + request.path, uriString = request.uri, queryString = request.queryString))
+          RequestTarget(path = context + request.path, uriString = request.uri, queryString = request.queryString)
+        )
       )
     } else {
       super.handlerForRequest(request)

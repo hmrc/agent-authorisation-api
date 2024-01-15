@@ -13,18 +13,21 @@ trait PlatformAnalyticsStubs {
   private val platformAnalyticsUrl = "/platform-analytics/event"
 
   def givenPlatformAnalyticsEventWasSent(): StubMapping =
-    stubFor(post(urlPathMatching(platformAnalyticsUrl))
-      .withRequestBody(matchingJsonPath({"$[?(@.events.size() == 1)]"}))
-      .willReturn(aResponse().withStatus(200)))
+    stubFor(
+      post(urlPathMatching(platformAnalyticsUrl))
+        .withRequestBody(matchingJsonPath("$[?(@.events.size() == 1)]"))
+        .willReturn(aResponse().withStatus(200))
+    )
 
-
-  def verifyPlatformAnalyticsEventWasSent(action: String, label: Option[String]) =  eventually {
+  def verifyPlatformAnalyticsEventWasSent(action: String, label: Option[String]) = eventually {
     verify(
       1,
       postRequestedFor(urlPathEqualTo(platformAnalyticsUrl))
         .withRequestBody(similarToJson(s"""{
                                           |  "gaTrackingId": "token",
-                                          |  "events": ${Json.toJson(List(Event("agent-authorisation-api",action,label.getOrElse(""),Seq.empty)))}
+                                          |  "events": ${Json.toJson(
+          List(Event("agent-authorisation-api", action, label.getOrElse(""), Seq.empty))
+        )}
                                           |}"""))
     )
   }

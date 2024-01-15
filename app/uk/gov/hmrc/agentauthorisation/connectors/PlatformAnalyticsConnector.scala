@@ -34,7 +34,7 @@ trait PlatformAnalyticsConnector {
 }
 
 @Singleton
-class PlatformAnalyticsConnectorImpl @Inject()(appConfig: AppConfig, http: HttpClient)
+class PlatformAnalyticsConnectorImpl @Inject() (appConfig: AppConfig, http: HttpClient)
     extends PlatformAnalyticsConnector with HttpErrorFunctions {
 
   val serviceUrl: String = s"${appConfig.platformAnalyticsBaseUrl}/platform-analytics/event"
@@ -50,9 +50,8 @@ class PlatformAnalyticsConnectorImpl @Inject()(appConfig: AppConfig, http: HttpC
             Done
         }
       }
-      .recover {
-        case NonFatal(ex) =>
-          Logger(getClass).warn(s"Couldn't send analytics event, error: $ex")
-          Done
+      .recover { case NonFatal(ex) =>
+        Logger(getClass).warn(s"Couldn't send analytics event, error: $ex")
+        Done
       }
 }

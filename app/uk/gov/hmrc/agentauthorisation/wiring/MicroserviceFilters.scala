@@ -23,17 +23,18 @@ import uk.gov.hmrc.agentauthorisation.actions.AcceptHeaderFilter
 import uk.gov.hmrc.play.bootstrap.filters.{AuditFilter, CacheControlFilter, LoggingFilter}
 
 @Singleton
-class MicroserviceFilters @Inject()(
+class MicroserviceFilters @Inject() (
   metricsFilter: MetricsFilter,
   auditFilter: AuditFilter,
   loggingFilter: LoggingFilter,
   cacheFilter: CacheControlFilter,
   monitoringFilter: MicroserviceMonitoringFilter,
-  acceptHeaderFilter: AcceptHeaderFilter)
-    extends DefaultHttpFilters(
+  acceptHeaderFilter: AcceptHeaderFilter
+) extends DefaultHttpFilters(
       metricsFilter,
       monitoringFilter,
       auditFilter,
       loggingFilter,
       cacheFilter,
-      acceptHeaderFilter)
+      acceptHeaderFilter
+    )

@@ -43,18 +43,21 @@ trait AuthActions extends AuthorisedFunctions {
       .flatMap(_.getIdentifier(enrolId))
       .map(_.value)
 
-  protected def withEnrolledAsAgent[A](body: String => Future[Result])(
-    implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Result] =
+  protected def withEnrolledAsAgent[A](
+    body: String => Future[Result]
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     authorised(AuthProviders(GovernmentGateway))
       .retrieve(affinityGroupAllEnrolls) {
         case Some(affinity) ~ allEnrols =>
-          (isAgent(affinity), extractEnrolmentData(allEnrols.enrolments, "HMRC-AS-AGENT", "AgentReferenceNumber")) match {
+          (
+            isAgent(affinity),
+            extractEnrolmentData(allEnrols.enrolments, "HMRC-AS-AGENT", "AgentReferenceNumber")
+          ) match {
             case (true, Some(arn)) => body(arn)
             case (true, None) =>
               Logger(getClass).warn(
-                s"Logged in user has Affinity Group: Agent but does not have Enrolment: HMRC-AS-AGENT")
+                s"Logged in user has Affinity Group: Agent but does not have Enrolment: HMRC-AS-AGENT"
+              )
               Future successful AgentNotSubscribed
             case _ =>
               Logger(getClass).warn(s"Logged in user does not have Affinity Group: Agent. Discovered: $affinity")
@@ -65,10 +68,9 @@ trait AuthActions extends AuthorisedFunctions {
           Future successful NotAnAgent
       }
 
-  protected def withAuthorisedAsAgent[A](body: Arn => Future[Result])(
-    implicit
-    ec: ExecutionContext,
-    request: Request[_]): Future[Result] = {
+  protected def withAuthorisedAsAgent[A](
+    body: Arn => Future[Result]
+  )(implicit ec: ExecutionContext, request: Request[_]): Future[Result] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
     withEnrolledAsAgent { arn =>
       body(Arn(arn))

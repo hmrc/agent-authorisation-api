@@ -14,20 +14,21 @@ abstract class BaseISpec
   protected def appBuilder: GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .configure(
-        "auditing.enabled"                                              -> true,
-        "auditing.consumer.baseUri.host"                                -> wireMockHost,
-        "auditing.consumer.baseUri.port"                                -> wireMockPort,
-        "microservice.services.auth.port"                               -> wireMockPort,
-        "microservice.services.agent-client-authorisation.host"         -> wireMockHost,
-        "microservice.services.agent-client-authorisation.port"         -> wireMockPort,
-        "microservice.services.agent-client-relationships.port"         -> wireMockPort,
-        "microservice.services.agent-client-relationships.host"         -> wireMockHost,
-        "microservice.services.platform-analytics.host"                 -> wireMockHost,
-        "microservice.services.platform-analytics.port"                 -> wireMockPort,
-        "microservice.services.des.host"                                -> wireMockHost,
-        "microservice.services.des.port"                                -> wireMockPort,
-        "api.supported-versions"                                        -> Seq("1.0")
-      ).configure(additionalConfiguration)
+        "auditing.enabled"                                      -> true,
+        "auditing.consumer.baseUri.host"                        -> wireMockHost,
+        "auditing.consumer.baseUri.port"                        -> wireMockPort,
+        "microservice.services.auth.port"                       -> wireMockPort,
+        "microservice.services.agent-client-authorisation.host" -> wireMockHost,
+        "microservice.services.agent-client-authorisation.port" -> wireMockPort,
+        "microservice.services.agent-client-relationships.port" -> wireMockPort,
+        "microservice.services.agent-client-relationships.host" -> wireMockHost,
+        "microservice.services.platform-analytics.host"         -> wireMockHost,
+        "microservice.services.platform-analytics.port"         -> wireMockPort,
+        "microservice.services.des.host"                        -> wireMockHost,
+        "microservice.services.des.port"                        -> wireMockPort,
+        "api.supported-versions"                                -> Seq("1.0")
+      )
+      .configure(additionalConfiguration)
 
   protected def additionalConfiguration = Map.empty[String, Any]
 

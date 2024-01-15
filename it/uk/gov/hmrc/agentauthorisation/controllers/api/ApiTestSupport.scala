@@ -65,6 +65,7 @@ abstract class ApiTestSupport(implicit ws: WSClient, hc: HeaderCarrier, ec: Exec
   }
 
   def forAllApiVersions[T](generator: (JsValue) => T, versions: List[JsValue] = DefinitionsFileApiVersions)(
-    fn: T => Unit): Unit =
+    fn: T => Unit
+  ): Unit =
     versions.foreach(version => fn(generator(version)))
 }

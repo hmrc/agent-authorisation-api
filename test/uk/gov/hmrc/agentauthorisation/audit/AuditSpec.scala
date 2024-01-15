@@ -45,7 +45,8 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       val hc = HeaderCarrier(
         authorization = Some(Authorization("dummy bearer token")),
         sessionId = Some(SessionId("dummy session id")),
-        requestId = Some(RequestId("dummy request id")))
+        requestId = Some(RequestId("dummy request id"))
+      )
 
       val arn: Arn = Arn("HX2345")
       val agentInvitation: AgentInvitation =
@@ -58,7 +59,9 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
           .sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, result)(
             hc,
             FakeRequest("GET", "/path"),
-            ExecutionContext.Implicits.global))
+            ExecutionContext.Implicits.global
+          )
+      )
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
@@ -88,7 +91,8 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       val hc = HeaderCarrier(
         authorization = Some(Authorization("dummy bearer token")),
         sessionId = Some(SessionId("dummy session id")),
-        requestId = Some(RequestId("dummy request id")))
+        requestId = Some(RequestId("dummy request id"))
+      )
 
       val arn: Arn = Arn("HX2345")
       val agentInvitation: AgentInvitation =
@@ -101,7 +105,9 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
           .sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, result)(
             hc,
             FakeRequest("GET", "/path"),
-            ExecutionContext.Implicits.global))
+            ExecutionContext.Implicits.global
+          )
+      )
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])
@@ -131,7 +137,8 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
       val hc = HeaderCarrier(
         authorization = Some(Authorization("dummy bearer token")),
         sessionId = Some(SessionId("dummy session id")),
-        requestId = Some(RequestId("dummy request id")))
+        requestId = Some(RequestId("dummy request id"))
+      )
 
       val arn: Arn = Arn("HX2345")
       val invitationId: String = "1"
@@ -141,7 +148,9 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
         service.sendAgentInvitationCancelled(arn, invitationId, result)(
           hc,
           FakeRequest("GET", "/path"),
-          ExecutionContext.Implicits.global))
+          ExecutionContext.Implicits.global
+        )
+      )
 
       eventually {
         val captor = ArgumentCaptor.forClass(classOf[DataEvent])

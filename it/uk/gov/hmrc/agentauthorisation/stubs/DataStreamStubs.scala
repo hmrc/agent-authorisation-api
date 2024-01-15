@@ -25,7 +25,8 @@ trait DataStreamStubs extends Eventually {
     count: Int,
     event: AgentAuthorisationEvent,
     tags: Map[String, String] = Map.empty,
-    detail: Map[String, String] = Map.empty): Unit =
+    detail: Map[String, String] = Map.empty
+  ): Unit =
     eventually {
       verify(
         1,
