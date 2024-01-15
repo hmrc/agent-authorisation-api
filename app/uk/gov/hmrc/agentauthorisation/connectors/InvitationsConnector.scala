@@ -36,7 +36,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, appConfig: AppConfig)
+class InvitationsConnector @Inject() (httpClient: HttpClient, metrics: Metrics, appConfig: AppConfig)
     extends HttpAPIMonitor {
 
   val acaUrl = s"${appConfig.acaBaseUrl}/agent-client-authorisation"
@@ -76,10 +76,10 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
       s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?clientId=$clientId&service=${service.toString}"
     )
 
-  def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
-    implicit
+  def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[String]] =
+    ec: ExecutionContext
+  ): Future[Option[String]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
       val url = createInvitationUrl(arn).toString
       httpClient
@@ -96,10 +96,10 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
         }
     }
 
-  def checkPostcodeForClient(nino: Nino, postcode: String)(
-    implicit
+  def checkPostcodeForClient(nino: Nino, postcode: String)(implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[KnownFactCheckResult] =
+    ec: ExecutionContext
+  ): Future[KnownFactCheckResult] =
     monitor(s"ConsumedAPI-CheckPostcode-GET") {
       httpClient
         .GET[HttpResponse](checkPostcodeUrl(nino, postcode).toString)
@@ -113,10 +113,10 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
         }
     }
 
-  def checkVatRegDateForClient(vrn: Vrn, registrationDateKnownFact: LocalDate)(
-    implicit
+  def checkVatRegDateForClient(vrn: Vrn, registrationDateKnownFact: LocalDate)(implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[KnownFactCheckResult] =
+    ec: ExecutionContext
+  ): Future[KnownFactCheckResult] =
     monitor(s"ConsumedAPI-CheckVatRegDate-GET") {
       httpClient
         .GET[HttpResponse](checkVatRegisteredClientUrl(vrn, registrationDateKnownFact).toString)
@@ -131,21 +131,21 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
         }
     }
 
-  def getInvitation(arn: Arn, invitationId: InvitationId)(
-    implicit
+  def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
+    executionContext: ExecutionContext
+  ): Future[Option[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
       httpClient
         .GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
-    }.recoverWith {
-      case _ => Future successful None
+    }.recoverWith { case _ =>
+      Future successful None
     }
 
-  def cancelInvitation(arn: Arn, invitationId: InvitationId)(
-    implicit
+  def cancelInvitation(arn: Arn, invitationId: InvitationId)(implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext): Future[Option[Int]] =
+    executionContext: ExecutionContext
+  ): Future[Option[Int]] =
     monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
       httpClient
         .PUT[String, HttpResponse](cancelInvitationUrl(arn, invitationId).toString, "")
@@ -155,28 +155,25 @@ class InvitationsConnector @Inject()(httpClient: HttpClient, metrics: Metrics, a
         }
     }
 
-  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(
-    implicit
+  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Seq[StoredInvitation]] =
+    ec: ExecutionContext
+  ): Future[Seq[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
       val url = getAgencyInvitationsUrl(arn, createdOnOrAfter)
       httpClient
         .GET[JsObject](url.toString)
-        .map(obj => {
-          (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]
-        })
+        .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
     }
 
-  def getAllInvitationsForClient(arn: Arn, clientId: String, service: Service)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Seq[StoredInvitation]] =
+  def getAllInvitationsForClient(arn: Arn, clientId: String, service: Service)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Seq[StoredInvitation]] =
     monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {
       val url = getAllInvitationsForClientUrl(arn, clientId, service)
       httpClient
         .GET[JsObject](url.toString)
-        .map(obj => {
-          (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]]
-        })
+        .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
     }
 }

@@ -34,7 +34,7 @@ import uk.gov.hmrc.agentauthorisation.services.{InvitationService, PlatformAnaly
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, InternalServerException}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.format.DateTimeFormatter
@@ -43,7 +43,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AgentController @Inject()(
+class AgentController @Inject() (
   invitationsConnector: InvitationsConnector,
   invitationService: InvitationService,
   relationshipsConnector: RelationshipsConnector,
@@ -53,8 +53,8 @@ class AgentController @Inject()(
   val authConnector: AuthConnector,
   ecp: Provider[ExecutionContext],
   cc: ControllerComponents,
-  appConfig: AppConfig)
-    extends BackendController(cc) with AuthActions {
+  appConfig: AppConfig
+) extends BackendController(cc) with AuthActions {
 
   implicit val ec: ExecutionContext = ecp.get
 
@@ -87,7 +87,8 @@ class AgentController @Inject()(
             Future successful InvalidPayload
           case None =>
             Logger(getClass).warn(
-              s"Unsupported Content-Type, should be application/json but was ${request.contentType}")
+              s"Unsupported Content-Type, should be application/json but was ${request.contentType}"
+            )
             Future successful InvalidPayload
         }
       }
@@ -103,24 +104,29 @@ class AgentController @Inject()(
             .getInvitation(arn, invitationId)
             .map {
               case pendingInv @ Some(PendingInvitation(pendingInvitation)) =>
-                val id = pendingInv.get.href.toString.split("/").toStream.last
+                val id = pendingInv.get.href.toString.split("/").to(LazyList).last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                 ga("get-authorisation-request", pendingInvitation.service.headOption)
                 Ok(
-                  toJson(pendingInvitation
-                    .copy(href = newInvitationUrl))
-                    .as[JsObject])
+                  toJson(
+                    pendingInvitation
+                      .copy(href = newInvitationUrl)
+                  )
+                    .as[JsObject]
+                )
               case Some(PendingInvitation(pendingInvitation)) =>
                 Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
                 UnsupportedService
               case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
-                val id = respondedInv.get.href.toString.split("/").toStream.last
+                val id = respondedInv.get.href.toString.split("/").to(LazyList).last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                 ga("get-authorisation-request", respondedInvitation.service.headOption)
-                Ok(toJson(respondedInvitation.copy(href = newInvitationUrl))
-                  .as[JsObject])
+                Ok(
+                  toJson(respondedInvitation.copy(href = newInvitationUrl))
+                    .as[JsObject]
+                )
               case Some(RespondedInvitation(respondedInvitation)) =>
                 Logger(getClass).warn(s"Service ${respondedInvitation.service} Not Supported")
                 UnsupportedService
@@ -151,20 +157,22 @@ class AgentController @Inject()(
                   arn,
                   invitationId.value,
                   "Fail",
-                  Some(s"INVALID_INVITATION_STATUS"))
+                  Some(s"INVALID_INVITATION_STATUS")
+                )
                 Logger(getClass).warn(
-                  s"Invitation Cancellation Failed: cannot transition the current status to Cancelled")
+                  s"Invitation Cancellation Failed: cannot transition the current status to Cancelled"
+                )
                 InvalidInvitationStatus
             }
-            .recoverWith {
-              case e =>
-                auditService.sendAgentInvitationCancelled(
-                  arn,
-                  invitationId.value,
-                  "Fail",
-                  Some(s"Request to Cancel Invitation ${invitationId.value} failed due to: ${e.getMessage}"))
-                Logger(getClass).warn(s"Invitation Cancellation Failed: ${e.getMessage}")
-                Future.failed(e)
+            .recoverWith { case e =>
+              auditService.sendAgentInvitationCancelled(
+                arn,
+                invitationId.value,
+                "Fail",
+                Some(s"Request to Cancel Invitation ${invitationId.value} failed due to: ${e.getMessage}")
+              )
+              Logger(getClass).warn(s"Invitation Cancellation Failed: ${e.getMessage}")
+              Future.failed(e)
             }
         }
       }
@@ -195,8 +203,9 @@ class AgentController @Inject()(
     }
   }
 
-  private def checkKnownFactAndRelationship(arn: Arn, relationshipRequest: RelationshipRequest)(
-    implicit hc: HeaderCarrier): Future[Result] =
+  private def checkKnownFactAndRelationship(arn: Arn, relationshipRequest: RelationshipRequest)(implicit
+    hc: HeaderCarrier
+  ): Future[Result] =
     if (checkKnownFactValid(relationshipRequest.service, relationshipRequest.knownFact)) {
 
       checkKnownFactMatches(relationshipRequest.service, relationshipRequest.clientId, relationshipRequest.knownFact)
@@ -221,7 +230,8 @@ class AgentController @Inject()(
     }
 
   private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
-    successResult: => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+    successResult: => Future[Result]
+  )(implicit hc: HeaderCarrier): Future[Result] = {
 
     val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
       .getAllInvitationsForClient(arn, clientId, service)
@@ -249,16 +259,18 @@ class AgentController @Inject()(
                   case None => whenNoActiveRelationshipFound
                 }
               )
-          } else whenNoActiveRelationshipFound)
+          } else whenNoActiveRelationshipFound
+        )
 
     checkPendingInvitationExists(
-      whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult))
+      whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
+    )
   }
 
-  private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(
-    implicit
+  private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(implicit
     hc: HeaderCarrier,
-    request: Request[_]): Future[Result] =
+    request: Request[_]
+  ): Future[Result] =
     if (checkKnownFactValid(agentInvitation.service, agentInvitation.knownFact)) {
 
       checkKnownFactMatches(
@@ -278,13 +290,13 @@ class AgentController @Inject()(
                 ga("create-authorisation-request", Some(agentInvitation.service.toString))
                 Future successful NoContent.withHeaders(LOCATION -> locationLink)
               }
-              .recoverWith {
-                case e =>
-                  Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
-                  auditService
-                    .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
-                  Future.failed(e)
-              })
+              .recoverWith { case e =>
+                Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
+                auditService
+                  .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
+                Future.failed(e)
+              }
+          )
         case KnownFactCheckFailed(reason) if reason.contains("DOES_NOT_MATCH") =>
           auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(reason))
           Future successful knownFactDoesNotMatch(agentInvitation.service)
@@ -309,17 +321,15 @@ class AgentController @Inject()(
       Future successful knownFactFormatInvalid(agentInvitation.service)
     }
 
-  private def forThisAgency(requestedArn: Arn)(block: => Future[Result])(
-    implicit
-    arn: Arn) =
+  private def forThisAgency(requestedArn: Arn)(block: => Future[Result])(implicit arn: Arn) =
     if (requestedArn != arn) {
       Logger(getClass).warn(s"Requested Arn ${requestedArn.value} does not match to logged in Arn")
       Future successful NoPermissionOnAgency
     } else block
 
-  private def checkKnownFactMatches(service: Service, clientId: String, knownFact: String)(
-    implicit
-    hc: HeaderCarrier): Future[KnownFactCheckResult] =
+  private def checkKnownFactMatches(service: Service, clientId: String, knownFact: String)(implicit
+    hc: HeaderCarrier
+  ): Future[KnownFactCheckResult] =
     service match {
       case Itsa =>
         invitationsConnector.checkPostcodeForClient(Nino(clientId), knownFact)
@@ -328,9 +338,7 @@ class AgentController @Inject()(
           .checkVatRegDateForClient(Vrn(clientId), LocalDate.parse(knownFact))
     }
 
-  private def checkRelationship(relationshipRequest: RelationshipRequest, arn: Arn)(
-    implicit
-    hc: HeaderCarrier) =
+  private def checkRelationship(relationshipRequest: RelationshipRequest, arn: Arn)(implicit hc: HeaderCarrier) =
     relationshipRequest.service match {
       case Itsa =>
         val res = for {
@@ -361,16 +369,15 @@ class AgentController @Inject()(
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
         ga("get-authorisation-requests", None)
-        val previousDate = {
+        val previousDate =
           LocalDate.now(ZoneOffset.UTC).minusDays(getRequestsShowLastDays)
-        }
         invitationService
           .getAllInvitations(arn, previousDate)
-          .map(invitations => {
+          .map { invitations =>
             invitations
               .map {
                 case pendingInv @ PendingInvitation(_) =>
-                  val id = pendingInv.href.toString.split("/").toStream.last
+                  val id = pendingInv.href.split("/").to(LazyList).last
                   val newInvitationUrl =
                     s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                   PendingOrRespondedInvitation(
@@ -385,7 +392,7 @@ class AgentController @Inject()(
                   )
 
                 case respondedInv @ RespondedInvitation(_) =>
-                  val id = respondedInv.href.toString.split("/").toStream.last
+                  val id = respondedInv.href.split("/").to(LazyList).last
                   val newInvitationUrl =
                     s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                   PendingOrRespondedInvitation(
@@ -396,10 +403,17 @@ class AgentController @Inject()(
                     respondedInv.status,
                     None,
                     None,
-                    Some(respondedInv.updated))
-
+                    Some(respondedInv.updated)
+                  )
+                case _ =>
+                  // TODO Investigate implicit conversions happening for StoredInvitation(...)
+                  // this should be handled by invitation unapply methods
+                  throw new InternalServerException(
+                    "Invalid invitation type for StoredInvitation(...) " +
+                      "case should be handled or return None by unapply methods within PendingInvitation or RespondedInvitation"
+                  )
               }
-          })
+          }
           .map {
             case s if s.isEmpty => NoContent
             case s              => Ok(Json.toJson(s))
@@ -501,7 +515,9 @@ object AgentController {
               ClientType.stringToClientType(arg.clientType),
               arg.clientIdType,
               arg.clientId,
-              arg.knownFact))
+              arg.knownFact
+            )
+          )
         case _ => None
       }
   }

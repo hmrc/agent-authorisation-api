@@ -17,11 +17,9 @@ class PlatformAnalyticsConnectorISpec extends BaseISpec {
   val analyticsRequest = AnalyticsRequest(
     gaClientId = Some("foo"),
     gaTrackingId = Some("bar"),
-      events = List(Event(
-        category = "agent-authorisation-api",
-          action = "action",
-        label = "HMRC-MTD-IT",
-        dimensions= Seq.empty))
+    events = List(
+      Event(category = "agent-authorisation-api", action = "action", label = "HMRC-MTD-IT", dimensions = Seq.empty)
+    )
   )
 
   val connector = app.injector.instanceOf[PlatformAnalyticsConnector]
@@ -54,7 +52,9 @@ class PlatformAnalyticsConnectorISpec extends BaseISpec {
                                    |}""".stripMargin
 
   private def givenAnalyticsStubResponse(code: Int): StubMapping =
-    stubFor(post(urlEqualTo("/platform-analytics/event"))
-      .withRequestBody(equalToJson(
-       requestBodyJson)).willReturn(aResponse().withStatus(code)))
+    stubFor(
+      post(urlEqualTo("/platform-analytics/event"))
+        .withRequestBody(equalToJson(requestBodyJson))
+        .willReturn(aResponse().withStatus(code))
+    )
 }

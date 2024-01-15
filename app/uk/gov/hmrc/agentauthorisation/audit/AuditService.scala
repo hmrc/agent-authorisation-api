@@ -35,16 +35,13 @@ object AgentAuthorisationEvent extends Enumeration {
 }
 
 @Singleton
-class AuditService @Inject()(val auditConnector: AuditConnector) {
+class AuditService @Inject() (val auditConnector: AuditConnector) {
 
   private[audit] def auditEvent(
     event: AgentAuthorisationEvent,
     transactionName: String,
-    details: Seq[(String, Any)] = Seq.empty)(
-    implicit
-    hc: HeaderCarrier,
-    request: Request[Any],
-    ec: ExecutionContext): Future[Unit] =
+    details: Seq[(String, Any)] = Seq.empty
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
     send(createEvent(event, transactionName, details: _*))
 
   def sendAgentInvitationSubmitted(
@@ -52,11 +49,8 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
     invitationId: String,
     agentInvitation: AgentInvitation,
     result: String,
-    failure: Option[String] = None)(
-    implicit
-    hc: HeaderCarrier,
-    request: Request[Any],
-    ec: ExecutionContext): Future[Unit] =
+    failure: Option[String] = None
+  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
     auditEvent(
       AgentAuthorisationEvent.agentAuthorisationCreatedViaApi,
       "agent-created-invitation-via-api",
@@ -76,7 +70,8 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
     implicit
     hc: HeaderCarrier,
     request: Request[Any],
-    ec: ExecutionContext): Future[Unit] =
+    ec: ExecutionContext
+  ): Future[Unit] =
     auditEvent(
       AgentAuthorisationEvent.agentAuthorisedCancelledViaApi,
       "agent-cancelled-invitation-via-api",
@@ -86,10 +81,10 @@ class AuditService @Inject()(val auditConnector: AuditConnector) {
         .getOrElse(Seq.empty)
     )
 
-  private def createEvent(event: AgentAuthorisationEvent, transactionName: String, details: (String, Any)*)(
-    implicit
+  private def createEvent(event: AgentAuthorisationEvent, transactionName: String, details: (String, Any)*)(implicit
     hc: HeaderCarrier,
-    request: Request[Any]): DataEvent = {
+    request: Request[Any]
+  ): DataEvent = {
 
     val detail =
       hc.toAuditDetails(details.map(pair => pair._1 -> pair._2.toString): _*)

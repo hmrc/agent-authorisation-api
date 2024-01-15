@@ -51,7 +51,9 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
 
   protected implicit val implicitWireMockBaseUrl: WireMockBaseUrl = WireMockBaseUrl(wireMockBaseUrl)
 
-  protected def basicWireMockConfig(): WireMockConfiguration = notifier.fold(wireMockConfig()){ n => wireMockConfig().notifier(n) }
+  protected def basicWireMockConfig(): WireMockConfiguration = notifier.fold(wireMockConfig()) { n =>
+    wireMockConfig().notifier(n)
+  }
 
   private val wireMockServer = new WireMockServer(basicWireMockConfig().port(wireMockPort))
 
@@ -85,24 +87,21 @@ object Port extends Logging {
     range(rnd.nextInt(range.length)) match {
       case 8080 => randomAvailable
       case 8090 => randomAvailable
-      case p: Int => {
+      case p: Int =>
         available(p) match {
-          case false => {
+          case false =>
             logger.debug(s"Port $p is in use, trying another")
             randomAvailable
-          }
-          case true => {
+          case true =>
             logger.debug("Taking port : " + p)
             usedPorts :+ p
             p
-          }
         }
-      }
     }
 
   private def available(p: Int): Boolean = {
     var socket: ServerSocket = null
-    try {
+    try
       if (!usedPorts.contains(p)) {
         socket = new ServerSocket(p)
         socket.setReuseAddress(true)
@@ -110,10 +109,9 @@ object Port extends Logging {
       } else {
         false
       }
-    } catch {
+    catch {
       case t: Throwable => false
-    } finally {
+    } finally
       if (socket != null) socket.close()
-    }
   }
 }

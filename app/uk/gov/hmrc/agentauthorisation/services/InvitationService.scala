@@ -28,37 +28,38 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationService @Inject()(invitationsConnector: InvitationsConnector) {
+class InvitationService @Inject() (invitationsConnector: InvitationsConnector) {
 
-  def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(
-    implicit
+  def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext): Future[String] =
+    executionContext: ExecutionContext
+  ): Future[String] =
     invitationsConnector
       .createInvitation(arn, agentInvitation)
       .map(_.getOrElse(throw new Exception("Invitation Id expected but missing.")))
 
-  def checkPostcodeMatches(nino: Nino, postcode: String)(
-    implicit
+  def checkPostcodeMatches(nino: Nino, postcode: String)(implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[KnownFactCheckResult] =
+    ec: ExecutionContext
+  ): Future[KnownFactCheckResult] =
     invitationsConnector.checkPostcodeForClient(nino, postcode)
 
-  def getInvitation(arn: Arn, invitationId: InvitationId)(
-    implicit
+  def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext): Future[Option[StoredInvitation]] =
+    executionContext: ExecutionContext
+  ): Future[Option[StoredInvitation]] =
     invitationsConnector.getInvitation(arn, invitationId)
 
-  def cancelInvitationService(arn: Arn, invitationId: InvitationId)(
-    implicit
+  def cancelInvitationService(arn: Arn, invitationId: InvitationId)(implicit
     headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext): Future[Option[Int]] =
+    executionContext: ExecutionContext
+  ): Future[Option[Int]] =
     invitationsConnector.cancelInvitation(arn, invitationId)
 
-  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Seq[StoredInvitation]] =
+  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Seq[StoredInvitation]] =
     invitationsConnector.getAllInvitations(arn, createdOnOrAfter)
 
 }

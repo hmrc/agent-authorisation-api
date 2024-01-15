@@ -37,14 +37,15 @@ case class StoredInvitation(
   clientType: Option[String],
   service: String,
   status: String,
-  clientActionUrl: Option[String])
+  clientActionUrl: Option[String]
+)
 
 object StoredInvitation {
 
   val transformService: String => String = {
-    case "HMRC-MTD-IT"            => "MTD-IT"
-    case "HMRC-MTD-VAT"           => "MTD-VAT"
-    case e => throw new RuntimeException(s"Unexpected Service has been passed through: $e")
+    case "HMRC-MTD-IT"  => "MTD-IT"
+    case "HMRC-MTD-VAT" => "MTD-VAT"
+    case e              => throw new RuntimeException(s"Unexpected Service has been passed through: $e")
   }
 
   // This is the published format for expiryDate in the API, even though it's a date not a datetime
@@ -52,7 +53,7 @@ object StoredInvitation {
   //
   private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.nnn")
 
-  implicit val reads: Reads[StoredInvitation] = {
+  implicit val reads: Reads[StoredInvitation] =
     ((JsPath \ "_links" \ "self" \ "href").read[String] and
       (JsPath \ "created").read[String] and
       (JsPath \ "expiryDate").read[String].map(LocalDate.parse) and
@@ -62,11 +63,20 @@ object StoredInvitation {
       (JsPath \ "service").read[String].map(transformService) and
       (JsPath \ "status").read[String] and
       (JsPath \ "clientActionUrl")
-        .readNullable[String])((selfLink, created, expiresOn, updated, arn, clientType, service, status, clientActionUrl) =>
-      StoredInvitation(selfLink, created,
-        LocalDateTime.of(expiresOn, LocalTime.MIDNIGHT).format(dateTimeFormatter),
-        updated, arn, clientType, service, status, clientActionUrl))
-  }
+        .readNullable[String])(
+      (selfLink, created, expiresOn, updated, arn, clientType, service, status, clientActionUrl) =>
+        StoredInvitation(
+          selfLink,
+          created,
+          LocalDateTime.of(expiresOn, LocalTime.MIDNIGHT).format(dateTimeFormatter),
+          updated,
+          arn,
+          clientType,
+          service,
+          status,
+          clientActionUrl
+        )
+    )
 }
 
 case class Links(self: Option[Href])
@@ -92,8 +102,8 @@ case class PendingOrRespondedInvitation(
   status: String,
   expiresOn: Option[String],
   clientActionUrl: Option[String],
-  updated: Option[String])
-    extends Invitation
+  updated: Option[String]
+) extends Invitation
 
 object PendingOrRespondedInvitation {
 
@@ -109,18 +119,19 @@ case class PendingInvitation(
   arn: Arn,
   service: List[String],
   status: String,
-  clientActionUrl: String)
-    extends Invitation
+  clientActionUrl: String
+) extends Invitation
 
 object PendingInvitation {
 
   def unapply(arg: StoredInvitation): Option[PendingInvitation] = arg match {
-    case StoredInvitation(href, created, expiredOn, _, arn, _, service, status, clientActionUrl) if status == "Pending" =>
+    case StoredInvitation(href, created, expiredOn, _, arn, _, service, status, clientActionUrl)
+        if status == "Pending" =>
       Some(PendingInvitation(href, created, expiredOn, arn, List(service), status, clientActionUrl.getOrElse("")))
     case _ => None
   }
 
-  implicit val reads: Reads[PendingInvitation] = {
+  implicit val reads: Reads[PendingInvitation] =
     ((JsPath \ "_links" \ "self" \ "href").read[String] and
       (JsPath \ "created").read[String] and
       (JsPath \ "expiresOn").read[String] and
@@ -129,8 +140,8 @@ object PendingInvitation {
       (JsPath \ "status").read[String] and
       (JsPath \ "clientActionUrl")
         .read[String])((selfLink, created, expiresOn, arn, service, status, clientActionUrl) =>
-      PendingInvitation(selfLink, created, expiresOn, arn, List(service), status, clientActionUrl))
-  }
+      PendingInvitation(selfLink, created, expiresOn, arn, List(service), status, clientActionUrl)
+    )
 
   implicit val writes: Writes[PendingInvitation] = new Writes[PendingInvitation] {
     override def writes(o: PendingInvitation): JsValue =
@@ -152,8 +163,8 @@ case class RespondedInvitation(
   updated: String,
   arn: Arn,
   service: List[String],
-  status: String)
-    extends Invitation
+  status: String
+) extends Invitation
 
 object RespondedInvitation {
 
@@ -163,15 +174,15 @@ object RespondedInvitation {
     case _ => None
   }
 
-  implicit val read: Reads[RespondedInvitation] = {
+  implicit val read: Reads[RespondedInvitation] =
     ((JsPath \ "_links" \ "self" \ "href").read[String] and
       (JsPath \ "created").read[String] and
       (JsPath \ "updated").read[String] and
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "service").read[String] and
       (JsPath \ "status").read[String])((href, created, updated, arn, service, status) =>
-      RespondedInvitation(href, created, updated, arn, List(service), status))
-  }
+      RespondedInvitation(href, created, updated, arn, List(service), status)
+    )
 
   implicit val writes: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
     override def writes(o: RespondedInvitation): JsValue =

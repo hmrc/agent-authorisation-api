@@ -21,7 +21,8 @@ trait ACAStubs {
     clientType: String,
     service: String,
     serviceIdentifier: String,
-    knownFact: String): Unit =
+    knownFact: String
+  ): Unit =
     stubFor(
       post(urlEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
         .withRequestBody(equalToJson(s"""
@@ -38,19 +39,27 @@ trait ACAStubs {
             .withHeader(
               "InvitationId",
               invitationId.value
-            )))
+            )
+        )
+    )
 
   def failedCreateInvitation(arn: Arn): Unit =
     stubFor(
       post(urlEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
-        .willReturn(aResponse()
-          .withStatus(400)))
+        .willReturn(
+          aResponse()
+            .withStatus(400)
+        )
+    )
 
   def givenMatchingClientIdAndPostcode(nino: Nino, postcode: String) =
     stubFor(
       get(urlEqualTo(s"/agent-client-authorisation/known-facts/individuals/nino/${nino.value}/sa/postcode/$postcode"))
-        .willReturn(aResponse()
-          .withStatus(204)))
+        .willReturn(
+          aResponse()
+            .withStatus(204)
+        )
+    )
 
   def givenNonMatchingClientIdAndPostcode(nino: Nino, postcode: String) =
     stubFor(
@@ -63,7 +72,9 @@ trait ACAStubs {
                          |   "code":"POSTCODE_DOES_NOT_MATCH",
                          |   "message":"The submitted postcode did not match the client's postcode as held by HMRC."
                          |}
-           """.stripMargin)))
+           """.stripMargin)
+        )
+    )
 
   def givenNotEnrolledClientITSA(nino: Nino, postcode: String) =
     stubFor(
@@ -76,20 +87,31 @@ trait ACAStubs {
                          |   "code":"CLIENT_REGISTRATION_NOT_FOUND",
                          |   "message":"The Client's MTDfB registration was not found."
                          |}
-           """.stripMargin)))
+           """.stripMargin)
+        )
+    )
 
   def checkClientIdAndVatRegDate(vrn: Vrn, date: LocalDate, responseStatus: Int, clientInsolvent: Boolean = false) = {
-    val responseCode = if(responseStatus == 403) if(clientInsolvent) "VAT_RECORD_CLIENT_INSOLVENT_TRUE" else "VAT_REGISTRATION_DATE_DOES_NOT_MATCH" else ""
+    val responseCode =
+      if (responseStatus == 403)
+        if (clientInsolvent) "VAT_RECORD_CLIENT_INSOLVENT_TRUE" else "VAT_REGISTRATION_DATE_DOES_NOT_MATCH"
+      else ""
     stubFor(
-      get(urlEqualTo(
-        s"/agent-client-authorisation/known-facts/organisations/vat/${vrn.value}/registration-date/${date.toString}"))
-        .willReturn(aResponse()
-          .withStatus(responseStatus)
-          .withBody(
+      get(
+        urlEqualTo(
+          s"/agent-client-authorisation/known-facts/organisations/vat/${vrn.value}/registration-date/${date.toString}"
+        )
+      )
+        .willReturn(
+          aResponse()
+            .withStatus(responseStatus)
+            .withBody(
               s"""{
                  |"code": "$responseCode"
                  |}""".stripMargin
-            )))
+            )
+        )
+    )
   }
 
   def verifyCheckVatRegisteredClientStubAttempt(vrn: Vrn, date: LocalDate): Unit = {
@@ -99,7 +121,10 @@ trait ACAStubs {
       1,
       getRequestedFor(
         urlEqualTo(
-          s"/agent-client-authorisation/known-facts/organisations/vat/$vrnEncoded/registration-date/$dateEncoded")))
+          s"/agent-client-authorisation/known-facts/organisations/vat/$vrnEncoded/registration-date/$dateEncoded"
+        )
+      )
+    )
   }
 
   def verifyCheckItsaRegisteredClientStubAttempt(nino: Nino, postcode: String): Unit = {
@@ -108,13 +133,16 @@ trait ACAStubs {
     verify(
       1,
       getRequestedFor(
-        urlEqualTo(s"/agent-client-authorisation/known-facts/individuals/nino/$ninoEncoded/sa/postcode/$postEncoded")))
+        urlEqualTo(s"/agent-client-authorisation/known-facts/individuals/nino/$ninoEncoded/sa/postcode/$postEncoded")
+      )
+    )
   }
 
   def verifyNoCheckVatRegisteredClientStubAttempt(): Unit =
     verify(
       0,
-      getRequestedFor(urlPathMatching("/agent-client-authorisation/known-facts/organisations/.*/registration-date/.*")))
+      getRequestedFor(urlPathMatching("/agent-client-authorisation/known-facts/organisations/.*/registration-date/.*"))
+    )
 
   def givenGetITSAInvitationStub(arn: Arn, status: String): Unit =
     givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSA, status)
@@ -129,7 +157,8 @@ trait ACAStubs {
     clientId: String,
     invitationId: InvitationId,
     service: String,
-    status: String): Unit =
+    status: String
+  ): Unit =
     stubFor(
       get(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
         .willReturn(
@@ -154,24 +183,32 @@ trait ACAStubs {
                          |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"
                          |		  }
                          |  }
-                         |}""".stripMargin)))
+                         |}""".stripMargin)
+        )
+    )
 
   def givenGetAgentInvitationStubReturns(arn: Arn, invitationId: InvitationId, status: Int) =
     stubFor(
       get(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
-        .willReturn(aResponse()
-          .withStatus(status)))
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+        )
+    )
 
-  //TODO Update Test when to modify for specific GET ALL for API
+  // TODO Update Test when to modify for specific GET ALL for API
 
   def givenInvitationsServiceReturns(arn: Arn, invitations: Seq[String]): Unit =
     stubFor(
       get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
         .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-VAT"))
         .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString))
-        .willReturn(aResponse()
-          .withStatus(200)
-          .withBody(halEnvelope(invitations.mkString("[", ",", "]")))))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(halEnvelope(invitations.mkString("[", ",", "]")))
+        )
+    )
 
   def halEnvelope(embedded: String): String =
     s"""{"_links": {
@@ -195,7 +232,9 @@ trait ACAStubs {
         .willReturn(
           aResponse()
             .withStatus(200)
-            .withBody(halEnvelope("[]"))))
+            .withBody(halEnvelope("[]"))
+        )
+    )
 
   val invitation = (
     arn: Arn,
@@ -205,27 +244,28 @@ trait ACAStubs {
     clientIdType: String,
     clientId: String,
     invitationId: String,
-    expiryDate: String) => s"""
-                              |{
-                              |  "arn" : "${arn.value}",
-                              |  "service" : "$service",
-                              |  "clientType": "$clientType",
-                              |  "clientId" : "$clientId",
-                              |  "clientIdType" : "$clientIdType",
-                              |  "suppliedClientId" : "$clientId",
-                              |  "suppliedClientIdType" : "$clientIdType",
-                              |  "status" : "$status",
-                              |  "created" : "2017-10-31T23:22:50.971Z",
-                              |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
-                              |  "expiryDate" : "$expiryDate",
-                              |  "invitationId": "$invitationId",
-                              |  "clientActionUrl": "someInvitationUrl/invitations/$clientType/12345678/agent-1",
-                              |  "_links": {
-                              |    	"self" : {
-                              |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/$invitationId"
-                              |		  }
-                              |  }
-                              |}""".stripMargin
+    expiryDate: String
+  ) => s"""
+          |{
+          |  "arn" : "${arn.value}",
+          |  "service" : "$service",
+          |  "clientType": "$clientType",
+          |  "clientId" : "$clientId",
+          |  "clientIdType" : "$clientIdType",
+          |  "suppliedClientId" : "$clientId",
+          |  "suppliedClientIdType" : "$clientIdType",
+          |  "status" : "$status",
+          |  "created" : "2017-10-31T23:22:50.971Z",
+          |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
+          |  "expiryDate" : "$expiryDate",
+          |  "invitationId": "$invitationId",
+          |  "clientActionUrl": "someInvitationUrl/invitations/$clientType/12345678/agent-1",
+          |  "_links": {
+          |    	"self" : {
+          |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/$invitationId"
+          |		  }
+          |  }
+          |}""".stripMargin
 
   val itsa: Arn => String = (arn: Arn) =>
     invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18")
@@ -239,20 +279,28 @@ trait ACAStubs {
   def givenInvitationNotFound(arn: Arn, invitationId: InvitationId): Unit =
     stubFor(
       get(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
-        .willReturn(aResponse()
-          .withStatus(404)))
+        .willReturn(
+          aResponse()
+            .withStatus(404)
+        )
+    )
 
   def givenCancelAgentInvitationStub(arn: Arn, invitationId: InvitationId, status: Int) =
     stubFor(
       put(
-        urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel"))
-        .willReturn(aResponse()
-          .withStatus(status)))
+        urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
+      )
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+        )
+    )
 
   def givenCancelAgentInvitationStubInvalid(arn: Arn, invitationId: InvitationId) =
     stubFor(
       put(
-        urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel"))
+        urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
+      )
         .willReturn(
           aResponse()
             .withStatus(401)
@@ -261,7 +309,9 @@ trait ACAStubs {
                          |   "code":"INVALID_INVITATION_STATUS",
                          |   "message":"The inivtation has an invalid status to be cancelled"
                          |}
-           """.stripMargin)))
+           """.stripMargin)
+        )
+    )
 
   def givenOnlyPendingInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
     val body = service match {
@@ -326,10 +376,12 @@ trait ACAStubs {
                          |      "_embedded": {
                          |        "invitations": [$body]
                          |      }
-                         |    }""".stripMargin)))
+                         |    }""".stripMargin)
+        )
+    )
   }
 
-  def givenNoInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
+  def givenNoInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping =
     stubFor(
       get(
         urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
@@ -351,6 +403,7 @@ trait ACAStubs {
                          |      "_embedded": {
                          |        "invitations": []
                          |      }
-                         |    }""".stripMargin)))
-  }
+                         |    }""".stripMargin)
+        )
+    )
 }

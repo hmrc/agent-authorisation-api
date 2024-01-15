@@ -24,25 +24,27 @@ case class CreateInvitationPayload(
   clientType: String,
   clientIdType: String,
   clientId: String,
-  knownFact: String)
+  knownFact: String
+)
 
 case class AgentInvitation(
   service: Service,
   clientType: ClientType,
   clientIdType: String,
   clientId: String,
-  knownFact: String)
+  knownFact: String
+)
 
 object CreateInvitationPayload {
 
-  implicit val reads: Reads[CreateInvitationPayload] = {
+  implicit val reads: Reads[CreateInvitationPayload] =
     ((JsPath \ "service").read[List[String]] and
       (JsPath \ "clientType").read[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
-      CreateInvitationPayload(service, clientType, clientIdType, clientId, knownFact))
-  }
+      CreateInvitationPayload(service, clientType, clientIdType, clientId, knownFact)
+    )
 
   implicit val writes: Writes[CreateInvitationPayload] = new Writes[CreateInvitationPayload] {
     override def writes(o: CreateInvitationPayload): JsValue =
@@ -51,20 +53,21 @@ object CreateInvitationPayload {
         "clientType"   -> o.clientType,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),
-        "knownFact"    -> o.knownFact)
+        "knownFact"    -> o.knownFact
+      )
   }
 }
 
 object AgentInvitation {
 
-  implicit val reads: Reads[AgentInvitation] = {
+  implicit val reads: Reads[AgentInvitation] =
     ((JsPath \ "service").read[Service] and
       (JsPath \ "clientType").read[ClientType] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
-      AgentInvitation(service, clientType, clientIdType, clientId, knownFact))
-  }
+      AgentInvitation(service, clientType, clientIdType, clientId, knownFact)
+    )
 
   implicit val writes: Writes[AgentInvitation] = new Writes[AgentInvitation] {
     override def writes(o: AgentInvitation): JsValue =

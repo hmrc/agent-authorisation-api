@@ -46,22 +46,21 @@ class ApiPlatformISpec extends BaseISpec {
 
     lazy override val runningPort: Int = port
 
-    forAllApiVersions(yamlByVersion) {
-      case (version, yaml) =>
-        info(s"Checking API YAML documentation for version[$version] of the API")
+    forAllApiVersions(yamlByVersion) { case (version, yaml) =>
+      info(s"Checking API YAML documentation for version[$version] of the API")
 
-        withClue("YAML does not contain a valid YAML 1.0 version header") {
-          yaml should include("""version: '1.0'""")
-        }
+      withClue("YAML does not contain a valid YAML 1.0 version header") {
+        yaml should include("""version: '1.0'""")
+      }
 
-        withClue("YAML does not contain the title 'Agent Authorisation'") {
-          yaml should include("title: Agent Authorisation")
+      withClue("YAML does not contain the title 'Agent Authorisation'") {
+        yaml should include("title: Agent Authorisation")
 
-        }
+      }
 
-        withClue(s"YAML does not contain a matching version declaration of [$version]") {
-          yaml should include(s"""version: '$version'""")
-        }
+      withClue(s"YAML does not contain a matching version declaration of [$version]") {
+        yaml should include(s"""version: '$version'""")
+      }
     }
   }
 }

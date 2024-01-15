@@ -1,5 +1,6 @@
 import AppDependencies.{compileDeps, testDeps}
 import CodeCoverageSettings.scoverageSettings
+import sbt.IntegrationTest
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % "always"
 
@@ -8,7 +9,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "agent-authorisation-api",
     organization := "uk.gov.hmrc",
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.13.10",
     PlayKeys.playDefaultPort := 9433,
     resolvers ++= Seq(
       Resolver.typesafeRepo("releases"),
@@ -23,10 +24,7 @@ lazy val root = (project in file("."))
     Test / scalafmtOnCompile := true,
     scalacOptions ++= Seq(
       "-Xfatal-warnings",
-      "-Ypartial-unification",
       "-Xlint:-missing-interpolator,_",
-      "-Yno-adapted-args",
-      "-Ywarn-dead-code",
       "-deprecation",
       "-feature",
       "-unchecked",
@@ -41,8 +39,11 @@ lazy val root = (project in file("."))
     IntegrationTest / Keys.fork := false,
     Defaults.itSettings,
     IntegrationTest / unmanagedSourceDirectories += baseDirectory(_ / "it").value,
-    IntegrationTest / parallelExecution := false
+    IntegrationTest / parallelExecution := false,
+    IntegrationTest / scalafmtOnCompile := true
+  )
+  .settings(
+    //fix for scoverage compile errors for scala 2.13.10
+    libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
   )
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
-
-inConfig(IntegrationTest)(scalafmtCoreSettings)

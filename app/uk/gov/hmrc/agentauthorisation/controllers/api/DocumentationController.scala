@@ -31,12 +31,12 @@ object ApiAccess {
 }
 
 @Singleton
-class DocumentationController @Inject()(
+class DocumentationController @Inject() (
   errorHandler: HttpErrorHandler,
   appConfig: AppConfig,
   cc: ControllerComponents,
-  assets: Assets)
-    extends uk.gov.hmrc.api.controllers.DocumentationController(cc, assets, errorHandler) {
+  assets: Assets
+) extends uk.gov.hmrc.api.controllers.DocumentationController(cc, assets, errorHandler) {
 
   private val apiAccess = ApiAccess(appConfig.apiType)
 

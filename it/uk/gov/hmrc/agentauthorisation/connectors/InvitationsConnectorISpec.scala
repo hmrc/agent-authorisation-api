@@ -43,7 +43,6 @@ class InvitationsConnectorISpec extends BaseISpec {
     Some("someInvitationUrl/invitations/business/12345678/agent-1")
   )
 
-
   val storedInvitations = Seq(storedItsaInvitation, storedVatInvitation)
 
   "createInvitation" should {
@@ -58,7 +57,8 @@ class InvitationsConnectorISpec extends BaseISpec {
         "personal",
         "HMRC-MTD-IT",
         "NI",
-        validPostcode)
+        validPostcode
+      )
       val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ")
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(invitationIdITSA.value)
@@ -74,7 +74,8 @@ class InvitationsConnectorISpec extends BaseISpec {
         "business",
         "HMRC-MTD-VAT",
         "VRN",
-        validVatRegDate)
+        validVatRegDate
+      )
       val agentInvitation = AgentInvitation(Vat, business, "vrn", validVrn.value, validVatRegDate)
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(invitationIdVAT.value)
@@ -197,7 +198,8 @@ class InvitationsConnectorISpec extends BaseISpec {
 
     "return a empty sequence of stored invitations" in {
       givenAllInvitationsEmptyStub(arn)
-      val result: Seq[StoredInvitation] = await(connector.getAllInvitations(arn, LocalDate.now(ZoneOffset.UTC).minusDays(30)))
+      val result: Seq[StoredInvitation] =
+        await(connector.getAllInvitations(arn, LocalDate.now(ZoneOffset.UTC).minusDays(30)))
 
       result shouldBe Seq.empty[StoredInvitation]
     }

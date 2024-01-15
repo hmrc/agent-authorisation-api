@@ -23,13 +23,13 @@ case class CheckRelationshipPayload(service: List[String], clientIdType: String,
 
 object CheckRelationshipPayload {
 
-  implicit val reads: Reads[CheckRelationshipPayload] = {
+  implicit val reads: Reads[CheckRelationshipPayload] =
     ((JsPath \ "service").read[List[String]] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>
-      CheckRelationshipPayload(service, clientIdType, clientId, knownFact))
-  }
+      CheckRelationshipPayload(service, clientIdType, clientId, knownFact)
+    )
 
   implicit val writes: Writes[CheckRelationshipPayload] = new Writes[CheckRelationshipPayload] {
     override def writes(o: CheckRelationshipPayload): JsValue =
@@ -37,20 +37,21 @@ object CheckRelationshipPayload {
         "service"      -> o.service,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),
-        "knownFact"    -> o.knownFact)
+        "knownFact"    -> o.knownFact
+      )
   }
 }
 
 case class RelationshipRequest(service: Service, clientIdType: String, clientId: String, knownFact: String)
 
 object RelationshipRequest {
-  implicit val reads: Reads[RelationshipRequest] = {
+  implicit val reads: Reads[RelationshipRequest] =
     ((JsPath \ "service").read[Service] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>
-      models.RelationshipRequest(service, clientIdType, clientId, knownFact))
-  }
+      models.RelationshipRequest(service, clientIdType, clientId, knownFact)
+    )
 
   implicit val writes: Writes[RelationshipRequest] = new Writes[RelationshipRequest] {
     override def writes(o: RelationshipRequest): JsValue =
@@ -58,6 +59,7 @@ object RelationshipRequest {
         "service"      -> o.service,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),
-        "knownFact"    -> o.knownFact)
+        "knownFact"    -> o.knownFact
+      )
   }
 }

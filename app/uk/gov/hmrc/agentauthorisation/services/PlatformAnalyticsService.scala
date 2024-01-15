@@ -34,19 +34,22 @@ trait PlatformAnalyticsService {
 }
 
 @Singleton
-class PlatformAnalyticsServiceImpl @Inject()(connector: PlatformAnalyticsConnector, appConfig: AppConfig)
+class PlatformAnalyticsServiceImpl @Inject() (connector: PlatformAnalyticsConnector, appConfig: AppConfig)
     extends PlatformAnalyticsService {
   private val trackingId = appConfig.gaTrackingId
 
-  def sendEvent(action: String, label: Option[String])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Done] = {
+  def sendEvent(action: String, label: Option[String])(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Done] = {
     val maybeGAClientId: Option[String] = if (hc.sessionId.isDefined) None else Some(makeGAClientId)
     connector.sendEvent(
       AnalyticsRequest(
         maybeGAClientId,
         Some(trackingId),
-        List(Event("agent-authorisation-api", action, label.getOrElse(""), Seq.empty))))
+        List(Event("agent-authorisation-api", action, label.getOrElse(""), Seq.empty))
+      )
+    )
   }
 
   def makeGAClientId: String = {

@@ -29,7 +29,7 @@ import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
 @Singleton
-class AcceptHeaderFilter @Inject()(appConfig: AppConfig)(implicit materializer: Materializer) extends Filter {
+class AcceptHeaderFilter @Inject() (appConfig: AppConfig)(implicit materializer: Materializer) extends Filter {
   override implicit def mat: Materializer = materializer
 
   import AcceptHeaderFilter._
