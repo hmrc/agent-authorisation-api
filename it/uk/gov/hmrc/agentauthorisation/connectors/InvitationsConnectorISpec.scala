@@ -59,7 +59,7 @@ class InvitationsConnectorISpec extends BaseISpec {
         "NI",
         validPostcode
       )
-      val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ")
+      val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ", Some("main"))
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(invitationIdITSA.value)
     }
@@ -76,7 +76,7 @@ class InvitationsConnectorISpec extends BaseISpec {
         "VRN",
         validVatRegDate
       )
-      val agentInvitation = AgentInvitation(Vat, business, "vrn", validVrn.value, validVatRegDate)
+      val agentInvitation = AgentInvitation(Vat, business, "vrn", validVrn.value, validVatRegDate, None)
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(invitationIdVAT.value)
     }

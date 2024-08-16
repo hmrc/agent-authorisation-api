@@ -24,7 +24,8 @@ case class CreateInvitationPayload(
   clientType: String,
   clientIdType: String,
   clientId: String,
-  knownFact: String
+  knownFact: String,
+  agentType: Option[String]
 )
 
 case class AgentInvitation(
@@ -32,7 +33,8 @@ case class AgentInvitation(
   clientType: ClientType,
   clientIdType: String,
   clientId: String,
-  knownFact: String
+  knownFact: String,
+  agentType: Option[String]
 )
 
 object CreateInvitationPayload {
@@ -42,8 +44,10 @@ object CreateInvitationPayload {
       (JsPath \ "clientType").read[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
-      (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
-      CreateInvitationPayload(service, clientType, clientIdType, clientId, knownFact)
+      (JsPath \ "knownFact").read[String] and
+      (JsPath \ "agentType").readNullable[String])(
+      (service, clientType, clientIdType, clientId, knownFact, agentType) =>
+        CreateInvitationPayload(service, clientType, clientIdType, clientId, knownFact, agentType)
     )
 
   implicit val writes: Writes[CreateInvitationPayload] = new Writes[CreateInvitationPayload] {
@@ -65,8 +69,10 @@ object AgentInvitation {
       (JsPath \ "clientType").read[ClientType] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
-      (JsPath \ "knownFact").read[String])((service, clientType, clientIdType, clientId, knownFact) =>
-      AgentInvitation(service, clientType, clientIdType, clientId, knownFact)
+      (JsPath \ "knownFact").read[String] and
+      (JsPath \ "agentType").readNullable[String])(
+      (service, clientType, clientIdType, clientId, knownFact, agentType) =>
+        AgentInvitation(service, clientType, clientIdType, clientId, knownFact, agentType)
     )
 
   implicit val writes: Writes[AgentInvitation] = new Writes[AgentInvitation] {

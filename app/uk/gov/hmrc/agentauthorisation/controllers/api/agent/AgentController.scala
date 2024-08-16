@@ -70,7 +70,9 @@ class AgentController @Inject() (
           case Some(JsSuccess(ItsaInvitation(invitation), _)) =>
             validateClientType(invitation) {
               validateNino(invitation.clientId) {
-                checkKnownFactAndCreate(arn, invitation)
+                validateAgentType(invitation.agentType) {
+                  checkKnownFactAndCreate(arn, invitation)
+                }
               }
             }
           case Some(JsSuccess(VatInvitation(invitation), _)) =>
@@ -79,6 +81,9 @@ class AgentController @Inject() (
                 checkKnownFactAndCreate(arn, invitation)
               }
             }
+          case Some(JsSuccess(CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, Some(agentType)), _)) =>
+            Logger(getClass).warn(s"agentType: $agentType is not supported for VAT")
+            Future successful InvalidPayload
           case Some(JsSuccess(s, _)) =>
             Logger(getClass).warn(s"Unsupported service received: ${s.service.mkString("[", ",", "]")}")
             Future successful UnsupportedService
@@ -437,11 +442,21 @@ object AgentController {
   private val supportedClientTypes: Map[Service, Seq[ClientType]] =
     Map(Itsa -> Seq(personal), Vat -> Seq(personal, business))
 
+  private val supportedAgentTypes: Seq[String] =
+    Seq("main", "supporting")
+
   private def validateClientType(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (supportedClientTypes(agentInvitation.service).contains(agentInvitation.clientType)) body
     else {
       Logger(getClass).warn(s"Unsupported Client Type")
       Future successful UnsupportedClientType
+    }
+
+  private def validateAgentType(agentType: Option[String])(body: => Future[Result]): Future[Result] =
+    if (agentType.exists(supportedAgentTypes.contains) || agentType.isEmpty) body
+    else {
+      Logger(getClass).warn(s"Unsupported Agent Type")
+      Future successful UnsupportedAgentType
     }
 
   private def validateNino(clientId: String)(body: => Future[Result]): Future[Result] =
@@ -499,8 +514,8 @@ object AgentController {
   object ItsaInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _) =>
-          Some(AgentInvitation(Itsa, personal, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, _) =>
+          Some(AgentInvitation(Itsa, personal, arg.clientIdType, arg.clientId, arg.knownFact, arg.agentType))
         case _ => None
       }
   }
@@ -508,14 +523,15 @@ object AgentController {
   object VatInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
-        case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _) =>
+        case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, None) =>
           Some(
             AgentInvitation(
               Vat,
               ClientType.stringToClientType(arg.clientType),
               arg.clientIdType,
               arg.clientId,
-              arg.knownFact
+              arg.knownFact,
+              None
             )
           )
         case _ => None

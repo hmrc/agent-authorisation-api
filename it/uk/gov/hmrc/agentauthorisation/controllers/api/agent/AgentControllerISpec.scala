@@ -23,8 +23,25 @@ class AgentControllerISpec extends BaseISpec {
   val jsonBodyITSA: JsValue = Json.parse(
     s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}"""
   )
+
+  val jsonBodyITSASupportingAgentType: JsValue = Json.parse(
+    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"supporting"}"""
+  )
+
+  val jsonBodyITSAMainAgentType: JsValue = Json.parse(
+    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"main"}"""
+  )
+
+  val jsonBodyITSAInvalidAgentType: JsValue = Json.parse(
+    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"xxxx"}"""
+  )
+
   val jsonBodyVAT: JsValue = Json.parse(
     s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate"}"""
+  )
+
+  val jsonBodyVATAgentType: JsValue = Json.parse(
+    s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate", "agentType":"main"}"""
   )
 
   val storedItsaInvitation = StoredInvitation(
@@ -135,13 +152,13 @@ class AgentControllerISpec extends BaseISpec {
     )
   )
 
-  "/agents/:arn/invitations" should {
+  "POST /agents/:arn/invitations" should {
 
     val request = FakeRequest("POST", s"/agents/${arn.value}/invitations")
       .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
     val createInvitation = controller.createInvitationApi(arn)
 
-    "return 204 when invitation is successfully created for ITSA" in {
+    "return 204 when invitation is successfully created for ITSA without an agentType" in {
       givenNoInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
       getStatusRelationshipItsa(arn.value, validNino, 404)
       givenPlatformAnalyticsEventWasSent()
@@ -164,6 +181,67 @@ class AgentControllerISpec extends BaseISpec {
       header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
       verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
+    }
+
+    "return 204 when invitation is successfully created for ITSA with a supporting agent" in {
+      givenNoInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
+      getStatusRelationshipItsa(arn.value, validNino, 404)
+      givenPlatformAnalyticsEventWasSent()
+      givenMatchingClientIdAndPostcode(validNino, validPostcode)
+      createInvitationStub(
+        arn,
+        validNino.value,
+        invitationIdITSA,
+        validNino.value,
+        "ni",
+        "personal",
+        "HMRC-MTD-IT",
+        "MTDITID",
+        validPostcode
+      )
+
+      val result =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
+
+      status(result) shouldBe 204
+      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
+      verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
+    }
+
+    "return 204 when invitation is successfully created for ITSA with a main agent" in {
+      givenNoInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
+      getStatusRelationshipItsa(arn.value, validNino, 404)
+      givenPlatformAnalyticsEventWasSent()
+      givenMatchingClientIdAndPostcode(validNino, validPostcode)
+      createInvitationStub(
+        arn,
+        validNino.value,
+        invitationIdITSA,
+        validNino.value,
+        "ni",
+        "personal",
+        "HMRC-MTD-IT",
+        "MTDITID",
+        validPostcode
+      )
+
+      val result =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSAMainAgentType), arn.value))
+
+      status(result) shouldBe 204
+      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
+      verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
+    }
+
+    "return 204 when invitation is successfully created for ITSA with invalid agent" in {
+      val result =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSAInvalidAgentType), arn.value))
+
+      status(result) shouldBe 400
+      await(result) shouldBe UnsupportedAgentType
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 204 when invitation is successfully created for VAT" in {
@@ -189,6 +267,14 @@ class AgentControllerISpec extends BaseISpec {
       header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/CZTW1KY6RTAAT")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Success", "HMRC-MTD-VAT", None)
       verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-VAT"))
+    }
+
+    "return 400 when invitation provided an agentType however is not supported for VAT" in {
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVATAgentType), arn.value))
+
+      status(result) shouldBe 400
+      await(result) shouldBe InvalidPayload
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
     "return 400 SERVICE_NOT_SUPPORTED when the service is not supported" in {
