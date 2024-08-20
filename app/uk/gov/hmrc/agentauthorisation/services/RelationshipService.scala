@@ -17,22 +17,23 @@
 package uk.gov.hmrc.agentauthorisation.services
 
 import uk.gov.hmrc.agentauthorisation.connectors.RelationshipsConnector
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Vrn, Service => mtdServie}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Service => mtdServie, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Service => MtdServie}
 
 class RelationshipService @Inject() (relationshipsConnector: RelationshipsConnector) {
 
-  def hasActiveRelationship(arn: Arn, clientId: String, serviceName: String)(implicit
+  def hasActiveRelationship(arn: Arn, clientId: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[Boolean] =
-    serviceName match {
-      case mtdServie.MtdIt.enrolmentKey => relationshipsConnector.checkItsaRelationship(arn, Nino(clientId))
-      case mtdServie.MtdItSupp.enrolmentKey => relationshipsConnector.checkItsaSuppRelationship(arn, Nino(clientId))
-      case mtdServie.Vat.enrolmentKey  => relationshipsConnector.checkVatRelationship(arn, Vrn(clientId))
-    }
+  ): PartialFunction[MtdServie, Future[Boolean]] = {
+    case mtdServie.MtdIt     => relationshipsConnector.checkItsaRelationship(arn, Nino(clientId))
+    case mtdServie.MtdItSupp => relationshipsConnector.checkItsaSuppRelationship(arn, Nino(clientId))
+    case mtdServie.Vat       => relationshipsConnector.checkVatRelationship(arn, Vrn(clientId))
+  }
+
 }

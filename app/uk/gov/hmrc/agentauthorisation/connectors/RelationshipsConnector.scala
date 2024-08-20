@@ -54,12 +54,14 @@ class RelationshipsConnector @Inject() (httpClient: HttpClient, metrics: Metrics
       httpClient.GET[HttpResponse](url) map handle(url)
     }
 
-  def checkItsaSuppRelationship(arn: Arn, nino: Nino)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+  def checkItsaSuppRelationship(arn: Arn, nino: Nino)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaSuppRelationship-GET") {
       val url = checkItsaSuppRelationshipUrl(arn, nino).toString
       httpClient.GET[HttpResponse](url) map handle(url)
     }
-
 
   def checkVatRelationship(arn: Arn, vrn: Vrn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-VatRelationship-GET") {

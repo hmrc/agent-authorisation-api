@@ -73,7 +73,7 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, metrics: Metrics, 
 
   private[connectors] def getAllInvitationsForClientUrl(arn: Arn, clientId: String, serviceName: String): URL =
     new URL(
-      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?clientId=$clientId&service=${serviceName}"
+      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?clientId=$clientId&service=$serviceName"
     )
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(implicit
@@ -166,7 +166,7 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, metrics: Metrics, 
         .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
     }
 
-  //TODO WG -change
+  // TODO WG -change
   def getAllInvitationsForClient(arn: Arn, clientId: String, serviceName: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
