@@ -11,7 +11,7 @@ object AppDependencies {
     "uk.gov.hmrc" %% "bootstrap-backend-play-28" % bootstrapVersion,
     "com.github.blemale" %% "scaffeine" % "5.2.1",
     "uk.gov.hmrc" %% "agent-kenshoo-monitoring" % "5.5.0",
-    "uk.gov.hmrc" %% "agent-mtd-identifiers" % "1.15.0",
+    "uk.gov.hmrc" %% "agent-mtd-identifiers" % "2.1.0",
     "uk.gov.hmrc" %% "play-allowlist-filter" % "1.2.0",
     "uk.gov.hmrc" %% "play-hal" % "3.4.0-play-28",
     "uk.gov.hmrc" %% "play-hmrc-api" % "7.2.0-play-28"

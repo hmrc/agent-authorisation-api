@@ -42,6 +42,9 @@ class RelationshipsConnector @Inject() (httpClient: HttpClient, metrics: Metrics
   private[connectors] def checkItsaRelationshipUrl(arn: Arn, nino: Nino): URL =
     new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-IT/client/NI/${nino.value}")
 
+  private[connectors] def checkItsaSuppRelationshipUrl(arn: Arn, nino: Nino): URL =
+    new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-IT-SUPP/client/NI/${nino.value}")
+
   private[connectors] def checkVatRelationshipUrl(arn: Arn, vrn: Vrn): URL =
     new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
 
@@ -50,6 +53,13 @@ class RelationshipsConnector @Inject() (httpClient: HttpClient, metrics: Metrics
       val url = checkItsaRelationshipUrl(arn, nino).toString
       httpClient.GET[HttpResponse](url) map handle(url)
     }
+
+  def checkItsaSuppRelationship(arn: Arn, nino: Nino)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+    monitor(s"ConsumedAPI-Check-ItsaSuppRelationship-GET") {
+      val url = checkItsaSuppRelationshipUrl(arn, nino).toString
+      httpClient.GET[HttpResponse](url) map handle(url)
+    }
+
 
   def checkVatRelationship(arn: Arn, vrn: Vrn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-VatRelationship-GET") {

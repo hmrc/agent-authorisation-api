@@ -41,6 +41,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZoneOffset}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.agentmtdidentifiers.model.{ Service => mtdServie}
 
 @Singleton
 class AgentController @Inject() (
@@ -234,12 +235,73 @@ class AgentController @Inject() (
       Future successful knownFactFormatInvalid(relationshipRequest.service)
     }
 
+
+  //TODO WG - ITSA start
+  private def checkForPendingInvitationOrActiveRelationshipITSA(arn: Arn, clientId: String, isMain:Boolean)(
+    successResult: => Future[Result]
+  )(implicit hc: HeaderCarrier): Future[Result] = {
+
+
+    lazy val allInvitationsForClientMain = invitationsConnector.getAllInvitationsForClient(arn, clientId, mtdServie.MtdIt.enrolmentKey)
+    lazy val allInvitationsForClientSupp =  invitationsConnector.getAllInvitationsForClient(arn, clientId, mtdServie.MtdItSupp.enrolmentKey)
+    lazy val allInvitationsForClient = for {
+      a <- allInvitationsForClientMain
+      b <- allInvitationsForClientSupp
+    } yield (a ++ b)
+
+    def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] = {
+      allInvitationsForClient
+        .flatMap(
+          _.find(_.status == "Pending") match {
+            case Some(invitation) =>
+              Future successful DuplicateAuthorisationRequest.withHeaders(LOCATION -> getLocationLink(arn, invitation))
+            case None => whenNoPendingInvitationFound
+          }
+        )
+    }
+
+    def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] = {
+      val x = for {
+        hasRelationshipForClientMain      <- relationshipService.hasActiveRelationship(arn, clientId, mtdServie.MtdIt.enrolmentKey)
+        hasRelationshipForClientSupp      <- relationshipService.hasActiveRelationship(arn, clientId, mtdServie.MtdItSupp.enrolmentKey)
+        acceptedInvitationsForClientMain  <- allInvitationsForClientMain.map(_.find(_.status == "Accepted"))
+        acceptedInvitationsForClientSupp  <- allInvitationsForClientSupp.map(_.find(_.status == "Accepted"))
+
+      } yield {
+        (hasRelationshipForClientMain, hasRelationshipForClientSupp) match {
+          case (true, _) if(isMain) =>
+            acceptedInvitationsForClientMain match {
+              case Some(invitation) =>
+                Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
+              case None => whenNoActiveRelationshipFound
+            }
+          case (_, true) if(!isMain) =>
+            acceptedInvitationsForClientSupp match {
+              case Some(invitation) =>
+                Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
+              case None => whenNoActiveRelationshipFound
+            }
+          case (_, _) =>  whenNoActiveRelationshipFound
+        }
+      }
+      x.flatten
+    }
+
+
+    //TODO WG - modify whenNoActiveRelationshipFound
+    checkPendingInvitationExists(
+      whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
+    )
+  }
+
+
   private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
     successResult: => Future[Result]
   )(implicit hc: HeaderCarrier): Future[Result] = {
 
+    //TODO WG - allInvitationsForClient - to include both services
     val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
-      .getAllInvitationsForClient(arn, clientId, service)
+      .getAllInvitationsForClient(arn, clientId, service.toString)
 
     def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
       allInvitationsForClient
@@ -267,6 +329,7 @@ class AgentController @Inject() (
           } else whenNoActiveRelationshipFound
         )
 
+    //TODO WG - modify whenNoActiveRelationshipFound
     checkPendingInvitationExists(
       whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
     )
@@ -285,6 +348,7 @@ class AgentController @Inject() (
       ).flatMap {
         case KnownFactCheckPassed =>
           checkForPendingInvitationOrActiveRelationship(arn, agentInvitation.clientId, agentInvitation.service)(
+            //TODO WG - modify create invitation for service main or supporting
             successResult = invitationService
               .createInvitation(arn, agentInvitation)
               .flatMap { invitationId =>
@@ -523,7 +587,7 @@ object AgentController {
   object VatInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
-        case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, None) =>
+        case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, _) =>
           Some(
             AgentInvitation(
               Vat,
