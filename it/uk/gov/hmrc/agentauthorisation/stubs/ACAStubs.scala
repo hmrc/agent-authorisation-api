@@ -1,13 +1,13 @@
 package uk.gov.hmrc.agentauthorisation.stubs
 
-import java.time.LocalDate
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, WireMockSupport}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.{Nino, TaxIdentifier}
+
+import java.time.LocalDate
 
 trait ACAStubs {
   me: WireMockSupport with TestIdentifiers =>
@@ -150,6 +150,9 @@ trait ACAStubs {
   def givenGetVATInvitationStub(arn: Arn, status: String): Unit =
     givenGetAgentInvitationStub(arn, "business", "vrn", validVrn.value, invitationIdVAT, serviceVAT, status)
 
+  def givenGetITSAInvitationWithAgentTypeStub(arn: Arn, status: String, agentType: String): Unit =
+    givenGetAgentInvitationWithAgentTypeStub(arn, "business", "vrn", validVrn.value, invitationIdVAT, serviceVAT, status, agentType)
+
   def givenGetAgentInvitationStub(
     arn: Arn,
     clientType: String,
@@ -182,6 +185,45 @@ trait ACAStubs {
                          |    	"self" : {
                          |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"
                          |		  }
+                         |  }
+                         |}""".stripMargin)
+        )
+    )
+
+  def givenGetAgentInvitationWithAgentTypeStub(
+                                                arn: Arn,
+                                                clientType: String,
+                                                clientIdType: String,
+                                                clientId: String,
+                                                invitationId: InvitationId,
+                                                service: String,
+                                                status: String,
+                                                agentType: String
+                                              ): Unit =
+    stubFor(
+      get(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""
+                         |{
+                         |  "arn" : "${arn.value}",
+                         |  "service" : "$service",
+                         |  "clientType":"$clientType",
+                         |  "clientId" : "$clientId",
+                         |  "clientIdType" : "$clientIdType",
+                         |  "agentType" : "$agentType",
+                         |  "suppliedClientId" : "$clientId",
+                         |  "suppliedClientIdType" : "$clientIdType",
+                         |  "status" : "$status",
+                         |  "created" : "2017-10-31T23:22:50.971Z",
+                         |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
+                         |  "expiryDate" : "2017-12-18",
+                         |  "clientActionUrl": "someInvitationUrl/invitations/$clientType/12345678/agent-1",
+                         |  "_links": {
+                         |      "self" : {
+                         |      "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"
+                         |     }
                          |  }
                          |}""".stripMargin)
         )
