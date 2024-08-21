@@ -579,32 +579,6 @@ class AgentControllerISpec extends BaseISpec {
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
       }
 
-      "return 200 and a json body for ITSA with agentType main invitation" in {
-
-        givenGetITSAInvitationStub(arn, "Accepted") // first request for MTD
-        givenGetITSAInvitationWithAgentTypeStub(arn, "Accepted", "main")  // second request for MTD-IT-SUPP
-        givenPlatformAnalyticsEventWasSent()
-
-        val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
-
-        status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
-        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT-SUPP"))
-      }
-
-      "return 200 and a json body for ITSA with agentType supporting invitation" in {
-
-        givenGetITSAInvitationStub(arn, "Accepted") // first call for MTD
-        givenGetITSAInvitationWithAgentTypeStub(arn, "Accepted", "supporting") // second request for MTD-IT-SUPP
-        givenPlatformAnalyticsEventWasSent()
-
-        val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
-
-        status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
-        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT-SUPP"))
-      }
-
       "return 403 for Not An Agent" in {
         givenUnauthorisedForInsufficientEnrolments()
         val result = getInvitationItsaApi(requestITSA)

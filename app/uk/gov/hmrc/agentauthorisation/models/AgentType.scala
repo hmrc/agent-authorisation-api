@@ -19,15 +19,15 @@ package uk.gov.hmrc.agentauthorisation.models
 import uk.gov.hmrc.agentmtdidentifiers.model.{Service => MtdServie}
 
 sealed trait AgentType {
-  def service:MtdServie
+  def service: MtdServie
 }
 
 object AgentType {
 
   def apply(name: String): AgentType =
     name match {
-      case "main"        => Main
-      case "supporting"  => Supporting
+      case "main"       => Main
+      case "supporting" => Supporting
     }
 
   final case object Main extends AgentType {
@@ -37,6 +37,5 @@ object AgentType {
   final case object Supporting extends AgentType {
     override def service: MtdServie = MtdServie.MtdItSupp
   }
-
 
 }
