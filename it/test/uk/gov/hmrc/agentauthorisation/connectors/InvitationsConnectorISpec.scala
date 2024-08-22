@@ -17,8 +17,6 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.test.Helpers._
-
-import java.time.{LocalDate, ZoneOffset}
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, KnownFactCheckFailed, KnownFactCheckPassed, StoredInvitation}
@@ -27,6 +25,7 @@ import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{LocalDate, ZoneOffset}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class InvitationsConnectorISpec extends BaseISpec {
