@@ -45,14 +45,12 @@ class InvitationService @Inject() (invitationsConnector: InvitationsConnector) {
     invitationsConnector.checkPostcodeForClient(nino, postcode)
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
-    headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext
+    headerCarrier: HeaderCarrier
   ): Future[Option[StoredInvitation]] =
     invitationsConnector.getInvitation(arn, invitationId)
 
   def cancelInvitationService(arn: Arn, invitationId: InvitationId)(implicit
-    headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext
+    headerCarrier: HeaderCarrier
   ): Future[Option[Int]] =
     invitationsConnector.cancelInvitation(arn, invitationId)
 

@@ -26,7 +26,6 @@ import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.connectors.{InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
-import uk.gov.hmrc.agentauthorisation.models
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
@@ -191,7 +190,7 @@ class AgentController @Inject() (
       forThisAgency(givenArn) {
         val invitationResponse = request.body.asJson match {
           case Some(json) => json.as[CheckRelationshipPayload]
-          case None       => models.CheckRelationshipPayload(List.empty, "", "", "")
+          case None       => CheckRelationshipPayload(List.empty, "", "", "")
         }
         invitationResponse match {
           case RelationshipItsaRequest(relationship) =>

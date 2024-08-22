@@ -16,28 +16,25 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import java.net.URL
-import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
+import Syntax.intOps
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.connectors.Syntax.intOps
+import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Vrn}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
-import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
+import java.net.URL
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RelationshipsConnector @Inject() (httpClient: HttpClient, metrics: Metrics, appConfig: AppConfig)
-    extends HttpAPIMonitor {
+class RelationshipsConnector @Inject() (httpClient: HttpClient, val metrics: Metrics, appConfig: AppConfig)(implicit
+  val ec: ExecutionContext
+) extends HttpAPIMonitor {
 
   val acrUrl = s"${appConfig.acrBaseUrl}/agent-client-relationships"
-
-  override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   private[connectors] def checkItsaRelationshipUrl(arn: Arn, nino: Nino): URL =
     new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-IT/client/NI/${nino.value}")

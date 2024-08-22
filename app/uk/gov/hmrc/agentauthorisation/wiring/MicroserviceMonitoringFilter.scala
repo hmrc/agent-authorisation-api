@@ -17,10 +17,9 @@
 package uk.gov.hmrc.agentauthorisation.wiring
 
 import java.util.regex.{Matcher, Pattern}
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import app.Routes
 import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logging
@@ -31,10 +30,11 @@ import scala.concurrent.duration.NANOSECONDS
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 import uk.gov.hmrc.http.UpstreamErrorResponse
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 @Singleton
-class MicroserviceMonitoringFilter @Inject() (metrics: Metrics, routes: Routes, val mat: Materializer)(implicit
-  ec: ExecutionContext
+class MicroserviceMonitoringFilter @Inject() (val metrics: Metrics, routes: Routes, val mat: Materializer)(implicit
+  val ec: ExecutionContext
 ) extends MonitoringFilter(metrics.defaultRegistry) {
   override def keyToPatternMapping: Seq[(String, String)] = KeyToPatternMappingFromRoutes(routes, Set())
 }
