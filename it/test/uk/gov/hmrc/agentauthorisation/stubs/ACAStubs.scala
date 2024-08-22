@@ -221,7 +221,7 @@ trait ACAStubs {
   def givenInvitationsServiceReturns(arn: Arn, invitations: Seq[String]): Unit =
     stubFor(
       get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
-        .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-VAT"))
+        .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-IT-SUPP,HMRC-MTD-VAT"))
         .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString))
         .willReturn(
           aResponse()
@@ -289,6 +289,8 @@ trait ACAStubs {
 
   val itsa: Arn => String = (arn: Arn) =>
     invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18")
+  val itsaSupp: Arn => String = (arn: Arn) =>
+    invitation(arn, "Pending", "HMRC-MTD-IT-SUPP", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18")
   val vat: Arn => String = (arn: Arn) =>
     invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18")
   val irv: Arn => String = (arn: Arn) =>

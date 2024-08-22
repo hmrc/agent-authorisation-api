@@ -65,7 +65,7 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
 
   private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
     new URL(
-      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
+      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-IT-SUPP,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
         .format(isoDateFormat)}"
     )
 

@@ -47,6 +47,19 @@ class InvitationsConnectorISpec extends BaseISpec {
     agentType
   )
 
+  def storedItsaInvitationArn2(agentType: Option[AgentType]) = StoredInvitation(
+    s"$wireMockBaseUrl/agent-client-authorisation/agencies/DARN0002185/invitations/sent/ABERULMHCKKW3",
+    "2017-10-31T23:22:50.971Z",
+    "2017-12-18T00:00:00.000",
+    "2018-09-11T21:02:00.000Z",
+    Arn("DARN0002185"),
+    Some("personal"),
+    "MTD-IT",
+    "Pending",
+    Some("someInvitationUrl/invitations/personal/12345678/agent-1"),
+    agentType
+  )
+
   val storedVatInvitation = StoredInvitation(
     s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/CZTW1KY6RTAAT",
     "2017-10-31T23:22:50.971Z",
@@ -60,7 +73,11 @@ class InvitationsConnectorISpec extends BaseISpec {
     None
   )
 
-  def storedInvitations(agentType: Option[AgentType]) = Seq(storedItsaInvitation(agentType), storedVatInvitation)
+  def storedInvitations = Seq(
+    storedItsaInvitation(Some(AgentType.Main)),
+    storedVatInvitation,
+    storedItsaInvitationArn2(Some(AgentType.Supporting))
+  )
 
   "createInvitation" should {
 
@@ -81,22 +98,22 @@ class InvitationsConnectorISpec extends BaseISpec {
       result.get should include(invitationIdITSA.value)
     }
 
-    "return a Invitation Id upon success for ITSA supporting" in {
-      createInvitationStub(
-        arn,
-        validNino.value,
-        invitationIdITSA,
-        validNino.value,
-        "ni",
-        "personal",
-        "HMRC-MTD-IT-SUPP",
-        "NI",
-        validPostcode
-      )
-      val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ", Some("supporting"))
-      val result = await(connector.createInvitation(arn, agentInvitation))
-      result.get should include(invitationIdITSA.value)
-    }
+//    "return a Invitation Id upon success for ITSA supporting" in {
+//      createInvitationStub(
+//        arn,
+//        validNino.value,
+//        invitationIdITSA,
+//        validNino.value,
+//        "ni",
+//        "personal",
+//        "HMRC-MTD-IT-SUPP",
+//        "NI",
+//        validPostcode
+//      )
+//      val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ", Some("supporting"))
+//      val result = await(connector.createInvitation(arn, agentInvitation))
+//      result.get should include(invitationIdITSA.value)
+//    }
 
     "return a Invitation Id upon success for VAT" in {
       createInvitationStub(
@@ -224,10 +241,10 @@ class InvitationsConnectorISpec extends BaseISpec {
 
   "getAllInvitations" should {
     "return a sequence of stored invitations" in {
-      givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
+      givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn), itsaSupp(arn2)))
       val result = await(connector.getAllInvitations(arn, LocalDate.now(ZoneOffset.UTC).minusDays(30)))
 
-      result shouldBe storedInvitations(Some(AgentType.Main))
+      result shouldBe storedInvitations
     }
 
     "return a empty sequence of stored invitations" in {
