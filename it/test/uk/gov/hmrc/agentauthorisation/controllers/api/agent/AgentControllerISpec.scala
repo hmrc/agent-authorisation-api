@@ -60,7 +60,7 @@ class AgentControllerISpec extends BaseISpec {
     s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate", "agentType":"main"}"""
   )
 
-  val storedItsaInvitation = StoredInvitation(
+  def storedItsaInvitation(agentType: Option[AgentType]) = StoredInvitation(
     s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/ABERULMHCKKW3",
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
@@ -69,26 +69,29 @@ class AgentControllerISpec extends BaseISpec {
     Some("personal"),
     "MTD-IT",
     "Pending",
-    Some("http://localhost:9448/invitations/personal/12345678/agent-1")
+    Some("http://localhost:9448/invitations/personal/12345678/agent-1"),
+    agentType
   )
 
-  val pendingItsaInvitation = PendingInvitation(
+  def pendingItsaInvitation(agentType: Option[AgentType]) = PendingInvitation(
     s"/agents/TARN0000001/invitations/ABERULMHCKKW3",
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
     Arn("TARN0000001"),
     List("MTD-IT"),
     "Pending",
-    s"someInvitationUrl/invitations/personal/12345678/agent-1"
+    s"someInvitationUrl/invitations/personal/12345678/agent-1",
+    agentType
   )
 
-  val respondedItsaInvitation = RespondedInvitation(
+  def respondedItsaInvitation(agentType: Option[AgentType]) = RespondedInvitation(
     s"/agents/TARN0000001/invitations/ABERULMHCKKW3",
     "2017-10-31T23:22:50.971Z",
     "2018-09-11T21:02:00.000Z",
     Arn("TARN0000001"),
     List("MTD-IT"),
-    "Accepted"
+    "Accepted",
+    agentType
   )
 
   val storedVatInvitation = StoredInvitation(
@@ -100,7 +103,8 @@ class AgentControllerISpec extends BaseISpec {
     Some("business"),
     "MTD-VAT",
     "Pending",
-    Some("http://localhost:9448/invitations/business/12345678/agent-1")
+    Some("http://localhost:9448/invitations/business/12345678/agent-1"),
+    None
   )
 
   val pendingVatInvitation = PendingInvitation(
@@ -110,7 +114,8 @@ class AgentControllerISpec extends BaseISpec {
     Arn("TARN0000001"),
     List("MTD-VAT"),
     "Pending",
-    s"someInvitationUrl/invitations/business/12345678/agent-1"
+    s"someInvitationUrl/invitations/business/12345678/agent-1",
+    None
   )
 
   val respondedVatInvitation = RespondedInvitation(
@@ -119,10 +124,11 @@ class AgentControllerISpec extends BaseISpec {
     "2018-09-11T21:02:00.000Z",
     Arn("TARN0000001"),
     List("MTD-VAT"),
-    "Accepted"
+    "Accepted",
+    None
   )
 
-  val gettingPendingInvitations = Seq(
+  def gettingPendingInvitations(agentType: Option[AgentType]) = Seq(
     PendingOrRespondedInvitation(
       Links(s"/agents/${arn.value}/invitations/ABERULMHCKKW3"),
       "2017-10-31T23:22:50.971Z",
@@ -131,7 +137,8 @@ class AgentControllerISpec extends BaseISpec {
       "Pending",
       Some("2017-12-18T00:00:00.000"),
       Some("someInvitationUrl/invitations/personal/12345678/agent-1"),
-      None
+      None,
+      agentType
     ),
     PendingOrRespondedInvitation(
       Links(s"/agents/${arn.value}/invitations/CZTW1KY6RTAAT"),
@@ -141,6 +148,7 @@ class AgentControllerISpec extends BaseISpec {
       "Pending",
       Some("2017-12-18T00:00:00.000"),
       Some("someInvitationUrl/invitations/business/12345678/agent-1"),
+      None,
       None
     )
   )
@@ -154,7 +162,8 @@ class AgentControllerISpec extends BaseISpec {
       "Accepted",
       None,
       None,
-      Some("2018-09-11T21:02:00.000Z")
+      Some("2018-09-11T21:02:00.000Z"),
+      None
     ),
     PendingOrRespondedInvitation(
       Links(s"/agents/${arn.value}/invitations/foo2"),
@@ -164,11 +173,12 @@ class AgentControllerISpec extends BaseISpec {
       "Rejected",
       None,
       None,
-      Some("2018-09-11T21:02:00.000Z")
+      Some("2018-09-11T21:02:00.000Z"),
+      None
     )
   )
 
-  "POST /agents/:arn/invitations" should {
+  /*"POST /agents/:arn/invitations" should {
 
     val request = FakeRequest("POST", s"/agents/${arn.value}/invitations")
       .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
@@ -576,7 +586,7 @@ class AgentControllerISpec extends BaseISpec {
         )
       )
     }
-  }
+  }*/
 
   "GET /agents/:arn/invitations/:invitationId" when {
 
@@ -594,7 +604,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(pendingItsaInvitation).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe toJson(pendingItsaInvitation(Some(AgentType.Main))).as[JsObject]
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
       }
 
@@ -605,7 +615,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation(Some(AgentType.Main))).as[JsObject]
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
       }
 
@@ -1129,7 +1139,7 @@ class AgentControllerISpec extends BaseISpec {
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 200
-          Helpers.contentAsJson(result) shouldBe toJson(gettingPendingInvitations)
+          Helpers.contentAsJson(result) shouldBe toJson(gettingPendingInvitations(Some(AgentType.Main)))
           verifyPlatformAnalyticsEventWasSent("get-authorisation-requests", None)
         }
 

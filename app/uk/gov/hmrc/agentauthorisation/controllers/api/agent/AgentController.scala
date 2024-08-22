@@ -70,7 +70,7 @@ class AgentController @Inject() (
           case Some(JsSuccess(ItsaInvitation(invitation), _)) =>
             validateClientType(invitation) {
               validateNino(invitation.clientId) {
-                // TODO WG - fix that
+                // TODO WG - fix that validation should happen before AgentInvitation
                 validateAgentType(invitation.agentType) {
                   checkKnownFactAndCreate(arn, invitation)
                 }
@@ -446,6 +446,7 @@ class AgentController @Inject() (
         }
     }
 
+  // TODO WG - Get Invitations
   def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAsAgent { arn =>
       implicit val loggedInArn: Arn = arn
@@ -470,7 +471,8 @@ class AgentController @Inject() (
                     pendingInv.status,
                     Some(pendingInv.expiresOn),
                     pendingInv.clientActionUrl,
-                    None
+                    None,
+                    pendingInv.agentType
                   )
 
                 case respondedInv @ RespondedInvitation(_) =>
@@ -485,7 +487,8 @@ class AgentController @Inject() (
                     respondedInv.status,
                     None,
                     None,
-                    Some(respondedInv.updated)
+                    Some(respondedInv.updated),
+                    respondedInv.agentType
                   )
                 case _ =>
                   // TODO Investigate implicit conversions happening for StoredInvitation(...)

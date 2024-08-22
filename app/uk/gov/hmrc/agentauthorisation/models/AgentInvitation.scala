@@ -64,6 +64,7 @@ object CreateInvitationPayload {
 
 object AgentInvitation {
 
+  // TODO WG - investigate why do we have those reads at all ??
   implicit val reads: Reads[AgentInvitation] =
     ((JsPath \ "service").read[Service] and
       (JsPath \ "clientType").read[ClientType] and

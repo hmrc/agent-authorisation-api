@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, KnownFactCheckFailed, KnownFactCheckPassed, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, AgentType, KnownFactCheckFailed, KnownFactCheckPassed, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.domain.Nino
@@ -34,7 +34,7 @@ class InvitationsConnectorISpec extends BaseISpec {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val storedItsaInvitation = StoredInvitation(
+  def storedItsaInvitation(agentType: Option[AgentType]) = StoredInvitation(
     s"$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent/ABERULMHCKKW3",
     "2017-10-31T23:22:50.971Z",
     "2017-12-18T00:00:00.000",
@@ -43,7 +43,8 @@ class InvitationsConnectorISpec extends BaseISpec {
     Some("personal"),
     "MTD-IT",
     "Pending",
-    Some("someInvitationUrl/invitations/personal/12345678/agent-1")
+    Some("someInvitationUrl/invitations/personal/12345678/agent-1"),
+    agentType
   )
 
   val storedVatInvitation = StoredInvitation(
@@ -55,10 +56,11 @@ class InvitationsConnectorISpec extends BaseISpec {
     Some("business"),
     "MTD-VAT",
     "Pending",
-    Some("someInvitationUrl/invitations/business/12345678/agent-1")
+    Some("someInvitationUrl/invitations/business/12345678/agent-1"),
+    None
   )
 
-  val storedInvitations = Seq(storedItsaInvitation, storedVatInvitation)
+  def storedInvitations(agentType: Option[AgentType]) = Seq(storedItsaInvitation(agentType), storedVatInvitation)
 
   "createInvitation" should {
 
@@ -155,7 +157,7 @@ class InvitationsConnectorISpec extends BaseISpec {
       givenGetITSAInvitationStub(arn, "Pending")
       val result = await(connector.getInvitation(arn, invitationIdITSA))
 
-      result.get shouldBe storedItsaInvitation
+      result.get shouldBe storedItsaInvitation(Some(AgentType.Main))
     }
 
     "return an VAT invitation" in {
@@ -208,7 +210,7 @@ class InvitationsConnectorISpec extends BaseISpec {
       givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
       val result = await(connector.getAllInvitations(arn, LocalDate.now(ZoneOffset.UTC).minusDays(30)))
 
-      result shouldBe storedInvitations
+      result shouldBe storedInvitations(Some(AgentType.Main))
     }
 
     "return a empty sequence of stored invitations" in {
