@@ -608,6 +608,18 @@ class AgentControllerISpec extends BaseISpec {
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
       }
 
+      "return 200 and a json body of a pending supporting invitation" in {
+
+        givenGetITSASuppInvitationStub(arn, "Pending")
+        givenPlatformAnalyticsEventWasSent()
+
+        val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
+
+        status(result) shouldBe 200
+        Helpers.contentAsJson(result) shouldBe toJson(pendingItsaInvitation(Some(AgentType.Supporting))).as[JsObject]
+        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
+      }
+
       "return 200 and a json body of a responded invitation" in {
 
         givenGetITSAInvitationStub(arn, "Accepted")
@@ -616,6 +628,17 @@ class AgentControllerISpec extends BaseISpec {
 
         status(result) shouldBe 200
         Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation(Some(AgentType.Main))).as[JsObject]
+        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
+      }
+
+      "return 200 and a json body of a responded supporting invitation" in {
+
+        givenGetITSASuppInvitationStub(arn, "Accepted")
+        givenPlatformAnalyticsEventWasSent()
+        val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
+
+        status(result) shouldBe 200
+        Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation(Some(AgentType.Supporting))).as[JsObject]
         verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("MTD-IT"))
       }
 

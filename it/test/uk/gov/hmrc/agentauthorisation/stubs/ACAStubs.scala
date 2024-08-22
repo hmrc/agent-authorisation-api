@@ -164,6 +164,9 @@ trait ACAStubs {
   def givenGetITSAInvitationStub(arn: Arn, status: String): Unit =
     givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSA, status)
 
+  def givenGetITSASuppInvitationStub(arn: Arn, status: String): Unit =
+    givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSASupp, status)
+
   def givenGetVATInvitationStub(arn: Arn, status: String): Unit =
     givenGetAgentInvitationStub(arn, "business", "vrn", validVrn.value, invitationIdVAT, serviceVAT, status)
 

@@ -81,6 +81,23 @@ class InvitationsConnectorISpec extends BaseISpec {
       result.get should include(invitationIdITSA.value)
     }
 
+    "return a Invitation Id upon success for ITSA supporting" in {
+      createInvitationStub(
+        arn,
+        validNino.value,
+        invitationIdITSA,
+        validNino.value,
+        "ni",
+        "personal",
+        "HMRC-MTD-IT-SUPP",
+        "NI",
+        validPostcode
+      )
+      val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ", Some("supporting"))
+      val result = await(connector.createInvitation(arn, agentInvitation))
+      result.get should include(invitationIdITSA.value)
+    }
+
     "return a Invitation Id upon success for VAT" in {
       createInvitationStub(
         arn,
