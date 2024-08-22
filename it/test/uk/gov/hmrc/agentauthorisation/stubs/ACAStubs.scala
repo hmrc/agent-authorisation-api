@@ -339,6 +339,8 @@ trait ACAStubs {
     val body = service match {
       case "HMRC-MTD-IT" =>
         invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case "HMRC-MTD-IT-SUPP" =>
+        invitation(arn, "Pending", "HMRC-MTD-IT-SUPP", "personal", "ni", clientId.value, "foo", "2020-10-10")
       case "HMRC-MTD-VAT" =>
         invitation(arn, "Pending", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
     }

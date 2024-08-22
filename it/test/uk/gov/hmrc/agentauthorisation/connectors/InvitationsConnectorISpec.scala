@@ -194,6 +194,13 @@ class InvitationsConnectorISpec extends BaseISpec {
       result.get shouldBe storedItsaInvitation(Some(AgentType.Main))
     }
 
+    "return an ITSA supporting invitation" in {
+      givenGetITSASuppInvitationStub(arn, "Pending")
+      val result = await(connector.getInvitation(arn, invitationIdITSA))
+
+      result.get shouldBe storedItsaInvitation(Some(AgentType.Supporting))
+    }
+
     "return an VAT invitation" in {
       givenGetVATInvitationStub(arn, "Pending")
       val result = await(connector.getInvitation(arn, invitationIdVAT))
@@ -260,6 +267,13 @@ class InvitationsConnectorISpec extends BaseISpec {
     "return non empty when invitations exist" in {
       givenOnlyPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
       val result = await(connector.getAllInvitationsForClient(arn, nino, Itsa.toString))
+
+      assert(result.nonEmpty)
+    }
+
+    "return non empty when invitations exist, check with supporting" in {
+      givenOnlyPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT-SUPP")
+      val result = await(connector.getAllInvitationsForClient(arn, nino, "HMRC-MTD-IT-SUPP"))
 
       assert(result.nonEmpty)
     }
