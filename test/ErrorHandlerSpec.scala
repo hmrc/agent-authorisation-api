@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import akka.actor.ActorSystem
-import akka.stream.testkit.NoMaterializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.testkit.NoMaterializer
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
@@ -26,6 +26,7 @@ import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 import org.mockito.ArgumentMatchers._
 import play.api.Configuration
+import play.api.mvc.AnyContentAsEmpty
 import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
 import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -36,15 +37,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
   trait BaseSetup {
-    implicit val sys = ActorSystem("MyTest")
-    implicit val mat = NoMaterializer
-    implicit val configuration = Configuration(
+    implicit val sys: ActorSystem = ActorSystem("MyTest")
+    implicit val mat: NoMaterializer.type = NoMaterializer
+    implicit val configuration: Configuration = Configuration(
       "bootstrap.errorHandler.warnOnly.statusCodes"     -> List(400, 404),
       "bootstrap.errorHandler.suppress4xxErrorMessages" -> false,
       "bootstrap.errorHandler.suppress5xxErrorMessages" -> false
     )
 
-    implicit val fakeRequest = FakeRequest()
+    implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
     val mockAuditConnector = mock[AuditConnector]
     val mockAuditResult = mock[AuditResult]
     val mockHttpAuditEvent = mock[HttpAuditEvent]

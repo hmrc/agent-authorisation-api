@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.actions
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames
 import play.api.mvc.{Filter, RequestHeader, Result}

@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
 import play.api.http.Status.{FORBIDDEN, LOCKED, NOT_FOUND, NO_CONTENT}
 import play.api.libs.json.JsObject
-import uk.gov.hmrc.agent.kenshoo.monitoring.HttpAPIMonitor
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.connectors.Syntax._
 import uk.gov.hmrc.agentauthorisation.models._
+import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import java.net.URL
 import java.time.LocalDate
@@ -36,14 +35,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationsConnector @Inject() (httpClient: HttpClient, metrics: Metrics, appConfig: AppConfig)
-    extends HttpAPIMonitor {
+class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metrics, appConfig: AppConfig)(implicit
+  val ec: ExecutionContext
+) extends HttpAPIMonitor {
 
   val acaUrl = s"${appConfig.acaBaseUrl}/agent-client-authorisation"
 
   import uk.gov.hmrc.http.HttpReads.Implicits._
-
-  override val kenshooRegistry: MetricRegistry = metrics.defaultRegistry
 
   private val isoDateFormat = DateTimeFormatter.ISO_LOCAL_DATE
 
@@ -132,8 +130,7 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, metrics: Metrics, 
     }
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
-    headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext
+    headerCarrier: HeaderCarrier
   ): Future[Option[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
       httpClient
@@ -143,8 +140,7 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, metrics: Metrics, 
     }
 
   def cancelInvitation(arn: Arn, invitationId: InvitationId)(implicit
-    headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext
+    headerCarrier: HeaderCarrier
   ): Future[Option[Int]] =
     monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
       httpClient
