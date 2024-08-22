@@ -3,6 +3,7 @@ package uk.gov.hmrc.agentauthorisation.stubs
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
+import uk.gov.hmrc.agentauthorisation.models.AgentType
 import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, WireMockSupport}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.{Nino, TaxIdentifier}
@@ -326,6 +327,44 @@ trait ACAStubs {
         urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
       ).withQueryParam("clientId", equalTo(clientId.value))
         .withQueryParam("service", equalTo(service))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""{"_links": {
+        "invitations": [
+          {
+            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+          }
+        ],
+        "self": {
+          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+        }
+      },
+      "_embedded": {
+        "invitations": [$body]
+      }
+    }""".stripMargin)
+        )
+    )
+  }
+
+  def givenInvitationsForExistingMainPendingSupporting(
+    arn: Arn,
+    clientId: TaxIdentifier,
+    service: AgentType
+  ): StubMapping = {
+    val body = service match {
+      case AgentType.Main =>
+        invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case AgentType.Supporting =>
+        invitation(arn, "Pending", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
+    }
+
+    stubFor(
+      get(
+        urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+      ).withQueryParam("clientId", equalTo(clientId.value))
+        .withQueryParam("service", equalTo(service.service.enrolmentKey))
         .willReturn(
           aResponse()
             .withStatus(200)

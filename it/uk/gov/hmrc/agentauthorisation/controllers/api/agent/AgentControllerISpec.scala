@@ -235,6 +235,20 @@ class AgentControllerISpec extends BaseISpec {
       verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
     }
 
+    "return 200 when there is pending main agent and pending supporting agent" in {
+      givenInvitationsForExistingMainPendingSupporting(arn, validNino, AgentType.Supporting)
+      getStatusRelationshipItsa(arn.value, validNino, 200)
+      givenMatchingClientIdAndPostcode(validNino, validPostcode)
+
+      val locationLink: String = "/agents/TARN0000001/invitations/foo"
+      val result: Future[Result] =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+
+      status(result) shouldBe 403
+      await(result) shouldBe AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+    }
+
     "return 204 when invitation is successfully created for ITSA with invalid agent" in {
       val result =
         createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSAInvalidAgentType), arn.value))
