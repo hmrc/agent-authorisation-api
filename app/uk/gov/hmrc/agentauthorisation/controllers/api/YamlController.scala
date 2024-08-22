@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import controllers.Assets
 import play.api.Configuration
 import play.api.mvc.{Action, AnyContent, ControllerComponents}

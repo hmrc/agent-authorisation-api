@@ -17,9 +17,10 @@
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
 import controllers.Assets
+
 import javax.inject.{Inject, Singleton}
 import play.api.http.HttpErrorHandler
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.views.txt
@@ -27,7 +28,7 @@ import uk.gov.hmrc.agentauthorisation.views.txt
 case class ApiAccess(`type`: String)
 
 object ApiAccess {
-  implicit lazy val formats = Json.format[ApiAccess]
+  implicit lazy val formats: OFormat[ApiAccess] = Json.format[ApiAccess]
 }
 
 @Singleton

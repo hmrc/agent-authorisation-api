@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import akka.Done
+import org.apache.pekko.Done
 import com.google.inject.ImplementedBy
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.connectors.PlatformAnalyticsConnector
