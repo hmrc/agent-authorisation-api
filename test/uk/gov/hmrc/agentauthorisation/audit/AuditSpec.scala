@@ -50,7 +50,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       val arn: Arn = Arn("HX2345")
       val agentInvitation: AgentInvitation =
-        AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ")
+        AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ", None)
       val invitationId: String = "1"
       val result: String = "Success"
 
@@ -96,7 +96,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       val arn: Arn = Arn("HX2345")
       val agentInvitation: AgentInvitation =
-        AgentInvitation(Vat, business, "vrn", "101747641", "2008-08-08")
+        AgentInvitation(Vat, business, "vrn", "101747641", "2008-08-08", None)
       val invitationId: String = "1"
       val result: String = "Success"
 
