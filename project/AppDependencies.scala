@@ -11,7 +11,6 @@ object AppDependencies {
     "uk.gov.hmrc" %% "bootstrap-frontend-play-30" % bootstrapVersion,
     "com.github.blemale" %% "scaffeine" % "5.2.1",
     "uk.gov.hmrc" %% "agent-mtd-identifiers" % "2.1.0",
-//    "uk.gov.hmrc" %% "play-allowlist-filter-play-30" % "1.3.0",
     "uk.gov.hmrc" %% "play-hal-play-30" % "4.0.0",
     "uk.gov.hmrc" %% "play-hmrc-api-play-30" % "8.0.0"
   )
@@ -20,7 +19,6 @@ object AppDependencies {
     "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
     "uk.gov.hmrc" %% "bootstrap-test-play-30" % bootstrapVersion % Test,
     "org.pegdown" % "pegdown" % "1.6.0" % Test,
-//    "com.typesafe.play" %% "play-test" % PlayVersion.current % Test,
     "org.scalamock" %% "scalamock" % "6.0.0" % Test,
     "com.vladsch.flexmark" %  "flexmark-all" % "0.64.8" % Test
   )
