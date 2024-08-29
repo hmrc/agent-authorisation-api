@@ -18,6 +18,7 @@ package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.agentmtdidentifiers.model.{Service => Mtdservice}
 
 case class CreateInvitationPayload(
   service: List[String],
@@ -35,7 +36,14 @@ case class AgentInvitation(
   clientId: String,
   knownFact: String,
   agentType: Option[String]
-)
+) {
+  lazy val invitationService: Mtdservice = service match {
+    case Service.Itsa if agentType.getOrElse("main") == "main"       => Mtdservice.MtdIt
+    case Service.Itsa if agentType.getOrElse("main") == "supporting" => Mtdservice.MtdItSupp
+    case Service.Vat                                                 => Mtdservice.Vat
+    case _                                                           => Mtdservice.MtdIt
+  }
+}
 
 object CreateInvitationPayload {
 
@@ -79,7 +87,7 @@ object AgentInvitation {
   implicit val writes: Writes[AgentInvitation] = new Writes[AgentInvitation] {
     override def writes(o: AgentInvitation): JsValue =
       Json.obj(
-        "service"      -> o.service,
+        "service"      -> o.invitationService.enrolmentKey,
         "clientType"   -> o.clientType,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),

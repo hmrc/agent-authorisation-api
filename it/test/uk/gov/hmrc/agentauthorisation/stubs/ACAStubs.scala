@@ -371,7 +371,7 @@ trait ACAStubs {
     )
   }
 
-  def givenInvitationsForExistingMainPendingSupporting(
+  def givenPendingInvitationsExist(
     arn: Arn,
     clientId: TaxIdentifier,
     service: AgentType
@@ -380,7 +380,7 @@ trait ACAStubs {
       case AgentType.Main =>
         invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
       case AgentType.Supporting =>
-        invitation(arn, "Pending", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
+        invitation(arn, "Pending", "HMRC-MTD-IT-SUPP", "personal", "ni", clientId.value, "bar", "2020-10-10")
     }
 
     stubFor(

@@ -24,9 +24,9 @@ import uk.gov.hmrc.domain.Nino
 trait ACRStubs {
   me: WireMockSupport =>
 
-  def getStatusRelationshipItsa(arn: String, nino: Nino, status: Int): Unit =
+  def getStatusRelationshipItsa(arn: String, nino: Nino, status: Int, service: String): Unit =
     stubFor(
-      get(urlEqualTo(s"/agent-client-relationships/agent/$arn/service/HMRC-MTD-IT/client/NI/${nino.value}"))
+      get(urlEqualTo(s"/agent-client-relationships/agent/$arn/service/$service/client/NI/${nino.value}"))
         .willReturn(
           aResponse()
             .withStatus(status)

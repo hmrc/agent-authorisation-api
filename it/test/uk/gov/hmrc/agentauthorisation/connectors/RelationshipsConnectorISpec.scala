@@ -19,6 +19,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.Helpers._
+import uk.gov.hmrc.agentmtdidentifiers.model.Service.{HMRCMTDIT, HMRCMTDITSUPP}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -31,13 +32,13 @@ class RelationshipsConnectorISpec extends BaseISpec {
   "checkItsaRelationship" should {
 
     "return true when a relationship exists" in {
-      getStatusRelationshipItsa(arn.value, validNino, 200)
+      getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
       val result = await(connector.checkItsaRelationship(arn, validNino))
       result shouldBe true
     }
 
     "return false when a relationship is not found" in {
-      getStatusRelationshipItsa(arn.value, validNino, 404)
+      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
       val result = await(connector.checkItsaRelationship(arn, validNino))
       result shouldBe false
     }

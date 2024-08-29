@@ -270,10 +270,12 @@ class AgentController @Inject() (
       hasActiveRelationship(mtdService)
         .flatMap(hasRelationship =>
           if (hasRelationship) {
+            println(s">>>>>>>>>>>>>>>$hasRelationship")
+            allInvitationsForClient.map(x => println(s">>>>>>>>>>>>>>>>>>$x"))
             allInvitationsForClient
               .flatMap(
-                _.filter(_.service == mtdService)
-                  .find(_.status == "Accepted") match {
+                _.filter(_.service == mtdService.id)
+                  .find(x => x.status == "Accepted" || x.status == "Partialauth") match {
                   case Some(invitation) =>
                     Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
                   case None => whenNoActiveRelationshipFound
@@ -283,6 +285,7 @@ class AgentController @Inject() (
         )
     }
     val itsaService = agentType.map(_.service).getOrElse(AgentType.Main.service)
+
     checkPendingInvitationExists(
       whenNoPendingInvitationFound =
         checkActiveRelationshipExists(itsaService, whenNoActiveRelationshipFound = successResult)
@@ -338,8 +341,8 @@ class AgentController @Inject() (
   )(implicit hc: HeaderCarrier): Future[Result] =
     service match {
       case Service.Itsa =>
-        checkForPendingInvitationOrActiveRelationshipITSA(arn: Arn, clientId: String, agentType)(successResult)
-      case Service.Vat => checkForPendingInvitationOrActiveRelationshipVAT(arn: Arn, clientId: String)(successResult)
+        checkForPendingInvitationOrActiveRelationshipITSA(arn, clientId, agentType)(successResult)
+      case Service.Vat => checkForPendingInvitationOrActiveRelationshipVAT(arn, clientId)(successResult)
     }
 
   private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(implicit
