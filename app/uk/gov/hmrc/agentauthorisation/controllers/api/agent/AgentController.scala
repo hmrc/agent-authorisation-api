@@ -190,20 +190,22 @@ class AgentController @Inject() (
       forThisAgency(givenArn) {
         val invitationResponse = request.body.asJson match {
           case Some(json) => json.as[CheckRelationshipPayload]
-          case None       => CheckRelationshipPayload(List.empty, "", "", "")
+          case None       => CheckRelationshipPayload(List.empty, "", "", "", None)
         }
-        invitationResponse match {
-          case RelationshipItsaRequest(relationship) =>
-            validateNino(relationship.clientId) {
-              checkKnownFactAndRelationship(arn, relationship)
-            }
-          case RelationshipVatRequest(relationship) =>
-            validateVrn(relationship.clientId) {
-              checkKnownFactAndRelationship(arn, relationship)
-            }
-          case s =>
-            Logger(getClass).warn(s"Unsupported service received: ${s.service}")
-            Future successful UnsupportedService
+        validateAgentType(invitationResponse.agentType) {
+          invitationResponse match {
+            case RelationshipItsaRequest(relationship) =>
+              validateNino(relationship.clientId) {
+                checkKnownFactAndRelationship(arn, relationship)
+              }
+            case RelationshipVatRequest(relationship) =>
+              validateVrn(relationship.clientId) {
+                checkKnownFactAndRelationship(arn, relationship)
+              }
+            case s =>
+              Logger(getClass).warn(s"Unsupported service received: ${s.service}")
+              Future successful UnsupportedService
+          }
         }
       }
     }
@@ -235,7 +237,6 @@ class AgentController @Inject() (
       Future successful knownFactFormatInvalid(relationshipRequest.service)
     }
 
-  // TODO WG - ITSA start
   private def checkForPendingInvitationOrActiveRelationshipITSA(
     arn: Arn,
     clientId: String,
@@ -292,7 +293,6 @@ class AgentController @Inject() (
     successResult: => Future[Result]
   )(implicit hc: HeaderCarrier): Future[Result] = {
 
-    // TODO WG - allInvitationsForClient - to include both services
     val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
       .getAllInvitationsForClient(arn, clientId, MtdServie.Vat.enrolmentKey)
 
@@ -323,7 +323,6 @@ class AgentController @Inject() (
         )
     }
 
-    // TODO WG - modify whenNoActiveRelationshipFound
     checkPendingInvitationExists(
       whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
     )
@@ -361,7 +360,6 @@ class AgentController @Inject() (
             agentInvitation.service,
             agentInvitation.agentType.map(AgentType(_))
           )(
-            // TODO WG - modify create invitation for service main or supporting
             successResult = invitationService
               .createInvitation(arn, agentInvitation)
               .flatMap { invitationId =>
@@ -446,7 +444,6 @@ class AgentController @Inject() (
         }
     }
 
-  // TODO WG - Get Invitations
   def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAsAgent { arn =>
       implicit val loggedInArn: Arn = arn
@@ -621,8 +618,8 @@ object AgentController {
   object RelationshipItsaRequest {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
       arg match {
-        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _) =>
-          Some(RelationshipRequest(Itsa, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, agentType) =>
+          Some(RelationshipRequest(Itsa, arg.clientIdType, arg.clientId, arg.knownFact, agentType.map(AgentType(_))))
         case _ => None
       }
   }
@@ -630,8 +627,8 @@ object AgentController {
   object RelationshipVatRequest {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
       arg match {
-        case CheckRelationshipPayload(List("MTD-VAT"), "vrn", _, _) =>
-          Some(RelationshipRequest(Vat, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CheckRelationshipPayload(List("MTD-VAT"), "vrn", _, _, _) =>
+          Some(RelationshipRequest(Vat, arg.clientIdType, arg.clientId, arg.knownFact, None))
         case _ => None
       }
   }

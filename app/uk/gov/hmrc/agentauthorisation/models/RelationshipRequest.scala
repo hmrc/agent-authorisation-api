@@ -15,11 +15,16 @@
  */
 
 package uk.gov.hmrc.agentauthorisation.models
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import uk.gov.hmrc.agentauthorisation.models
+import play.api.libs.json._
 
-case class CheckRelationshipPayload(service: List[String], clientIdType: String, clientId: String, knownFact: String)
+case class CheckRelationshipPayload(
+  service: List[String],
+  clientIdType: String,
+  clientId: String,
+  knownFact: String,
+  agentType: Option[String]
+)
 
 object CheckRelationshipPayload {
 
@@ -27,8 +32,9 @@ object CheckRelationshipPayload {
     ((JsPath \ "service").read[List[String]] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
-      (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>
-      CheckRelationshipPayload(service, clientIdType, clientId, knownFact)
+      (JsPath \ "knownFact").read[String] and
+      (JsPath \ "agentType").readNullable[String])((service, clientIdType, clientId, knownFact, agentType) =>
+      CheckRelationshipPayload(service, clientIdType, clientId, knownFact, agentType)
     )
 
   implicit val writes: Writes[CheckRelationshipPayload] = new Writes[CheckRelationshipPayload] {
@@ -42,24 +48,10 @@ object CheckRelationshipPayload {
   }
 }
 
-case class RelationshipRequest(service: Service, clientIdType: String, clientId: String, knownFact: String)
-
-object RelationshipRequest {
-  implicit val reads: Reads[RelationshipRequest] =
-    ((JsPath \ "service").read[Service] and
-      (JsPath \ "clientIdType").read[String] and
-      (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
-      (JsPath \ "knownFact").read[String])((service, clientIdType, clientId, knownFact) =>
-      models.RelationshipRequest(service, clientIdType, clientId, knownFact)
-    )
-
-  implicit val writes: Writes[RelationshipRequest] = new Writes[RelationshipRequest] {
-    override def writes(o: RelationshipRequest): JsValue =
-      Json.obj(
-        "service"      -> o.service,
-        "clientIdType" -> o.clientIdType,
-        "clientId"     -> o.clientId.replaceAll(" ", ""),
-        "knownFact"    -> o.knownFact
-      )
-  }
-}
+case class RelationshipRequest(
+  service: Service,
+  clientIdType: String,
+  clientId: String,
+  knownFact: String,
+  agentType: Option[AgentType]
+)
