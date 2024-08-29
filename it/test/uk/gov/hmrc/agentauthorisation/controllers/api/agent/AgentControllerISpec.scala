@@ -957,6 +957,16 @@ class AgentControllerISpec extends BaseISpec {
         verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-IT"))
       }
 
+      "return 204 when the relationship is active for ITSA supporting" in {
+        getStatusRelationshipItsaSupporting(arn.value, validNino, 200)
+        givenPlatformAnalyticsEventWasSent()
+        givenMatchingClientIdAndPostcode(validNino, validPostcode)
+        val result =
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
+        status(result) shouldBe 204
+        verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-IT-SUPP"))
+      }
+
       "return 204 when the relationship is active for VAT" in {
         getStatusRelationshipVat(arn.value, validVrn, 200)
         givenPlatformAnalyticsEventWasSent()

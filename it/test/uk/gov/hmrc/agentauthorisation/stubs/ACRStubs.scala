@@ -33,6 +33,15 @@ trait ACRStubs {
         )
     )
 
+  def getStatusRelationshipItsaSupporting(arn: String, nino: Nino, status: Int): Unit =
+    stubFor(
+      get(urlEqualTo(s"/agent-client-relationships/agent/$arn/service/HMRC-MTD-IT-SUPP/client/NI/${nino.value}"))
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+        )
+    )
+
   def getStatusRelationshipVat(arn: String, vrn: Vrn, status: Int): Unit =
     stubFor(
       get(urlEqualTo(s"/agent-client-relationships/agent/$arn/service/HMRC-MTD-VAT/client/VRN/${vrn.value}"))

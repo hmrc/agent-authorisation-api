@@ -282,6 +282,7 @@ class AgentController @Inject() (
           } else whenNoActiveRelationshipFound
         )
     }
+
     val itsaService = agentType.map(_.service).getOrElse(AgentType.Main.service)
     checkPendingInvitationExists(
       whenNoPendingInvitationFound =
@@ -420,7 +421,7 @@ class AgentController @Inject() (
 
   private def checkRelationship(relationshipRequest: RelationshipRequest, arn: Arn)(implicit hc: HeaderCarrier) =
     relationshipRequest.service match {
-      case Itsa =>
+      case Itsa if relationshipRequest.agentType.getOrElse(AgentType.Main) == AgentType.Main =>
         val res = for {
           result <- relationshipsConnector.checkItsaRelationship(arn, Nino(relationshipRequest.clientId))
           _      <- ga("check-relationship", Some(relationshipRequest.service.toString))
@@ -428,9 +429,23 @@ class AgentController @Inject() (
         res.map {
           case true => NoContent
           case false =>
-            Logger(getClass).warn(s"No ITSA Relationship Found")
+            Logger(getClass).warn(s"No ITSA main Relationship Found")
             RelationshipNotFound
         }
+
+      // supporting
+      case Itsa =>
+        val res = for {
+          result <- relationshipsConnector.checkItsaSuppRelationship(arn, Nino(relationshipRequest.clientId))
+          _      <- ga("check-relationship", Some(MtdServie.MtdItSupp.id))
+        } yield result
+        res.map {
+          case true => NoContent
+          case false =>
+            Logger(getClass).warn(s"No ITSA supporting Relationship Found")
+            RelationshipNotFound
+        }
+
       case Vat =>
         val res = for {
           result <- relationshipsConnector.checkVatRelationship(arn, Vrn(relationshipRequest.clientId))
