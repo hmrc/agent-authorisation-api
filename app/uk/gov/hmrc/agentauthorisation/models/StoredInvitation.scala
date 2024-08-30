@@ -49,6 +49,8 @@ object StoredInvitation {
     case e                  => throw new RuntimeException(s"Unexpected Service has been passed through: $e")
   }
 
+  val fromServiceAndAgentType:  (String, String)
+
   val getAgentType: String => Option[AgentType] = {
     case "HMRC-MTD-IT"      => Some(AgentType.Main)
     case "HMRC-MTD-IT-SUPP" => Some(AgentType.Supporting)

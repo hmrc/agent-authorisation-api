@@ -18,7 +18,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
-import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
+import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, Vat}
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, AgentType, KnownFactCheckFailed, KnownFactCheckPassed, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -93,7 +93,7 @@ class InvitationsConnectorISpec extends BaseISpec {
         "NI",
         validPostcode
       )
-      val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ", Some("main"))
+      val agentInvitation = AgentInvitation(ItsaMain, personal, "ni", "AB123456A", "DH14EJ", Some("main"))
       val result = await(connector.createInvitation(arn, agentInvitation))
       result.get should include(invitationIdITSA.value)
     }
@@ -266,7 +266,7 @@ class InvitationsConnectorISpec extends BaseISpec {
   "getAllInvitationsForClient" should {
     "return non empty when invitations exist" in {
       givenOnlyPendingInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
-      val result = await(connector.getAllInvitationsForClient(arn, nino, Itsa.toString))
+      val result = await(connector.getAllInvitationsForClient(arn, nino, ItsaMain.toString))
 
       assert(result.nonEmpty)
     }
@@ -280,7 +280,7 @@ class InvitationsConnectorISpec extends BaseISpec {
 
     "return empty when invitations do not exist" in {
       givenNoInvitationsExistForClient(arn, Nino(nino), "HMRC-MTD-IT")
-      val result = await(connector.getAllInvitationsForClient(arn, nino, Itsa.toString))
+      val result = await(connector.getAllInvitationsForClient(arn, nino, ItsaMain.toString))
 
       assert(result.isEmpty)
     }

@@ -34,16 +34,8 @@ case class AgentInvitation(
   clientType: ClientType,
   clientIdType: String,
   clientId: String,
-  knownFact: String,
-  agentType: Option[String]
-) {
-  lazy val invitationService: Mtdservice = service match {
-    case Service.Itsa if agentType.getOrElse("main") == "main"       => Mtdservice.MtdIt
-    case Service.Itsa if agentType.getOrElse("main") == "supporting" => Mtdservice.MtdItSupp
-    case Service.Vat                                                 => Mtdservice.Vat
-    case _                                                           => Mtdservice.MtdIt
-  }
-}
+  knownFact: String
+)
 
 object CreateInvitationPayload {
 

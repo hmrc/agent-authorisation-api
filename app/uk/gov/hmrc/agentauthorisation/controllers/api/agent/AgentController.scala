@@ -27,7 +27,7 @@ import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.connectors.{InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
-import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
+import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{InvitationService, PlatformAnalyticsService, RelationshipService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
@@ -245,6 +245,8 @@ class AgentController @Inject() (
     successResult: => Future[Result]
   )(implicit hc: HeaderCarrier): Future[Result] = {
 
+    println(s">>>>>>>>agent type $agentType")
+
     val allInvitationsForClient: Future[Seq[StoredInvitation]] = for {
       mainInvitationsForClient <-
         invitationsConnector.getAllInvitationsForClient(arn, clientId, MtdServie.MtdIt.enrolmentKey)
@@ -271,10 +273,11 @@ class AgentController @Inject() (
         .flatMap(hasRelationship =>
           if (hasRelationship) {
             println(s">>>>>>>>>>>>>>>$hasRelationship")
+            println(s">>>>>>>>>>>>>>>>mtd service $mtdService")
             allInvitationsForClient.map(x => println(s">>>>>>>>>>>>>>>>>>$x"))
             allInvitationsForClient
               .flatMap(
-                _.filter(_.service == mtdService.id)
+                _.filter(_.service == "MTD-IT")
                   .find(x => x.status == "Accepted" || x.status == "Partialauth") match {
                   case Some(invitation) =>
                     Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
@@ -341,7 +344,7 @@ class AgentController @Inject() (
     successResult: => Future[Result]
   )(implicit hc: HeaderCarrier): Future[Result] =
     service match {
-      case Service.Itsa =>
+      case Service.ItsaMain =>
         checkForPendingInvitationOrActiveRelationshipITSA(arn, clientId, agentType)(successResult)
       case Service.Vat => checkForPendingInvitationOrActiveRelationshipVAT(arn, clientId)(successResult)
     }
@@ -415,7 +418,7 @@ class AgentController @Inject() (
     hc: HeaderCarrier
   ): Future[KnownFactCheckResult] =
     service match {
-      case Itsa =>
+      case ItsaMain =>
         invitationsConnector.checkPostcodeForClient(Nino(clientId), knownFact)
       case Vat =>
         invitationsConnector
@@ -424,7 +427,7 @@ class AgentController @Inject() (
 
   private def checkRelationship(relationshipRequest: RelationshipRequest, arn: Arn)(implicit hc: HeaderCarrier) =
     relationshipRequest.service match {
-      case Itsa if relationshipRequest.agentType.getOrElse(AgentType.Main) == AgentType.Main =>
+      case ItsaMain if relationshipRequest.agentType.getOrElse(AgentType.Main) == AgentType.Main =>
         val res = for {
           result <- relationshipsConnector.checkItsaRelationship(arn, Nino(relationshipRequest.clientId))
           _      <- ga("check-relationship", Some(relationshipRequest.service.toString))
@@ -437,7 +440,7 @@ class AgentController @Inject() (
         }
 
       // supporting
-      case Itsa =>
+      case ItsaMain =>
         val res = for {
           result <- relationshipsConnector.checkItsaSuppRelationship(arn, Nino(relationshipRequest.clientId))
           _      <- ga("check-relationship", Some(MtdServie.MtdItSupp.id))
@@ -535,7 +538,7 @@ object AgentController {
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
   private val supportedClientTypes: Map[Service, Seq[ClientType]] =
-    Map(Itsa -> Seq(personal), Vat -> Seq(personal, business))
+    Map(ItsaMain -> Seq(personal), Vat -> Seq(personal, business))
 
   private val supportedAgentTypes: Seq[String] =
     Seq("main", "supporting")
@@ -589,28 +592,28 @@ object AgentController {
 
   private def checkKnownFactValid(service: Service, knownFact: String): Boolean =
     service match {
-      case Itsa =>
+      case ItsaMain | ItsaSupp =>
         knownFact.matches(postcodeRegex)
       case Vat => validateDate(knownFact)
     }
 
   private def knownFactDoesNotMatch(service: Service) =
     service match {
-      case Itsa => PostcodeDoesNotMatch
+      case ItsaMain => PostcodeDoesNotMatch
       case Vat  => VatRegDateDoesNotMatch
     }
 
   private def knownFactFormatInvalid(service: Service) =
     service match {
-      case Itsa => PostcodeFormatInvalid
+      case ItsaMain => PostcodeFormatInvalid
       case Vat  => VatRegDateFormatInvalid
     }
 
   object ItsaInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, _) =>
-          Some(AgentInvitation(Itsa, personal, arg.clientIdType, arg.clientId, arg.knownFact, arg.agentType))
+        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", clientId, knownFact, None) =>
+          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact, Some()))
         case _ => None
       }
   }
@@ -637,7 +640,7 @@ object AgentController {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
       arg match {
         case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, agentType) =>
-          Some(RelationshipRequest(Itsa, arg.clientIdType, arg.clientId, arg.knownFact, agentType.map(AgentType(_))))
+          Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact, agentType.map(AgentType(_))))
         case _ => None
       }
   }

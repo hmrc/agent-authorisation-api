@@ -17,23 +17,27 @@
 package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.json._
-import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
+import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 
 sealed trait Service {
   override def toString: String = this match {
-    case Itsa => "HMRC-MTD-IT"
+    case ItsaMain => "HMRC-MTD-IT"
+    case ItsaSupp => "HMRC-MTD-IT-SUPP"
     case Vat  => "HMRC-MTD-VAT"
   }
 }
 
 object Service {
 
-  case object Itsa extends Service
+  case object ItsaMain extends Service
+
+  case object ItsaSupp extends Service
 
   case object Vat extends Service
 
   private def stringToService: String => Service = {
-    case "HMRC-MTD-IT"  => Itsa
+    case "HMRC-MTD-IT"  => ItsaMain
+    case "HMRC-MTD-IT-SUPP" => ItsaSupp
     case "HMRC-MTD-VAT" => Vat
     case alien          => throw new Exception(s"Service $alien not supported")
   }
