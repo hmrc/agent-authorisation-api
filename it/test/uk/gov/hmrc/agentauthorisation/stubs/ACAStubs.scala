@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.stubs
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
-import uk.gov.hmrc.agentauthorisation.models.AgentType
+import uk.gov.hmrc.agentauthorisation.models.{AgentType, Service}
 import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, WireMockSupport}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.{Nino, TaxIdentifier}
@@ -374,12 +374,12 @@ trait ACAStubs {
   def givenPendingInvitationsExist(
     arn: Arn,
     clientId: TaxIdentifier,
-    service: AgentType
+    service: Service
   ): StubMapping = {
     val body = service match {
-      case AgentType.Main =>
+      case Service.ItsaMain =>
         invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
-      case AgentType.Supporting =>
+      case Service.ItsaSupp =>
         invitation(arn, "Pending", "HMRC-MTD-IT-SUPP", "personal", "ni", clientId.value, "bar", "2020-10-10")
     }
 
@@ -387,7 +387,7 @@ trait ACAStubs {
       get(
         urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
       ).withQueryParam("clientId", equalTo(clientId.value))
-        .withQueryParam("service", equalTo(service.service.enrolmentKey))
+        .withQueryParam("service", equalTo(service.internalServiceName))
         .willReturn(
           aResponse()
             .withStatus(200)
@@ -411,8 +411,8 @@ trait ACAStubs {
 
   def givenOnlyAcceptedInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
     val body = service match {
-      case "HMRC-MTD-IT" =>
-        invitation(arn, "Accepted", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case "HMRC-MTD-IT" | "HMRC-MTD-IT-SUPP" =>
+        invitation(arn, "Accepted", service, "personal", "ni", clientId.value, "foo", "2020-10-10")
       case "HMRC-MTD-VAT" =>
         invitation(arn, "Accepted", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
     }

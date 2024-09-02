@@ -18,7 +18,6 @@ package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.agentmtdidentifiers.model.{Service => Mtdservice}
 
 case class CreateInvitationPayload(
   service: List[String],
@@ -64,22 +63,10 @@ object CreateInvitationPayload {
 
 object AgentInvitation {
 
-  // TODO WG - investigate why do we have those reads at all ??
-  implicit val reads: Reads[AgentInvitation] =
-    ((JsPath \ "service").read[Service] and
-      (JsPath \ "clientType").read[ClientType] and
-      (JsPath \ "clientIdType").read[String] and
-      (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
-      (JsPath \ "knownFact").read[String] and
-      (JsPath \ "agentType").readNullable[String])(
-      (service, clientType, clientIdType, clientId, knownFact, agentType) =>
-        AgentInvitation(service, clientType, clientIdType, clientId, knownFact, agentType)
-    )
-
   implicit val writes: Writes[AgentInvitation] = new Writes[AgentInvitation] {
     override def writes(o: AgentInvitation): JsValue =
       Json.obj(
-        "service"      -> o.invitationService.enrolmentKey,
+        "service"      -> o.service,
         "clientType"   -> o.clientType,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),

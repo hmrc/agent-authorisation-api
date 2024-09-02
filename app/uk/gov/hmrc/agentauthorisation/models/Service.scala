@@ -17,39 +17,49 @@
 package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.json._
-import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 
 sealed trait Service {
-  override def toString: String = this match {
-    case ItsaMain => "HMRC-MTD-IT"
-    case ItsaSupp => "HMRC-MTD-IT-SUPP"
-    case Vat  => "HMRC-MTD-VAT"
-  }
+  def agentType: Option[AgentType]
+  def externalServiceName: String
+  def internalServiceName: String
+
 }
 
 object Service {
 
-  case object ItsaMain extends Service
-
-  case object ItsaSupp extends Service
-
-  case object Vat extends Service
-
-  private def stringToService: String => Service = {
-    case "HMRC-MTD-IT"  => ItsaMain
+  def apply(internalServiceName: String): Service = internalServiceName match {
+    case "HMRC-MTD-IT"      => ItsaMain
     case "HMRC-MTD-IT-SUPP" => ItsaSupp
-    case "HMRC-MTD-VAT" => Vat
-    case alien          => throw new Exception(s"Service $alien not supported")
+    case "HMRC-MTD-VAT"     => Vat
+    case alien              => throw new RuntimeException(s"Unexpected Service has been passed through: $alien")
+  }
+
+  case object ItsaMain extends Service {
+    override def agentType: Option[AgentType] = Some(AgentType.Main)
+    override def internalServiceName: String = "HMRC-MTD-IT"
+    override def externalServiceName: String = "MTD-IT"
+  }
+
+  case object ItsaSupp extends Service {
+    override def agentType: Option[AgentType] = Some(AgentType.Supporting)
+    override def internalServiceName: String = "HMRC-MTD-IT-SUPP"
+    override def externalServiceName: String = "MTD-IT"
+  }
+
+  case object Vat extends Service {
+    override def agentType: Option[AgentType] = None
+    override def externalServiceName: String = "MTD-VAT"
+    override def internalServiceName: String = "HMRC-MTD-VAT"
   }
 
   implicit val reads: Reads[Service] = new Reads[Service] {
     override def reads(json: JsValue): JsResult[Service] = json match {
-      case JsString(name) => JsSuccess(stringToService(name))
+      case JsString(name) => JsSuccess(Service(name))
       case o              => JsError(s"Cannot parse service from $o, must be JsString.")
     }
   }
 
   implicit val writes: Writes[Service] = new Writes[Service] {
-    override def writes(service: Service): JsValue = JsString(service.toString)
+    override def writes(service: Service): JsValue = JsString(service.internalServiceName)
   }
 }

@@ -33,12 +33,14 @@ class RelationshipsConnectorISpec extends BaseISpec {
 
     "return true when a relationship exists" in {
       getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
+      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
       val result = await(connector.checkItsaRelationship(arn, validNino))
       result shouldBe true
     }
 
     "return false when a relationship is not found" in {
       getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
+      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
       val result = await(connector.checkItsaRelationship(arn, validNino))
       result shouldBe false
     }

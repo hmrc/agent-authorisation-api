@@ -54,7 +54,6 @@ class InvitationService @Inject() (invitationsConnector: InvitationsConnector) {
   ): Future[Option[Int]] =
     invitationsConnector.cancelInvitation(arn, invitationId)
 
-  // TODO WG - get all invitations
   def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext

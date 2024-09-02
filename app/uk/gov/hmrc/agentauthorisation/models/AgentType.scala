@@ -17,10 +17,9 @@
 package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.json._
-import uk.gov.hmrc.agentmtdidentifiers.model.{Service => MtdService}
 
 sealed trait AgentType {
-  def service: MtdService
+  def agentTypeName: String
 }
 
 object AgentType {
@@ -32,24 +31,15 @@ object AgentType {
     }
 
   final case object Main extends AgentType {
-    override def service: MtdService = MtdService.MtdIt
-    override def toString: String = "main"
+    override val agentTypeName: String = "main"
   }
 
   final case object Supporting extends AgentType {
-    override def service: MtdService = MtdService.MtdItSupp
-    override def toString: String = "supporting"
-  }
-
-  implicit val readsAgentType: Reads[AgentType] = new Reads[AgentType] {
-    override def reads(json: JsValue): JsResult[AgentType] = json match {
-      case JsString(name) => JsSuccess(AgentType(name))
-      case o              => JsError(s"Cannot parse agent type from $o, must be JsString.")
-    }
+    override val agentTypeName: String = "supporting"
   }
 
   implicit val writes: Writes[AgentType] = new Writes[AgentType] {
-    override def writes(agentType: AgentType): JsValue = JsString(agentType.toString)
+    override def writes(agentType: AgentType): JsValue = JsString(agentType.agentTypeName)
   }
 
 }

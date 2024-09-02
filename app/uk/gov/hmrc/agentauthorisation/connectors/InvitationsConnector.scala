@@ -162,7 +162,6 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
         .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
     }
 
-  // TODO WG -change
   def getAllInvitationsForClient(arn: Arn, clientId: String, serviceName: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext

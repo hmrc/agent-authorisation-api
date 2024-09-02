@@ -52,6 +52,5 @@ case class RelationshipRequest(
   service: Service,
   clientIdType: String,
   clientId: String,
-  knownFact: String,
-  agentType: Option[AgentType]
+  knownFact: String
 )
