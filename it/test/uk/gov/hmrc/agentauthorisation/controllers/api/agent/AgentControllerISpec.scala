@@ -142,9 +142,7 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 204 when invitation is successfully created for ITSA without an agentType" in {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
-      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
-      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
       givenPlatformAnalyticsEventWasSent()
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       createInvitationStub(
@@ -165,13 +163,14 @@ class AgentControllerISpec extends BaseISpec {
       header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
       verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+
     }
 
     "return 204 when invitation is successfully created for ITSA with a supporting agent" in {
-      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
-      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
       givenPlatformAnalyticsEventWasSent()
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       createInvitationStub(
@@ -193,13 +192,14 @@ class AgentControllerISpec extends BaseISpec {
       header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT-SUPP", None)
       verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT-SUPP"))
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+
     }
 
     "return 204 when invitation is successfully created for ITSA with a main agent" in {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
-      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
-      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
       givenPlatformAnalyticsEventWasSent()
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       createInvitationStub(
@@ -221,6 +221,9 @@ class AgentControllerISpec extends BaseISpec {
       header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
       verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+
     }
 
     "return 403 when request to create a main agent and there a pending invitation for main agent" in {
@@ -238,34 +241,66 @@ class AgentControllerISpec extends BaseISpec {
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
-    "return 403 when request to create a main agent and there a pending invitation for supporting agent" in {
+    "return 204 when request to create a main agent and there a pending invitation for supporting agent" in {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       givenPendingInvitationsExist(arn, validNino, Service.ItsaSupp)
+      getStatusRelationshipItsa(arn.value, validNino, 204, HMRCMTDIT)
 
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
 
-      val locationLink: String = "/agents/TARN0000001/invitations/bar"
-      val result: Future[Result] =
-        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+      createInvitationStub(
+        arn,
+        validNino.value,
+        invitationIdITSA,
+        validNino.value,
+        "ni",
+        "personal",
+        HMRCMTDIT,
+        "MTDITID",
+        validPostcode
+      )
 
-      status(result) shouldBe 403
-      await(result) shouldBe DuplicateAuthorisationRequest.withHeaders(LOCATION -> locationLink)
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      val result =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSAMainAgentType), arn.value))
+
+      status(result) shouldBe 204
+      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
+      verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+
     }
 
-    "return 403 when request to create a supporting agent and there a pending invitation for main agent" in {
+    "return 204 when request to create a supporting agent and there a pending invitation for main agent" in {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       givenPendingInvitationsExist(arn, validNino, Service.ItsaMain)
+      getStatusRelationshipItsa(arn.value, validNino, 204, HMRCMTDITSUPP)
 
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
 
-      val locationLink: String = "/agents/TARN0000001/invitations/foo"
-      val result: Future[Result] =
+      createInvitationStub(
+        arn,
+        validNino.value,
+        invitationIdITSA,
+        suppliedClientId = validNino.value,
+        suppliedClientType = "ni",
+        clientType = "personal",
+        service = HMRCMTDITSUPP,
+        serviceIdentifier = "MTDITID",
+        knownFact = validPostcode
+      )
+
+      val result =
         createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
 
-      status(result) shouldBe 403
-      await(result) shouldBe DuplicateAuthorisationRequest.withHeaders(LOCATION -> locationLink)
-      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      status(result) shouldBe 204
+      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT-SUPP", None)
+      verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT-SUPP"))
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+
     }
 
     "return 403 when request to create a supporting agent and there a pending invitation for supporting agent" in {
@@ -284,11 +319,8 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 403 when request to create a main agent and there an active main relationship" in {
-
-      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
-      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
 
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       val locationLink: String = "/agents/TARN0000001/invitations/foo"
@@ -298,6 +330,9 @@ class AgentControllerISpec extends BaseISpec {
       status(result) shouldBe 403
       await(result) shouldBe AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+
     }
 
     "return 204 when invitation is successfully created for ITSA with invalid agent" in {
@@ -524,10 +559,8 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 403 ALREADY_AUTHORISED when there is already an active relationship" in {
-      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
-      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
 
       val locationLink: String = "/agents/TARN0000001/invitations/foo"
@@ -537,6 +570,8 @@ class AgentControllerISpec extends BaseISpec {
       status(result) shouldBe 403
       await(result) shouldBe AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
     }
 
     "return 403 VAT_CLIENT_INSOLVENT when the VAT customer is insolvent" in {
@@ -573,10 +608,8 @@ class AgentControllerISpec extends BaseISpec {
 
     "return a future failed when the invitation creation failed for ITSA" in {
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
-      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
-      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
       failedCreateInvitation(arn)
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
 
@@ -593,6 +626,8 @@ class AgentControllerISpec extends BaseISpec {
           s"POST of '$wireMockBaseUrl/agent-client-authorisation/agencies/TARN0000001/invitations/sent' returned 400. Response body: ''"
         )
       )
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
     }
 
     "return a future failed when the invitation creation failed for VAT" in {
@@ -979,23 +1014,25 @@ class AgentControllerISpec extends BaseISpec {
 
       "return 204 when the relationship is active for ITSA" in {
         getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
-        getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
         givenPlatformAnalyticsEventWasSent()
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
         status(result) shouldBe 204
         verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-IT"))
+        verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+        verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
       }
 
       "return 204 when the relationship is active for ITSA supporting" in {
         getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDITSUPP)
-        getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
         givenPlatformAnalyticsEventWasSent()
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
         val result =
           checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
         status(result) shouldBe 204
         verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-IT-SUPP"))
+        verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+        verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
       }
 
       "return 204 when the relationship is active for VAT" in {
@@ -1009,12 +1046,13 @@ class AgentControllerISpec extends BaseISpec {
 
       "return 404 when the relationship is not found for ITSA" in {
         getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
-        getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
         givenPlatformAnalyticsEventWasSent()
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
         status(result) shouldBe 404
         verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-IT"))
+        verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+        verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
       }
 
       "return 404 when the relationship is not found for VAT" in {

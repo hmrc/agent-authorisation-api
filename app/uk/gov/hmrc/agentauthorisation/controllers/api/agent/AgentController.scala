@@ -241,57 +241,12 @@ class AgentController @Inject() (
       Future successful knownFactFormatInvalid(relationshipRequest.service)
     }
 
-  private def checkForPendingInvitationOrActiveRelationshipITSA(
-    arn: Arn,
-    clientId: String
-  )(
-    successResult: => Future[Result]
-  )(implicit hc: HeaderCarrier): Future[Result] = {
-
-    val allInvitationsForClientF: Future[Seq[StoredInvitation]] = for {
-      mainInvitationsForClient <-
-        invitationsConnector.getAllInvitationsForClient(arn, clientId, Service.ItsaMain.internalServiceName)
-      supportingInvitationsForClient <-
-        invitationsConnector.getAllInvitationsForClient(arn, clientId, Service.ItsaSupp.internalServiceName)
-    } yield (mainInvitationsForClient ++ supportingInvitationsForClient)
-
-    def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
-      allInvitationsForClientF
-        .flatMap(
-          _.find(_.status == "Pending") match {
-            case Some(invitation) =>
-              Future.successful(DuplicateAuthorisationRequest.withHeaders(LOCATION -> getLocationLink(arn, invitation)))
-            case None => whenNoPendingInvitationFound
-          }
-        )
-
-    def checkActiveRelationshipExists(
-      whenNoActiveRelationshipFound: => Future[Result]
-    ): Future[Result] =
-      (for {
-        hasItsaMainRelationship <- relationshipService.hasActiveRelationship(arn, clientId, Service.ItsaMain)
-        hasItsaSuppRelationship <- relationshipService.hasActiveRelationship(arn, clientId, Service.ItsaSupp)
-      } yield
-        if (hasItsaMainRelationship || hasItsaSuppRelationship) {
-          allInvitationsForClientF
-            .flatMap(_.find(x => x.status == "Accepted" || x.status == "Partialauth") match {
-              case Some(invitation) =>
-                Future.successful(AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation)))
-              case None => whenNoActiveRelationshipFound
-            })
-        } else whenNoActiveRelationshipFound).flatten
-
-    checkPendingInvitationExists(
-      whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
-    )
-  }
-
-  private def checkForPendingInvitationOrActiveRelationshipVAT(arn: Arn, clientId: String)(
+  private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
     successResult: => Future[Result]
   )(implicit hc: HeaderCarrier): Future[Result] = {
 
     val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
-      .getAllInvitationsForClient(arn, clientId, Service.Vat.internalServiceName)
+      .getAllInvitationsForClient(arn, clientId, service.internalServiceName)
 
     def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
       allInvitationsForClient
@@ -305,7 +260,7 @@ class AgentController @Inject() (
 
     def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] =
       relationshipService
-        .hasActiveRelationship(arn, clientId, Service.Vat)
+        .hasActiveRelationship(arn, clientId, service)
         .flatMap(hasRelationship =>
           if (hasRelationship) {
             allInvitationsForClient
@@ -323,19 +278,6 @@ class AgentController @Inject() (
       whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
     )
   }
-
-  private def checkForPendingInvitationOrActiveRelationship(
-    arn: Arn,
-    clientId: String,
-    service: Service
-  )(
-    successResult: => Future[Result]
-  )(implicit hc: HeaderCarrier): Future[Result] =
-    service match {
-      case Service.ItsaMain | Service.ItsaSupp =>
-        checkForPendingInvitationOrActiveRelationshipITSA(arn, clientId)(successResult)
-      case Service.Vat => checkForPendingInvitationOrActiveRelationshipVAT(arn, clientId)(successResult)
-    }
 
   private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(implicit
     hc: HeaderCarrier,

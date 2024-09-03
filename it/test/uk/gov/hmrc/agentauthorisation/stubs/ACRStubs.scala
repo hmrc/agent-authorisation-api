@@ -17,6 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalatest.concurrent.Eventually.eventually
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
 import uk.gov.hmrc.agentmtdidentifiers.model.Vrn
 import uk.gov.hmrc.domain.Nino
@@ -31,6 +32,19 @@ trait ACRStubs {
           aResponse()
             .withStatus(status)
         )
+    )
+
+  def verifyStatusRelationshipItsaEventWasSent(arn: String, nino: Nino, service: String) = eventually {
+    verify(
+      1,
+      getRequestedFor((urlEqualTo(s"/agent-client-relationships/agent/$arn/service/$service/client/NI/${nino.value}")))
+    )
+  }
+
+  def verifyNoStatusRelationshipItsaEventWasSent(arn: String, nino: Nino, service: String): Unit =
+    verify(
+      0,
+      getRequestedFor((urlEqualTo(s"/agent-client-relationships/agent/$arn/service/$service/client/NI/${nino.value}")))
     )
 
   def getStatusRelationshipVat(arn: String, vrn: Vrn, status: Int): Unit =
