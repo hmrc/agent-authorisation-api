@@ -60,7 +60,7 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
         "agentReferenceNumber" -> arn.value,
         "clientIdType"         -> agentInvitation.clientIdType,
         "clientId"             -> agentInvitation.clientId,
-        "service"              -> agentInvitation.service.toString
+        "service"              -> agentInvitation.service.internalServiceName
       ).filter(_._2.nonEmpty) ++ failure
         .map(e => Seq("failureDescription" -> e))
         .getOrElse(Seq.empty)

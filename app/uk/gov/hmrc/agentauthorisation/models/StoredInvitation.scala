@@ -18,13 +18,12 @@ package uk.gov.hmrc.agentauthorisation.models
 
 import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.time.format.DateTimeFormatter
-
 import play.api.libs.json._
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import play.api.libs.functional.syntax._
 
 trait Invitation {
-  val service: List[String]
+  val service: List[Service]
   val status: String
 }
 
@@ -35,18 +34,12 @@ case class StoredInvitation(
   updated: String,
   arn: Arn,
   clientType: Option[String],
-  service: String,
+  service: Service,
   status: String,
   clientActionUrl: Option[String]
 )
 
 object StoredInvitation {
-
-  val transformService: String => String = {
-    case "HMRC-MTD-IT"  => "MTD-IT"
-    case "HMRC-MTD-VAT" => "MTD-VAT"
-    case e              => throw new RuntimeException(s"Unexpected Service has been passed through: $e")
-  }
 
   // This is the published format for expiryDate in the API, even though it's a date not a datetime
   // Don't want to change this, since external software might be relying on this format
@@ -60,7 +53,7 @@ object StoredInvitation {
       (JsPath \ "lastUpdated").read[String] and
       (JsPath \ "arn").read[Arn] and
       (JsPath \ "clientType").readNullable[String] and
-      (JsPath \ "service").read[String].map(transformService) and
+      (JsPath \ "service").read[String] and
       (JsPath \ "status").read[String] and
       (JsPath \ "clientActionUrl")
         .readNullable[String])(
@@ -72,7 +65,7 @@ object StoredInvitation {
           updated,
           arn,
           clientType,
-          service,
+          Service(service),
           status,
           clientActionUrl
         )
@@ -98,7 +91,7 @@ case class PendingOrRespondedInvitation(
   _links: Links,
   created: String,
   arn: Arn,
-  service: List[String],
+  service: List[Service],
   status: String,
   expiresOn: Option[String],
   clientActionUrl: Option[String],
@@ -107,9 +100,19 @@ case class PendingOrRespondedInvitation(
 
 object PendingOrRespondedInvitation {
 
-  implicit val reads: Reads[PendingOrRespondedInvitation] = Json.reads[PendingOrRespondedInvitation]
-
-  implicit val writes: Writes[PendingOrRespondedInvitation] = Json.writes[PendingOrRespondedInvitation]
+  implicit val writesExternal: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
+    override def writes(o: PendingOrRespondedInvitation): JsValue =
+      Json.obj(
+        "_links"          -> o._links,
+        "created"         -> o.created,
+        "expiresOn"       -> o.expiresOn,
+        "arn"             -> o.arn.value,
+        "service"         -> o.service.map(_.externalServiceName),
+        "status"          -> o.status,
+        "clientActionUrl" -> o.clientActionUrl,
+        "updated"         -> o.updated
+      ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
+  }
 }
 
 case class PendingInvitation(
@@ -117,7 +120,7 @@ case class PendingInvitation(
   created: String,
   expiresOn: String,
   arn: Arn,
-  service: List[String],
+  service: List[Service],
   status: String,
   clientActionUrl: String
 ) extends Invitation
@@ -131,29 +134,18 @@ object PendingInvitation {
     case _ => None
   }
 
-  implicit val reads: Reads[PendingInvitation] =
-    ((JsPath \ "_links" \ "self" \ "href").read[String] and
-      (JsPath \ "created").read[String] and
-      (JsPath \ "expiresOn").read[String] and
-      (JsPath \ "arn").read[Arn] and
-      (JsPath \ "service").read[String] and
-      (JsPath \ "status").read[String] and
-      (JsPath \ "clientActionUrl")
-        .read[String])((selfLink, created, expiresOn, arn, service, status, clientActionUrl) =>
-      PendingInvitation(selfLink, created, expiresOn, arn, List(service), status, clientActionUrl)
-    )
+  implicit val writesExternal: Writes[PendingInvitation] = new Writes[PendingInvitation] {
 
-  implicit val writes: Writes[PendingInvitation] = new Writes[PendingInvitation] {
     override def writes(o: PendingInvitation): JsValue =
       Json.obj(
         "_links"          -> Json.obj("self" -> Json.obj("href" -> o.href)),
         "created"         -> o.created,
         "expiresOn"       -> o.expiresOn,
         "arn"             -> o.arn.value,
-        "service"         -> o.service,
+        "service"         -> o.service.map(_.externalServiceName),
         "status"          -> o.status,
         "clientActionUrl" -> o.clientActionUrl
-      )
+      ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
   }
 }
 
@@ -162,7 +154,7 @@ case class RespondedInvitation(
   created: String,
   updated: String,
   arn: Arn,
-  service: List[String],
+  service: List[Service],
   status: String
 ) extends Invitation
 
@@ -174,25 +166,15 @@ object RespondedInvitation {
     case _ => None
   }
 
-  implicit val read: Reads[RespondedInvitation] =
-    ((JsPath \ "_links" \ "self" \ "href").read[String] and
-      (JsPath \ "created").read[String] and
-      (JsPath \ "updated").read[String] and
-      (JsPath \ "arn").read[Arn] and
-      (JsPath \ "service").read[String] and
-      (JsPath \ "status").read[String])((href, created, updated, arn, service, status) =>
-      RespondedInvitation(href, created, updated, arn, List(service), status)
-    )
-
-  implicit val writes: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
+  implicit val writesExternal: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
     override def writes(o: RespondedInvitation): JsValue =
       Json.obj(
         "_links"  -> Json.obj("self" -> Json.obj("href" -> o.href)),
         "created" -> o.created,
         "updated" -> o.updated,
         "arn"     -> o.arn.value,
-        "service" -> o.service,
+        "service" -> o.service.map(_.externalServiceName),
         "status"  -> o.status
-      )
+      ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
   }
 }

@@ -16,14 +16,15 @@
 
 package uk.gov.hmrc.agentauthorisation.stubs
 
-import java.time.LocalDate
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
+import uk.gov.hmrc.agentauthorisation.models.{AgentType, Service}
 import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, WireMockSupport}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.{Nino, TaxIdentifier}
+
+import java.time.LocalDate
 
 trait ACAStubs {
   me: WireMockSupport with TestIdentifiers =>
@@ -163,6 +164,9 @@ trait ACAStubs {
   def givenGetITSAInvitationStub(arn: Arn, status: String): Unit =
     givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSA, status)
 
+  def givenGetITSASuppInvitationStub(arn: Arn, status: String): Unit =
+    givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSASupp, status)
+
   def givenGetVATInvitationStub(arn: Arn, status: String): Unit =
     givenGetAgentInvitationStub(arn, "business", "vrn", validVrn.value, invitationIdVAT, serviceVAT, status)
 
@@ -217,7 +221,7 @@ trait ACAStubs {
   def givenInvitationsServiceReturns(arn: Arn, invitations: Seq[String]): Unit =
     stubFor(
       get(urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
-        .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-VAT"))
+        .withQueryParam("service", equalTo("HMRC-MTD-IT,HMRC-MTD-IT-SUPP,HMRC-MTD-VAT"))
         .withQueryParam("createdOnOrAfter", equalTo(LocalDate.now.minusDays(30).toString))
         .willReturn(
           aResponse()
@@ -285,6 +289,8 @@ trait ACAStubs {
 
   val itsa: Arn => String = (arn: Arn) =>
     invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18")
+  val itsaSupp: Arn => String = (arn: Arn) =>
+    invitation(arn, "Pending", "HMRC-MTD-IT-SUPP", "personal", "ni", "AB123456A", "ABERULMHCKKW3", "2017-12-18")
   val vat: Arn => String = (arn: Arn) =>
     invitation(arn, "Pending", "HMRC-MTD-VAT", "business", "vrn", "101747696", "CZTW1KY6RTAAT", "2017-12-18")
   val irv: Arn => String = (arn: Arn) =>
@@ -333,6 +339,8 @@ trait ACAStubs {
     val body = service match {
       case "HMRC-MTD-IT" =>
         invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case "HMRC-MTD-IT-SUPP" =>
+        invitation(arn, "Pending", "HMRC-MTD-IT-SUPP", "personal", "ni", clientId.value, "foo", "2020-10-10")
       case "HMRC-MTD-VAT" =>
         invitation(arn, "Pending", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
     }
@@ -363,10 +371,48 @@ trait ACAStubs {
     )
   }
 
+  def givenPendingInvitationsExist(
+    arn: Arn,
+    clientId: TaxIdentifier,
+    service: Service
+  ): StubMapping = {
+    val body = service match {
+      case Service.ItsaMain =>
+        invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case Service.ItsaSupp =>
+        invitation(arn, "Pending", "HMRC-MTD-IT-SUPP", "personal", "ni", clientId.value, "bar", "2020-10-10")
+    }
+
+    stubFor(
+      get(
+        urlPathEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent")
+      ).withQueryParam("clientId", equalTo(clientId.value))
+        .withQueryParam("service", equalTo(service.internalServiceName))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(s"""{"_links": {
+        "invitations": [
+          {
+            "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent/AK77NLH3ETXM9"
+          }
+        ],
+        "self": {
+          "href": "/agent-client-authorisation/agencies/TARN0000001/invitations/sent"
+        }
+      },
+      "_embedded": {
+        "invitations": [$body]
+      }
+    }""".stripMargin)
+        )
+    )
+  }
+
   def givenOnlyAcceptedInvitationsExistForClient(arn: Arn, clientId: TaxIdentifier, service: String): StubMapping = {
     val body = service match {
-      case "HMRC-MTD-IT" =>
-        invitation(arn, "Accepted", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
+      case "HMRC-MTD-IT" | "HMRC-MTD-IT-SUPP" =>
+        invitation(arn, "Accepted", service, "personal", "ni", clientId.value, "foo", "2020-10-10")
       case "HMRC-MTD-VAT" =>
         invitation(arn, "Accepted", "HMRC-MTD-VAT", "personal", "vrn", clientId.value, "bar", "2020-10-10")
     }

@@ -48,6 +48,15 @@ object ErrorResults {
     )
   )
 
+  val UnsupportedAgentType: Result = BadRequest(
+    toJson(
+      ErrorBody(
+        "AGENT_TYPE_NOT_SUPPORTED",
+        "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
+      )
+    )
+  )
+
   val ClientIdDoesNotMatchService: Result = BadRequest(
     toJson(
       ErrorBody(

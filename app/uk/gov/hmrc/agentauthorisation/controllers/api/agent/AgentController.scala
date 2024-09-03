@@ -27,7 +27,7 @@ import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.connectors.{InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
-import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
+import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{InvitationService, PlatformAnalyticsService, RelationshipService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
@@ -78,6 +78,12 @@ class AgentController @Inject() (
                 checkKnownFactAndCreate(arn, invitation)
               }
             }
+          case Some(JsSuccess(CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(agentType)), _)) =>
+            Logger(getClass).warn(s"Unsupported Agent Type $agentType")
+            Future successful UnsupportedAgentType
+          case Some(JsSuccess(CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, Some(agentType)), _)) =>
+            Logger(getClass).warn(s"agentType: $agentType is not supported for VAT")
+            Future successful InvalidPayload
           case Some(JsSuccess(s, _)) =>
             Logger(getClass).warn(s"Unsupported service received: ${s.service.mkString("[", ",", "]")}")
             Future successful UnsupportedService
@@ -91,6 +97,7 @@ class AgentController @Inject() (
             Future successful InvalidPayload
         }
       }
+
     }
   }
 
@@ -106,7 +113,7 @@ class AgentController @Inject() (
                 val id = pendingInv.get.href.toString.split("/").to(LazyList).last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
-                ga("get-authorisation-request", pendingInvitation.service.headOption)
+                ga("get-authorisation-request", pendingInvitation.service.headOption.map(_.internalServiceName))
                 Ok(
                   toJson(
                     pendingInvitation
@@ -118,10 +125,10 @@ class AgentController @Inject() (
                 Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
                 UnsupportedService
               case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
-                val id = respondedInv.get.href.toString.split("/").to(LazyList).last
+                val id = respondedInv.get.href.split("/").to(LazyList).last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
-                ga("get-authorisation-request", respondedInvitation.service.headOption)
+                ga("get-authorisation-request", respondedInvitation.service.headOption.map(_.internalServiceName))
                 Ok(
                   toJson(respondedInvitation.copy(href = newInvitationUrl))
                     .as[JsObject]
@@ -183,7 +190,7 @@ class AgentController @Inject() (
       forThisAgency(givenArn) {
         val invitationResponse = request.body.asJson match {
           case Some(json) => json.as[CheckRelationshipPayload]
-          case None       => CheckRelationshipPayload(List.empty, "", "", "")
+          case None       => CheckRelationshipPayload(List.empty, "", "", "", None)
         }
         invitationResponse match {
           case RelationshipItsaRequest(relationship) =>
@@ -194,6 +201,12 @@ class AgentController @Inject() (
             validateVrn(relationship.clientId) {
               checkKnownFactAndRelationship(arn, relationship)
             }
+          case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(agentType)) =>
+            Logger(getClass).warn(s"Unsupported Agent Type $agentType")
+            Future successful UnsupportedAgentType
+          case CheckRelationshipPayload(List("MTD-VAT"), "vrn", _, _, Some(agentType)) =>
+            Logger(getClass).warn(s"agentType: $agentType is not supported for VAT")
+            Future successful InvalidPayload
           case s =>
             Logger(getClass).warn(s"Unsupported service received: ${s.service}")
             Future successful UnsupportedService
@@ -233,7 +246,7 @@ class AgentController @Inject() (
   )(implicit hc: HeaderCarrier): Future[Result] = {
 
     val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
-      .getAllInvitationsForClient(arn, clientId, service)
+      .getAllInvitationsForClient(arn, clientId, service.internalServiceName)
 
     def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
       allInvitationsForClient
@@ -278,7 +291,11 @@ class AgentController @Inject() (
         agentInvitation.knownFact
       ).flatMap {
         case KnownFactCheckPassed =>
-          checkForPendingInvitationOrActiveRelationship(arn, agentInvitation.clientId, agentInvitation.service)(
+          checkForPendingInvitationOrActiveRelationship(
+            arn,
+            agentInvitation.clientId,
+            agentInvitation.service
+          )(
             successResult = invitationService
               .createInvitation(arn, agentInvitation)
               .flatMap { invitationId =>
@@ -286,7 +303,7 @@ class AgentController @Inject() (
                   .getInvitationApi(arn, InvitationId(invitationId))
                   .url
                 auditService.sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, "Success")
-                ga("create-authorisation-request", Some(agentInvitation.service.toString))
+                ga("create-authorisation-request", Some(agentInvitation.service.internalServiceName))
                 Future successful NoContent.withHeaders(LOCATION -> locationLink)
               }
               .recoverWith { case e =>
@@ -330,7 +347,7 @@ class AgentController @Inject() (
     hc: HeaderCarrier
   ): Future[KnownFactCheckResult] =
     service match {
-      case Itsa =>
+      case ItsaMain | ItsaSupp =>
         invitationsConnector.checkPostcodeForClient(Nino(clientId), knownFact)
       case Vat =>
         invitationsConnector
@@ -339,21 +356,34 @@ class AgentController @Inject() (
 
   private def checkRelationship(relationshipRequest: RelationshipRequest, arn: Arn)(implicit hc: HeaderCarrier) =
     relationshipRequest.service match {
-      case Itsa =>
+      case ItsaMain =>
         val res = for {
           result <- relationshipsConnector.checkItsaRelationship(arn, Nino(relationshipRequest.clientId))
-          _      <- ga("check-relationship", Some(relationshipRequest.service.toString))
+          _      <- ga("check-relationship", Some(relationshipRequest.service.internalServiceName))
         } yield result
         res.map {
           case true => NoContent
           case false =>
-            Logger(getClass).warn(s"No ITSA Relationship Found")
+            Logger(getClass).warn(s"No ITSA main Relationship Found")
             RelationshipNotFound
         }
+
+      case ItsaSupp =>
+        val res = for {
+          result <- relationshipsConnector.checkItsaSuppRelationship(arn, Nino(relationshipRequest.clientId))
+          _      <- ga("check-relationship", Some(relationshipRequest.service.internalServiceName))
+        } yield result
+        res.map {
+          case true => NoContent
+          case false =>
+            Logger(getClass).warn(s"No ITSA supporting Relationship Found")
+            RelationshipNotFound
+        }
+
       case Vat =>
         val res = for {
           result <- relationshipsConnector.checkVatRelationship(arn, Vrn(relationshipRequest.clientId))
-          _      <- ga("check-relationship", Some(relationshipRequest.service.toString))
+          _      <- ga("check-relationship", Some(relationshipRequest.service.internalServiceName))
         } yield result
         res.map {
           case true => NoContent
@@ -434,7 +464,7 @@ object AgentController {
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
   private val supportedClientTypes: Map[Service, Seq[ClientType]] =
-    Map(Itsa -> Seq(personal), Vat -> Seq(personal, business))
+    Map(ItsaMain -> Seq(personal), ItsaSupp -> Seq(personal), Vat -> Seq(personal, business))
 
   private def validateClientType(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
     if (supportedClientTypes(agentInvitation.service).contains(agentInvitation.clientType)) body
@@ -478,28 +508,39 @@ object AgentController {
 
   private def checkKnownFactValid(service: Service, knownFact: String): Boolean =
     service match {
-      case Itsa =>
+      case ItsaMain | ItsaSupp =>
         knownFact.matches(postcodeRegex)
       case Vat => validateDate(knownFact)
     }
 
   private def knownFactDoesNotMatch(service: Service) =
     service match {
-      case Itsa => PostcodeDoesNotMatch
-      case Vat  => VatRegDateDoesNotMatch
+      case ItsaMain | ItsaSupp => PostcodeDoesNotMatch
+      case Vat                 => VatRegDateDoesNotMatch
     }
 
   private def knownFactFormatInvalid(service: Service) =
     service match {
-      case Itsa => PostcodeFormatInvalid
-      case Vat  => VatRegDateFormatInvalid
+      case ItsaMain | ItsaSupp => PostcodeFormatInvalid
+      case Vat                 => VatRegDateFormatInvalid
     }
 
   object ItsaInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _) =>
-          Some(AgentInvitation(Itsa, personal, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, None) =>
+          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(AgentType.Main.agentTypeName)) =>
+          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CreateInvitationPayload(
+              List("MTD-IT"),
+              "personal",
+              "ni",
+              _,
+              _,
+              Some(AgentType.Supporting.agentTypeName)
+            ) =>
+          Some(AgentInvitation(ItsaSupp, personal, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }
@@ -507,7 +548,7 @@ object AgentController {
   object VatInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
-        case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _) =>
+        case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, None) =>
           Some(
             AgentInvitation(
               Vat,
@@ -524,8 +565,18 @@ object AgentController {
   object RelationshipItsaRequest {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
       arg match {
-        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _) =>
-          Some(RelationshipRequest(Itsa, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, None) =>
+          Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(AgentType.Main.agentTypeName)) =>
+          Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CheckRelationshipPayload(
+              List("MTD-IT"),
+              "ni",
+              _,
+              _,
+              Some(AgentType.Supporting.agentTypeName)
+            ) =>
+          Some(RelationshipRequest(ItsaSupp, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }
@@ -533,7 +584,7 @@ object AgentController {
   object RelationshipVatRequest {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
       arg match {
-        case CheckRelationshipPayload(List("MTD-VAT"), "vrn", _, _) =>
+        case CheckRelationshipPayload(List("MTD-VAT"), "vrn", _, _, _) =>
           Some(RelationshipRequest(Vat, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }

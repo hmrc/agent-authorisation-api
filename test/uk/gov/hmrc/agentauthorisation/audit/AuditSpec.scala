@@ -25,7 +25,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
-import uk.gov.hmrc.agentauthorisation.models.Service.{Itsa, Vat}
+import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, Vat}
 import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, RequestId, SessionId}
@@ -50,7 +50,7 @@ class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
       val arn: Arn = Arn("HX2345")
       val agentInvitation: AgentInvitation =
-        AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ")
+        AgentInvitation(ItsaMain, personal, "ni", "AB123456A", "DH14EJ")
       val invitationId: String = "1"
       val result: String = "Success"
 

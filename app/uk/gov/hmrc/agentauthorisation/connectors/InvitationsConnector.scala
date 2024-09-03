@@ -65,13 +65,13 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
 
   private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
     new URL(
-      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
+      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-IT-SUPP,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
         .format(isoDateFormat)}"
     )
 
-  private[connectors] def getAllInvitationsForClientUrl(arn: Arn, clientId: String, service: Service): URL =
+  private[connectors] def getAllInvitationsForClientUrl(arn: Arn, clientId: String, serviceName: String): URL =
     new URL(
-      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?clientId=$clientId&service=${service.toString}"
+      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?clientId=$clientId&service=$serviceName"
     )
 
   def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(implicit
@@ -162,12 +162,12 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
         .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
     }
 
-  def getAllInvitationsForClient(arn: Arn, clientId: String, service: Service)(implicit
+  def getAllInvitationsForClient(arn: Arn, clientId: String, serviceName: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Seq[StoredInvitation]] =
     monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {
-      val url = getAllInvitationsForClientUrl(arn, clientId, service)
+      val url = getAllInvitationsForClientUrl(arn, clientId, serviceName)
       httpClient
         .GET[JsObject](url.toString)
         .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])

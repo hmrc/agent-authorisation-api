@@ -28,6 +28,7 @@ trait TestIdentifiers {
 
   val mtdItId = MtdItId("ABCDEF123456789")
   val serviceITSA = "HMRC-MTD-IT"
+  val serviceITSASupp = "HMRC-MTD-IT-SUPP"
   val validPostcode = "DH14EJ"
   val invitationIdITSA = InvitationId("ABERULMHCKKW3")
   val identifierITSA = "MTDITID"
