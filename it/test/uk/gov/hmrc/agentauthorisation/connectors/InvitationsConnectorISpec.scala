@@ -18,7 +18,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
-import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, Vat}
+import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, KnownFactCheckFailed, KnownFactCheckPassed, Service, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
@@ -95,22 +95,22 @@ class InvitationsConnectorISpec extends BaseISpec {
       result.get should include(invitationIdITSA.value)
     }
 
-//    "return a Invitation Id upon success for ITSA supporting" in {
-//      createInvitationStub(
-//        arn,
-//        validNino.value,
-//        invitationIdITSA,
-//        validNino.value,
-//        "ni",
-//        "personal",
-//        "HMRC-MTD-IT-SUPP",
-//        "NI",
-//        validPostcode
-//      )
-//      val agentInvitation = AgentInvitation(Itsa, personal, "ni", "AB123456A", "DH14EJ", Some("supporting"))
-//      val result = await(connector.createInvitation(arn, agentInvitation))
-//      result.get should include(invitationIdITSA.value)
-//    }
+    "return a Invitation Id upon success for ITSA supporting" in {
+      createInvitationStub(
+        arn,
+        validNino.value,
+        invitationIdITSA,
+        validNino.value,
+        "ni",
+        "personal",
+        "HMRC-MTD-IT-SUPP",
+        "NI",
+        validPostcode
+      )
+      val agentInvitation = AgentInvitation(ItsaSupp, personal, "ni", "AB123456A", "DH14EJ")
+      val result = await(connector.createInvitation(arn, agentInvitation))
+      result.get should include(invitationIdITSA.value)
+    }
 
     "return a Invitation Id upon success for VAT" in {
       createInvitationStub(
