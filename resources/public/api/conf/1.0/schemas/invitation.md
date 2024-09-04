@@ -7,17 +7,18 @@
 
 #  Properties
 
-| Property | Type | Required | Defined by |
-|----------|------|----------|------------|
-| [_links](#_links) | `object` | **Required** |  (this schema) |
-| [arn](#arn) | `string` | **Required** |  (this schema) |
+| Property                            | Type | Required | Defined by |
+|-------------------------------------|------|----------|------------|
+| [_links](#_links)                   | `object` | **Required** |  (this schema) |
+| [arn](#arn)                         | `string` | **Required** |  (this schema) |
 | [clientActionUrl](#clientactionurl) | `string` | Optional |  (this schema) |
-| [created](#created) | `string` | **Required** |  (this schema) |
-| [expiresOn](#expireson) | `string` | Optional |  (this schema) |
-| [service](#service) | reference | **Required** |  (this schema) |
-| [status](#status) | `string` | **Required** |  (this schema) |
-| [updated](#updated) | `string` | Optional |  (this schema) |
-| `*` | any | Additional | this schema *allows* additional properties |
+| [created](#created)                 | `string` | **Required** |  (this schema) |
+| [expiresOn](#expireson)             | `string` | Optional |  (this schema) |
+| [service](#service)                 | reference | **Required** |  (this schema) |
+| [status](#status)                   | `string` | **Required** |  (this schema) |
+| [updated](#updated)                 | `string` | Optional |  (this schema) |
+| [agentType](#agentType)             | `string` | Optional |  (this schema) |
+| `*`                                 | any | Additional | this schema *allows* additional properties |
 
 ## _links
 
@@ -203,6 +204,15 @@ Update time of the request (RFC3339 / ISO8601 format)
 `string`
 
 
+
+## agentType
+
+The type of agent (main or supporting) for MTD-IT relationships only
+
+`agentType`
+* is optional
+* type: `string`
+* defined in this schema
 
 
 

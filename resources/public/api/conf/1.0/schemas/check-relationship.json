@@ -27,6 +27,20 @@
           "type": "string",
           "pattern": "^([A-Za-z][A-Za-z]\\d\\d|[A-Za-z][A-Za-z]\\d|[A-Za-z]\\d|[A-Za-z]\\d\\d|[A-Za-z]\\d[A-Za-z]|[A-Za-z]{2}\\d[A-Za-z]) {0,1}\\d[A-Za-z]{2}$",
           "description" : "Postcode"
+        },
+        "agentType": {
+          "type": "string",
+          "description": "The type of agent defaults to main if this field is not provided for MTD-IT",
+          "oneOf": [
+            {
+              "enum": [ "main" ],
+              "description": "The agent is the main agent for the client for MTD-IT"
+            },
+            {
+              "enum": [ "supporting" ],
+              "description": "The agent is a supporting agent for the client for MTD-IT"
+            }
+          ]
         }
       }
     },

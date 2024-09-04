@@ -81,6 +81,20 @@
     "clientActionUrl": {
       "type": "string",
       "description": "Link for the client to authorise/reject this agent's invitation."
+    },
+    "agentType": {
+      "type": "string",
+      "description": "Only used for MTD-IT agents",
+      "oneOf": [
+        {
+          "enum": [ "main" ],
+          "description": "The agent is the main agent for the client"
+        },
+        {
+          "enum": [ "supporting" ],
+          "description": "The agent is a supporting agent for the client"
+        }
+      ]
     }
   },
   "required": [

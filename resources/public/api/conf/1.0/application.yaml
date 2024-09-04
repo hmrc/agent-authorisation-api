@@ -244,6 +244,9 @@ components:
             unsupportedContentType:
               value:
                $ref: './examples/errors/badReq_unsupportedContentType.json'
+            unsupportedAgentType:
+              value:
+                $ref: './examples/errors/badReq_unsupportedAgentType.json'
             badRequest:
               value:
                $ref: './examples/errors/badReq.json'
@@ -278,6 +281,9 @@ components:
             unsupportedContentType:
               value:
                 $ref: './examples/errors/badReq_unsupportedContentType.json'
+            unsupportedAgentType:
+              value:
+                $ref: './examples/errors/badReq_unsupportedAgentType.json'
             badRequest:
               value:
                 $ref: './examples/errors/badReq.json'
@@ -325,6 +331,9 @@ components:
             unsupportedContentType:
               value:
                $ref: './examples/errors/badReq_unsupportedContentType.json'
+            unsupportedAgentType:
+              value:
+                $ref: './examples/errors/badReq_unsupportedAgentType.json'
             badRequest:
               value:
                $ref: './examples/errors/badReq.json'
@@ -339,8 +348,8 @@ components:
       required:
         - code
         - message
-    AgentsInvitationsRequest:
-      title: Agent Invitation Request
+    AgentsInvitationsITSARequest:
+      title: Agent Invitation Request for MTD-IT
       required:
         - service
         - clientType
@@ -350,25 +359,50 @@ components:
       type: object
       properties:
         service:
-          oneOf:
-            - $ref: '#/components/schemas/VATService'
+          allOf:
             - $ref: '#/components/schemas/ITSAService'
+        clientType:
+          allOf:
+            - $ref: '#/components/schemas/ClientTypePersonal'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeNI'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdNINO'
+        knownFact:
+          allOf:
+            - $ref: '#/components/schemas/KnownFactPostcode'
+        agentType:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
+    AgentsInvitationsVATRequest:
+      title: Agent Invitation Request for VAT
+      required:
+        - service
+        - clientType
+        - clientIdType
+        - clientId
+        - knownFact
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/VATService'
         clientType:
           oneOf:
             - $ref: '#/components/schemas/ClientTypePersonal'
             - $ref: '#/components/schemas/ClientTypeBusiness'
         clientIdType:
-          oneOf:
-            - $ref: '#/components/schemas/ClientIdTypeNI'
+          allOf:
             - $ref: '#/components/schemas/ClientIdTypeVRN'
         clientId:
-          oneOf:
-            - $ref: '#/components/schemas/ClientIdNINO'
+          allOf:
             - $ref: '#/components/schemas/ClientIdVAT'
         knownFact:
-          oneOf:
-            - $ref: '#/components/schemas/KnownFactPostcode'
+          allOf:
             - $ref: '#/components/schemas/KnownFactRegistrationDate'
+
     ClientIdTypeNI:
       title: ni
       type: string
@@ -391,6 +425,15 @@ components:
       title: VAT registration date
       type: string
       format: date
+    AgentType:
+      title: Agent type
+      nullable: true
+      type: string
+      enum: [
+        "main",
+        "supporting"
+      ]
+      description: Only MTD-IT supports this field. Defaults to "main" if omitted.
 
     AgentsInvitationsresponse:
       title: AgentsInvitationsresponse
@@ -445,6 +488,9 @@ components:
           type: string
           description: Link for the client to authorise/reject this agent's invitation.
           format: uri
+        agentType:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
     VATService:
       title: MTD-VAT
       type: string
@@ -499,11 +545,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentsInvitationsRequest'
+              oneOf:
+                - $ref: '#/components/schemas/AgentsInvitationsITSARequest'
+                - $ref: '#/components/schemas/AgentsInvitationsVATRequest'
             examples:
               example-ITSA:
                 value:
-                  $ref: './examples/post-agency-invitations-example.json'
+                  $ref: './examples/post-agency-invitations-itsa-example.json'
+              example-ITSA-main:
+                value:
+                  $ref: './examples/post-agency-invitations-itsa-main-example.json'
+              example-ITSA-supporting:
+                value:
+                  $ref: './examples/post-agency-invitations-itsa-supp-example.json'
               example-VAT:
                 value:
                   $ref: './examples/post-agency-invitations-vat-example.json'
@@ -652,11 +706,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentsInvitationsRequest'
+              oneOf:
+                - $ref: '#/components/schemas/AgentsInvitationsVATRequest'
+                - $ref: '#/components/schemas/AgentsInvitationsITSARequest'
             examples:
               example-ITSA:
                 value:
                   $ref: './examples/post-agency-check-relationship-itsa-example.json'
+              example-ITSA-main:
+                value:
+                  $ref: './examples/post-agency-check-relationship-itsa-main-example.json'
+              example-ITSA-supporting:
+                value:
+                  $ref: './examples/post-agency-check-relationship-itsa-supp-example.json'
               example-VAT:
                 value:
                   $ref: './examples/post-agency-check-relationship-vat-example.json'
