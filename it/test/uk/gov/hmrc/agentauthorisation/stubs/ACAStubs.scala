@@ -376,12 +376,8 @@ trait ACAStubs {
     clientId: TaxIdentifier,
     service: Service
   ): StubMapping = {
-    val body = service match {
-      case Service.ItsaMain =>
-        invitation(arn, "Pending", "HMRC-MTD-IT", "personal", "ni", clientId.value, "foo", "2020-10-10")
-      case Service.ItsaSupp =>
-        invitation(arn, "Pending", "HMRC-MTD-IT-SUPP", "personal", "ni", clientId.value, "bar", "2020-10-10")
-    }
+    val body =
+      invitation(arn, "Pending", service.internalServiceName, "personal", "ni", clientId.value, "foo", "2020-10-10")
 
     stubFor(
       get(

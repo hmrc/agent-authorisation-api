@@ -241,7 +241,7 @@ class AgentController @Inject() (
       Future successful knownFactFormatInvalid(relationshipRequest.service)
     }
 
-  private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
+  private def checkForPendingVatInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
     successResult: => Future[Result]
   )(implicit hc: HeaderCarrier): Future[Result] = {
 
@@ -277,6 +277,62 @@ class AgentController @Inject() (
     checkPendingInvitationExists(
       whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
     )
+  }
+
+  private def checkForPendingItsaInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
+    successResult: => Future[Result]
+  )(implicit hc: HeaderCarrier): Future[Result] = {
+
+    val otherItsaService = if (service == Service.ItsaMain) Service.ItsaSupp else Service.ItsaMain
+
+    val allInvitationsForClientForServiceF: Future[Seq[StoredInvitation]] = invitationsConnector
+      .getAllInvitationsForClient(arn, clientId, service.internalServiceName)
+
+    val allInvitationsForClientForOtherServiceF: Future[Seq[StoredInvitation]] = invitationsConnector
+      .getAllInvitationsForClient(arn, clientId, otherItsaService.internalServiceName)
+
+    def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
+      for {
+        allInvitationsForClientForService      <- allInvitationsForClientForServiceF
+        allInvitationsForClientForOtherService <- allInvitationsForClientForOtherServiceF
+        allInvitationsForClient = allInvitationsForClientForService ++ allInvitationsForClientForOtherService
+        allPendingInvitationsForClient <- allInvitationsForClient.find(_.status == "Pending") match {
+                                            case Some(invitation) =>
+                                              Future successful DuplicateAuthorisationRequest.withHeaders(
+                                                LOCATION -> getLocationLink(arn, invitation)
+                                              )
+                                            case None => whenNoPendingInvitationFound
+                                          }
+
+      } yield allPendingInvitationsForClient
+
+    def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] =
+      relationshipService
+        .hasActiveRelationship(arn, clientId, service)
+        .flatMap(hasRelationship =>
+          if (hasRelationship) {
+            allInvitationsForClientForServiceF
+              .flatMap(
+                _.find(_.status == "Accepted") match {
+                  case Some(invitation) =>
+                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
+                  case None => whenNoActiveRelationshipFound
+                }
+              )
+          } else whenNoActiveRelationshipFound
+        )
+
+    checkPendingInvitationExists(
+      whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
+    )
+  }
+
+  private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
+    successResult: => Future[Result]
+  )(implicit hc: HeaderCarrier): Future[Result] = service match {
+    case Service.ItsaMain | Service.ItsaSupp =>
+      checkForPendingItsaInvitationOrActiveRelationship(arn, clientId, service)(successResult)
+    case Service.Vat => checkForPendingVatInvitationOrActiveRelationship(arn, clientId, service)(successResult)
   }
 
   private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(implicit
