@@ -245,7 +245,7 @@ class AgentControllerISpec extends BaseISpec {
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
-    "return 204 when request to create a main agent and there a pending invitation for supporting agent" in {
+    "return 403 when request to create a main agent and there a pending invitation for supporting agent" in {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       givenPendingInvitationsExist(arn, validNino, Service.ItsaSupp)
       givenPendingInvitationsExist(arn, validNino, Service.ItsaMain)
@@ -315,7 +315,41 @@ class AgentControllerISpec extends BaseISpec {
 
     }
 
-    "return 204 when invitation is successfully created for ITSA with invalid agent" in {
+    "return 403 when request to create a main agent and there an active relationship and no invitation" in {
+      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
+      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
+      getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
+
+      givenMatchingClientIdAndPostcode(validNino, validPostcode)
+      val result: Future[Result] =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+
+      status(result) shouldBe 403
+      await(result) shouldBe AlreadyAuthorised
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+
+    }
+
+    "return 403 when request to create a supporting agent and there an active relationship and no invitation" in {
+      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
+      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
+      getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDITSUPP)
+
+      givenMatchingClientIdAndPostcode(validNino, validPostcode)
+      val result: Future[Result] =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
+
+      status(result) shouldBe 403
+      await(result) shouldBe AlreadyAuthorised
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+
+    }
+
+    "return 400 when invitation is successfully created for ITSA with invalid agent" in {
       val result =
         createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSAInvalidAgentType), arn.value))
 
@@ -526,7 +560,6 @@ class AgentControllerISpec extends BaseISpec {
 
     "return 403 DUPLICATE_AUTHORISATION_REQUEST when there is already a pending invitation" in {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
-      // TODO WG - there is another pending function to use
       givenOnlyPendingInvitationsExistForClient(arn, validNino, "HMRC-MTD-IT")
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
 

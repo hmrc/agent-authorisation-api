@@ -316,7 +316,7 @@ class AgentController @Inject() (
                 _.find(_.status == "Accepted") match {
                   case Some(invitation) =>
                     Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
-                  case None => whenNoActiveRelationshipFound
+                  case None => Future successful AlreadyAuthorised
                 }
               )
           } else whenNoActiveRelationshipFound
