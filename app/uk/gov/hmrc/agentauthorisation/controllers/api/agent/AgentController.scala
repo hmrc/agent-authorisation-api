@@ -319,7 +319,16 @@ class AgentController @Inject() (
                   case None => Future successful AlreadyAuthorised
                 }
               )
-          } else whenNoActiveRelationshipFound
+          } else {
+            allInvitationsForClientForServiceF
+              .flatMap(
+                _.find(_.status == "Partialauth") match {
+                  case Some(invitation) =>
+                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
+                  case None => whenNoActiveRelationshipFound
+                }
+              )
+          }
         )
 
     checkPendingInvitationExists(

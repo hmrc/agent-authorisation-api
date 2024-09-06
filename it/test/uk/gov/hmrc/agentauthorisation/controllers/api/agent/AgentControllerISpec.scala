@@ -297,8 +297,8 @@ class AgentControllerISpec extends BaseISpec {
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
     }
 
-    "return 403 when request to create a main agent and there an active main relationship" in {
-      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDIT)
+    "return 403 when request to create ITSA main agent invitation and there an active main relationship" in {
+      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDIT, "Accepted")
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
 
@@ -312,6 +312,24 @@ class AgentControllerISpec extends BaseISpec {
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
       verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
       verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+
+    }
+
+    "return 403 when request to create ITSA  supporting agent invitation and there an active supporting relationship" in {
+      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP, "Accepted")
+      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
+      getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDITSUPP)
+
+      givenMatchingClientIdAndPostcode(validNino, validPostcode)
+      val locationLink: String = "/agents/TARN0000001/invitations/foo"
+      val result: Future[Result] =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
+
+      status(result) shouldBe 403
+      await(result) shouldBe AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
 
     }
 
@@ -343,6 +361,42 @@ class AgentControllerISpec extends BaseISpec {
 
       status(result) shouldBe 403
       await(result) shouldBe AlreadyAuthorised
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+
+    }
+
+    "return 403 when request to create ITSA main agent invitation and there an active Alt main invitation Partialauth" in {
+      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDIT, "Partialauth")
+      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
+      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
+
+      givenMatchingClientIdAndPostcode(validNino, validPostcode)
+      val locationLink: String = "/agents/TARN0000001/invitations/foo"
+      val result: Future[Result] =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+
+      status(result) shouldBe 403
+      await(result) shouldBe AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
+      verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
+      verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
+      verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
+
+    }
+
+    "return 403 when request to create ITSA supporting agent invitation and there an active Alt supporting invitation Partialauth" in {
+      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP, "Partialauth")
+      givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
+      getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
+
+      givenMatchingClientIdAndPostcode(validNino, validPostcode)
+      val locationLink: String = "/agents/TARN0000001/invitations/foo"
+      val result: Future[Result] =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
+
+      status(result) shouldBe 403
+      await(result) shouldBe AlreadyAuthorised.withHeaders(LOCATION -> locationLink)
       verifyAuditRequestNotSent(AgentAuthorisationEvent.agentAuthorisationCreatedViaApi)
       verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
       verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
@@ -573,7 +627,7 @@ class AgentControllerISpec extends BaseISpec {
     }
 
     "return 403 ALREADY_AUTHORISED when there is already an active relationship" in {
-      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDIT)
+      givenOnlyAcceptedInvitationsExistForClient(arn, validNino, HMRCMTDIT, "Accepted")
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
