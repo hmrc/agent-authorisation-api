@@ -30,7 +30,7 @@ object UrlBinders {
 
       override def bind(key: String, value: String): Either[String, InvitationId] = {
         val isValidPrefix =
-          value.headOption.fold(false)(Seq('A', 'B', 'C').contains)
+          value.headOption.fold(false)(Seq('A', 'B', 'C', 'L').contains)
 
         if (isValidPrefix && InvitationId.isValid(value))
           Right(InvitationId(value))
