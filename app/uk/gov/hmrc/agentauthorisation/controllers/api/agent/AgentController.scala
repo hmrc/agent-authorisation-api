@@ -114,13 +114,14 @@ class AgentController @Inject() (
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                 ga("get-authorisation-request", pendingInvitation.service.headOption.map(_.internalServiceName))
-                Ok(
-                  toJson(
-                    pendingInvitation
-                      .copy(href = newInvitationUrl)
+                if (appConfig.itsaSupportingAgentEnabled)
+                  Ok(toJson(pendingInvitation.copy(href = newInvitationUrl)).as[JsObject])
+                else
+                  Ok(
+                    toJson(pendingInvitation.copy(href = newInvitationUrl))(
+                      PendingInvitation.writesExternalWithoutAgentType
+                    ).as[JsObject]
                   )
-                    .as[JsObject]
-                )
               case Some(PendingInvitation(pendingInvitation)) =>
                 Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
                 UnsupportedService
@@ -129,10 +130,14 @@ class AgentController @Inject() (
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                 ga("get-authorisation-request", respondedInvitation.service.headOption.map(_.internalServiceName))
-                Ok(
-                  toJson(respondedInvitation.copy(href = newInvitationUrl))
-                    .as[JsObject]
-                )
+                if (appConfig.itsaSupportingAgentEnabled)
+                  Ok(toJson(respondedInvitation.copy(href = newInvitationUrl)).as[JsObject])
+                else
+                  Ok(
+                    toJson(respondedInvitation.copy(href = newInvitationUrl))(
+                      RespondedInvitation.writesExternalWithoutAgentType
+                    ).as[JsObject]
+                  )
               case Some(RespondedInvitation(respondedInvitation)) =>
                 Logger(getClass).warn(s"Service ${respondedInvitation.service} Not Supported")
                 UnsupportedService
@@ -510,7 +515,11 @@ class AgentController @Inject() (
           }
           .map {
             case s if s.isEmpty => NoContent
-            case s              => Ok(Json.toJson(s))
+            case s =>
+              if (appConfig.itsaSupportingAgentEnabled)
+                Ok(Json.toJson(s))
+              else
+                Ok(Json.toJson(s)(PendingOrRespondedInvitation.seqWritesExternalWithoutAgentType))
           }
       }
     }
@@ -521,6 +530,37 @@ class AgentController @Inject() (
 
   private def getLocationLink(arn: Arn, invitation: StoredInvitation): String =
     routes.AgentController.getInvitationApi(arn, InvitationId(invitation.href.split("/").last)).url
+
+  object ItsaInvitation {
+    def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
+      arg match {
+        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, None) =>
+          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(AgentType.Main.agentTypeName))
+            if appConfig.itsaSupportingAgentEnabled =>
+          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(AgentType.Supporting.agentTypeName))
+            if appConfig.itsaSupportingAgentEnabled =>
+          Some(AgentInvitation(ItsaSupp, personal, arg.clientIdType, arg.clientId, arg.knownFact))
+        case _ => None
+      }
+  }
+
+  object RelationshipItsaRequest {
+    def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
+      arg match {
+        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, None) =>
+          Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(AgentType.Main.agentTypeName))
+            if appConfig.itsaSupportingAgentEnabled =>
+          Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact))
+        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(AgentType.Supporting.agentTypeName))
+            if appConfig.itsaSupportingAgentEnabled =>
+          Some(RelationshipRequest(ItsaSupp, arg.clientIdType, arg.clientId, arg.knownFact))
+        case _ => None
+      }
+  }
+
 }
 
 object AgentController {
@@ -590,26 +630,6 @@ object AgentController {
       case Vat                 => VatRegDateFormatInvalid
     }
 
-  object ItsaInvitation {
-    def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
-      arg match {
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, None) =>
-          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact))
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(AgentType.Main.agentTypeName)) =>
-          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact))
-        case CreateInvitationPayload(
-              List("MTD-IT"),
-              "personal",
-              "ni",
-              _,
-              _,
-              Some(AgentType.Supporting.agentTypeName)
-            ) =>
-          Some(AgentInvitation(ItsaSupp, personal, arg.clientIdType, arg.clientId, arg.knownFact))
-        case _ => None
-      }
-  }
-
   object VatInvitation {
     def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
       arg match {
@@ -623,25 +643,6 @@ object AgentController {
               arg.knownFact
             )
           )
-        case _ => None
-      }
-  }
-
-  object RelationshipItsaRequest {
-    def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
-      arg match {
-        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, None) =>
-          Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact))
-        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(AgentType.Main.agentTypeName)) =>
-          Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact))
-        case CheckRelationshipPayload(
-              List("MTD-IT"),
-              "ni",
-              _,
-              _,
-              Some(AgentType.Supporting.agentTypeName)
-            ) =>
-          Some(RelationshipRequest(ItsaSupp, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
   }

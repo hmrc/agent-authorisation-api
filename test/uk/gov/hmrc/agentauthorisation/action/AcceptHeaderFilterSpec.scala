@@ -52,6 +52,7 @@ class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
     .expects(*)
     .atLeastOnce()
     .returning("some config string")
+  (servicesConfig.getBoolean(_: String)).expects("itsa-supporting-agent.enabled").returns(true)
 
   val config = Configuration.apply("api.supported-versions" -> List(1.0))
 
