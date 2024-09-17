@@ -80,7 +80,8 @@ class AgentController @Inject() (
             }
           case Some(JsSuccess(CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(agentType)), _)) =>
             Logger(getClass).warn(s"Unsupported Agent Type $agentType")
-            Future successful UnsupportedAgentType
+            if (appConfig.itsaSupportingAgentEnabled) Future successful UnsupportedAgentType
+            else Future successful InvalidPayload
           case Some(JsSuccess(CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, Some(agentType)), _)) =>
             Logger(getClass).warn(s"agentType: $agentType is not supported for VAT")
             Future successful InvalidPayload
@@ -114,14 +115,12 @@ class AgentController @Inject() (
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                 ga("get-authorisation-request", pendingInvitation.service.headOption.map(_.internalServiceName))
-                if (appConfig.itsaSupportingAgentEnabled)
-                  Ok(toJson(pendingInvitation.copy(href = newInvitationUrl)).as[JsObject])
-                else
-                  Ok(
-                    toJson(pendingInvitation.copy(href = newInvitationUrl))(
-                      PendingInvitation.writesExternalWithoutAgentType
-                    ).as[JsObject]
-                  )
+
+                implicit val writer =
+                  if (appConfig.itsaSupportingAgentEnabled) PendingInvitation.writesExternalWithAgentType
+                  else PendingInvitation.writesExternalWithoutAgentType
+                Ok(toJson(pendingInvitation.copy(href = newInvitationUrl)).as[JsObject])
+
               case Some(PendingInvitation(pendingInvitation)) =>
                 Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
                 UnsupportedService
@@ -130,14 +129,12 @@ class AgentController @Inject() (
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
                 ga("get-authorisation-request", respondedInvitation.service.headOption.map(_.internalServiceName))
-                if (appConfig.itsaSupportingAgentEnabled)
-                  Ok(toJson(respondedInvitation.copy(href = newInvitationUrl)).as[JsObject])
-                else
-                  Ok(
-                    toJson(respondedInvitation.copy(href = newInvitationUrl))(
-                      RespondedInvitation.writesExternalWithoutAgentType
-                    ).as[JsObject]
-                  )
+
+                implicit val writer =
+                  if (appConfig.itsaSupportingAgentEnabled) RespondedInvitation.writesExternalWithAgentType
+                  else RespondedInvitation.writesExternalWithoutAgentType
+                Ok(toJson(respondedInvitation.copy(href = newInvitationUrl)).as[JsObject])
+
               case Some(RespondedInvitation(respondedInvitation)) =>
                 Logger(getClass).warn(s"Service ${respondedInvitation.service} Not Supported")
                 UnsupportedService
@@ -207,8 +204,13 @@ class AgentController @Inject() (
               checkKnownFactAndRelationship(arn, relationship)
             }
           case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(agentType)) =>
-            Logger(getClass).warn(s"Unsupported Agent Type $agentType")
-            Future successful UnsupportedAgentType
+            if (appConfig.itsaSupportingAgentEnabled) {
+              Logger(getClass).warn(s"Unsupported Agent Type $agentType")
+              Future successful UnsupportedAgentType
+            } else {
+              Logger(getClass).warn(s"agentType: $agentType is not supported for MTD-IT")
+              Future successful InvalidPayload
+            }
           case CheckRelationshipPayload(List("MTD-VAT"), "vrn", _, _, Some(agentType)) =>
             Logger(getClass).warn(s"agentType: $agentType is not supported for VAT")
             Future successful InvalidPayload
@@ -516,10 +518,10 @@ class AgentController @Inject() (
           .map {
             case s if s.isEmpty => NoContent
             case s =>
-              if (appConfig.itsaSupportingAgentEnabled)
-                Ok(Json.toJson(s))
-              else
-                Ok(Json.toJson(s)(PendingOrRespondedInvitation.seqWritesExternalWithoutAgentType))
+              implicit val writer =
+                if (appConfig.itsaSupportingAgentEnabled) PendingOrRespondedInvitation.writesExternalWithAgentType
+                else PendingOrRespondedInvitation.writesExternalWithoutAgentType
+              Ok(Json.toJson(s))
           }
       }
     }

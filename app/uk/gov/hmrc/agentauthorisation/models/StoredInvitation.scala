@@ -100,7 +100,7 @@ case class PendingOrRespondedInvitation(
 
 object PendingOrRespondedInvitation {
 
-  implicit val writesExternalWithAgentType: Writes[PendingOrRespondedInvitation] =
+  val writesExternalWithAgentType: Writes[PendingOrRespondedInvitation] =
     new Writes[PendingOrRespondedInvitation] {
       override def writes(o: PendingOrRespondedInvitation): JsValue =
         Json.obj(
@@ -152,7 +152,7 @@ object PendingInvitation {
     case _ => None
   }
 
-  implicit val writesExternalWithAgentType: Writes[PendingInvitation] = new Writes[PendingInvitation] {
+  val writesExternalWithAgentType: Writes[PendingInvitation] = new Writes[PendingInvitation] {
 
     override def writes(o: PendingInvitation): JsValue =
       Json.obj(
@@ -198,7 +198,7 @@ object RespondedInvitation {
     case _ => None
   }
 
-  implicit val writesExternalWithAgentType: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
+  val writesExternalWithAgentType: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
     override def writes(o: RespondedInvitation): JsValue =
       Json.obj(
         "_links"  -> Json.obj("self" -> Json.obj("href" -> o.href)),

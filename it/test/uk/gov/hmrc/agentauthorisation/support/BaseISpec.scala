@@ -27,6 +27,8 @@ abstract class BaseISpec
     with ACRStubs with PlatformAnalyticsStubs with TestIdentifiers {
   override implicit lazy val app: Application = appBuilder.build()
 
+  def isEnabledItsaSupportingAgent: Boolean = true
+
   protected def appBuilder: GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .configure(
@@ -43,7 +45,7 @@ abstract class BaseISpec
         "microservice.services.des.host"                        -> wireMockHost,
         "microservice.services.des.port"                        -> wireMockPort,
         "api.supported-versions"                                -> Seq("1.0"),
-        "itsa-supporting-agent.enabled"                         -> true
+        "itsa-supporting-agent.enabled"                         -> isEnabledItsaSupportingAgent
       )
       .configure(additionalConfiguration)
 
