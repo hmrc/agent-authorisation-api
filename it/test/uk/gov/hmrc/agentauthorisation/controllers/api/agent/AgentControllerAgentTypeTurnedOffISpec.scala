@@ -16,6 +16,6 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-class AgentControllerISpec extends AgentControllerTests {
-  override val isEnabledItsaSupportingAgent: Boolean = true
+class AgentControllerAgentTypeTurnedOffISpec extends AgentControllerTests {
+  override val isEnabledItsaSupportingAgent: Boolean = false
 }
