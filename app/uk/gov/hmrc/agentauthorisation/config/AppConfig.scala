@@ -47,4 +47,6 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration
   val platformAnalyticsBaseUrl = baseUrl("platform-analytics")
   val gaTrackingId: String = servicesConfig.getString("google-analytics.token")
 
+  val itsaSupportingAgentEnabled: Boolean = servicesConfig.getBoolean("itsa-supporting-agent.enabled")
+
 }

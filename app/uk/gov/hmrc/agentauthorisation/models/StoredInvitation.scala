@@ -100,7 +100,22 @@ case class PendingOrRespondedInvitation(
 
 object PendingOrRespondedInvitation {
 
-  implicit val writesExternal: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
+  implicit val writesExternalWithAgentType: Writes[PendingOrRespondedInvitation] =
+    new Writes[PendingOrRespondedInvitation] {
+      override def writes(o: PendingOrRespondedInvitation): JsValue =
+        Json.obj(
+          "_links"          -> o._links,
+          "created"         -> o.created,
+          "expiresOn"       -> o.expiresOn,
+          "arn"             -> o.arn.value,
+          "service"         -> o.service.map(_.externalServiceName),
+          "status"          -> o.status,
+          "clientActionUrl" -> o.clientActionUrl,
+          "updated"         -> o.updated
+        ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
+    }
+
+  val writesExternalWithoutAgentType: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
     override def writes(o: PendingOrRespondedInvitation): JsValue =
       Json.obj(
         "_links"          -> o._links,
@@ -111,8 +126,11 @@ object PendingOrRespondedInvitation {
         "status"          -> o.status,
         "clientActionUrl" -> o.clientActionUrl,
         "updated"         -> o.updated
-      ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
+      )
   }
+
+  val seqWritesExternalWithoutAgentType: Writes[Seq[PendingOrRespondedInvitation]] =
+    Writes.seq[PendingOrRespondedInvitation](writesExternalWithoutAgentType)
 }
 
 case class PendingInvitation(
@@ -134,7 +152,7 @@ object PendingInvitation {
     case _ => None
   }
 
-  implicit val writesExternal: Writes[PendingInvitation] = new Writes[PendingInvitation] {
+  implicit val writesExternalWithAgentType: Writes[PendingInvitation] = new Writes[PendingInvitation] {
 
     override def writes(o: PendingInvitation): JsValue =
       Json.obj(
@@ -146,6 +164,20 @@ object PendingInvitation {
         "status"          -> o.status,
         "clientActionUrl" -> o.clientActionUrl
       ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
+  }
+
+  val writesExternalWithoutAgentType: Writes[PendingInvitation] = new Writes[PendingInvitation] {
+
+    override def writes(o: PendingInvitation): JsValue =
+      Json.obj(
+        "_links"          -> Json.obj("self" -> Json.obj("href" -> o.href)),
+        "created"         -> o.created,
+        "expiresOn"       -> o.expiresOn,
+        "arn"             -> o.arn.value,
+        "service"         -> o.service.map(_.externalServiceName),
+        "status"          -> o.status,
+        "clientActionUrl" -> o.clientActionUrl
+      )
   }
 }
 
@@ -166,7 +198,7 @@ object RespondedInvitation {
     case _ => None
   }
 
-  implicit val writesExternal: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
+  implicit val writesExternalWithAgentType: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
     override def writes(o: RespondedInvitation): JsValue =
       Json.obj(
         "_links"  -> Json.obj("self" -> Json.obj("href" -> o.href)),
@@ -177,4 +209,17 @@ object RespondedInvitation {
         "status"  -> o.status
       ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
   }
+
+  val writesExternalWithoutAgentType: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
+    override def writes(o: RespondedInvitation): JsValue =
+      Json.obj(
+        "_links"  -> Json.obj("self" -> Json.obj("href" -> o.href)),
+        "created" -> o.created,
+        "updated" -> o.updated,
+        "arn"     -> o.arn.value,
+        "service" -> o.service.map(_.externalServiceName),
+        "status"  -> o.status
+      )
+  }
+
 }
