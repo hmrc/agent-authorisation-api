@@ -3,24 +3,6 @@
 
 @(access: ApiAccess)
 {
-  "scopes": [{
-    "key": "read:sent-invitations",
-    "name": "Read invitations sent",
-    "description": "Reads authorisation requests sent by you"
-  }, {
-    "key": "write:sent-invitations",
-    "name": "Modify invitations sent",
-    "description": "Request authorisation for a service"
-  }, {
-    "key": "write:cancel-invitations",
-    "name": "Cancel Invitations",
-    "description": "Cancel a pending invitation"
-  }, {
-    "key": "read:check-relationship",
-    "name": "Check Relationship Status",
-    "description": "Returns current status of relationship"
-  }],
-
   "api": {
     "name": "Agent Authorisation",
     "description": "An API allowing MTD-enabled Agents to request authorisation to a service for a client, instead of filling the 64-8 paper form.",
