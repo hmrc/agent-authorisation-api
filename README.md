@@ -24,7 +24,6 @@ The aim is for the API to mirror the current process that happens through the Ag
 * An agent uses a third-party application or software to request a new authorisation
 * An agent identifier - the Agent Reference Number (ARN) - is passed to the API
 * The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
-* For MTD-IT relationships the agent enters the type of agent as either main or supporting
 * The agent enters the identifier for the client they are requesting authorisation from, for example:
     * National Insurance number (NINO)
     * VAT registration number (VRN)
@@ -76,8 +75,7 @@ Create a new authorisation request. The request will expire after 21 days.
   "clientType":"personal",
   "clientIdType": "ni",
   "clientId": "AA999999A",
-  "knownFact": "AA11 1AA",
-  "agentType": "supporting"
+  "knownFact": "AA11 1AA"
 }
 ```
 ```
@@ -153,12 +151,6 @@ The authorisation request was created successfully.
 {
   "code": "BAD_REQUEST",
   "message": "Missing or unsupported content-type."
-}
-```
-```
-{
-"code": "AGENT_TYPE_NOT_SUPPORTED",
-"message": "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
 }
 ```
 ```
@@ -329,8 +321,7 @@ Returns all authorisation requests for the last 30 days.
   "service": ["MTD-IT"],
   "status": "Pending",
   "expiresOn": "2019-02-04T00:00:00:000Z",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1",
-  "agentType": "main"
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1"
 },
   {
     "_links": {
@@ -342,8 +333,7 @@ Returns all authorisation requests for the last 30 days.
     "arn": "AARN9999999",
     "service": ["MTD-IT"],
     "status": "Accepted",
-    "updated": "2019-01-21T14:27:44.620Z",
-    "agentType": "supporting"
+    "updated": "2019-01-21T14:27:44.620Z"
   }
 ]
 ```
@@ -365,12 +355,6 @@ The agent has no authorisation requests for the last 30 days.
 {
   "code": "BAD_REQUEST",
   "message": "Missing or unsupported content-type."
-}
-```
-```
-{
-"code": "AGENT_TYPE_NOT_SUPPORTED",
-"message": "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
 }
 ```
 
@@ -500,11 +484,9 @@ Returns the authorisation request.
   "created": "2019-01-21T14:27:44.620Z",
   "expiresOn": "2019-02-04T00:00:00.00",
   "arn": "AARN9999999",
-  "service": ["MTD-IT"],
-  "agentType": "main"
+  "service": ["MTD-IT"]
   "status": "Pending",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1",
-  "agentType": "main"
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1"
 }
 ```
 ```
