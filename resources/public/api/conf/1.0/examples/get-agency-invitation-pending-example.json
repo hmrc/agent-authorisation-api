@@ -9,6 +9,5 @@
   "arn": "AARN9999999",
   "service": ["MTD-IT"],
   "status": "Pending",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1",
-  "agentType": "main"
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1"
 }

@@ -2,6 +2,5 @@
   "service": ["MTD-IT"],
   "clientIdType": "ni",
   "clientId": "AA999999A",
-  "knownFact": "AA11 1AA",
-  "agentType": "main"
+  "knownFact": "AA11 1AA"
 }

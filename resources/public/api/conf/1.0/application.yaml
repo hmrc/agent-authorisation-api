@@ -373,9 +373,6 @@ components:
         knownFact:
           allOf:
             - $ref: '#/components/schemas/KnownFactPostcode'
-        agentType:
-          allOf:
-            - $ref: '#/components/schemas/AgentType'
     AgentsInvitationsVATRequest:
       title: Agent Invitation Request for VAT
       required:
@@ -425,16 +422,6 @@ components:
       title: VAT registration date
       type: string
       format: date
-    AgentType:
-      title: Agent type
-      nullable: true
-      type: string
-      enum: [
-        "main",
-        "supporting"
-      ]
-      description: Only MTD-IT supports this field. Defaults to "main" if omitted.
-
     AgentsInvitationsresponse:
       title: AgentsInvitationsresponse
       required:
@@ -488,9 +475,6 @@ components:
           type: string
           description: Link for the client to authorise/reject this agent's invitation.
           format: uri
-        agentType:
-          allOf:
-            - $ref: '#/components/schemas/AgentType'
     VATService:
       title: MTD-VAT
       type: string
@@ -552,12 +536,6 @@ paths:
               example-ITSA:
                 value:
                   $ref: './examples/post-agency-invitations-itsa-example.json'
-              example-ITSA-main:
-                value:
-                  $ref: './examples/post-agency-invitations-itsa-main-example.json'
-              example-ITSA-supporting:
-                value:
-                  $ref: './examples/post-agency-invitations-itsa-supp-example.json'
               example-VAT:
                 value:
                   $ref: './examples/post-agency-invitations-vat-example.json'
@@ -713,12 +691,6 @@ paths:
               example-ITSA:
                 value:
                   $ref: './examples/post-agency-check-relationship-itsa-example.json'
-              example-ITSA-main:
-                value:
-                  $ref: './examples/post-agency-check-relationship-itsa-main-example.json'
-              example-ITSA-supporting:
-                value:
-                  $ref: './examples/post-agency-check-relationship-itsa-supp-example.json'
               example-VAT:
                 value:
                   $ref: './examples/post-agency-check-relationship-vat-example.json'

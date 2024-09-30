@@ -1,11 +1,3 @@
-## [0.121.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.121.0) 3 September 2023
-
-* Add support for multiple supporting agents on MTD-IT
-* New optional field `agentType` in the request payload for creating MTD-IT invitations using the `POST /agents/:arn/invitations` endpoint
-* New optional field `agentType` in the request payload for checking MTD-IT relationships using the `POST /agents/:arn/relationships` endpoint
-* New field `agentType` in the MTD-IT invitations returned within the response body for the `GET /agents/:arn/invitations` endpoint
-* New field `agentType` in the response body of an MTD-IT invitation for the `GET /agents/:arn/invitations/:invitationId` endpoint
-
 ## [0.115.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.115.0) 05 December 2023
 
 * Set Location header (/agents/:arn/invitations/:invitationId) on the Create authorisation request endpoint for the
