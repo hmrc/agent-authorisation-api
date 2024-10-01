@@ -63,11 +63,13 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
   private[connectors] def cancelInvitationUrl(arn: Arn, invitationId: InvitationId) =
     new URL(s"$acaUrl/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel")
 
-  private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL =
+  private[connectors] def getAgencyInvitationsUrl(arn: Arn, createdOnOrAfter: LocalDate): URL = {
+    val services = if(appConfig.itsaSupportingAgentEnabled) "HMRC-MTD-IT,HMRC-MTD-IT-SUPP,HMRC-MTD-VAT" else "HMRC-MTD-IT,HMRC-MTD-VAT"
     new URL(
-      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-IT-SUPP,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
+      s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent?service=${services}&createdOnOrAfter=${createdOnOrAfter
         .format(isoDateFormat)}"
     )
+  }
 
   private[connectors] def getAllInvitationsForClientUrl(arn: Arn, clientId: String, serviceName: String): URL =
     new URL(
