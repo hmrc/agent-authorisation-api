@@ -10,7 +10,8 @@
   "service": ["MTD-IT"],
   "status": "Pending",
   "expiresOn": "2019-02-11T00:00:00:000",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1"
+  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1",
+    "agentType": "main"
 },
   {
     "_links": {
@@ -22,6 +23,7 @@
     "arn": "AARN9999999",
     "service": ["MTD-IT"],
     "status": "Accepted",
-    "updated": "2019-01-21T14:27:44.620"
+    "updated": "2019-01-21T14:27:44.620",
+    "agentType": "supporting"
   }
 ]
