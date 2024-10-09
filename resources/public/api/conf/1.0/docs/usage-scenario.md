@@ -3,6 +3,7 @@ The aim is for the API to mirror the current process that happens through the Ag
 * An agent uses a third-party application or software to request a new authorisation
 * An agent identifier - the Agent Reference Number (ARN) - is passed to the API
 * The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
+* For MTD-IT relationships only, the agent enters the type of agent as either main or supporting.
 * The agent enters the identifier for the client they are requesting authorisation from, for example:
     * National Insurance number (NINO)
     * VAT registration number (VRN)

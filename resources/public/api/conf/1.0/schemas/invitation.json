@@ -82,6 +82,14 @@
       "description": "Link for the client to authorise/reject this agent's invitation."
     }
   },
+  "agentType": {
+    "type": "string",
+    "description": "Only used for MTD-IT agent types",
+    "oneOf": [
+      { "enum": ["main"] },
+      { "enum": ["supporting"] }
+    ]
+  },
   "required": [
     "_links",
     "service",
@@ -123,6 +131,16 @@
             { "enum": ["Pending"] }
           ]
         }
+      }
+    }
+  },
+  "agentType": {
+    "properties": {
+      "service" : {
+        "type": "array",
+        "allOf": [
+          { "enum": ["MTD-IT"] }
+        ]
       }
     }
   }
