@@ -17,15 +17,16 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.http.Status.{FORBIDDEN, LOCKED, NOT_FOUND, NO_CONTENT}
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.agentauthorisation.UriPathEncoding.encodePathSegment
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.connectors.Syntax._
+import uk.gov.hmrc.agentauthorisation.connectors.Syntax.intOps
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import java.net.URL
@@ -35,7 +36,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metrics, appConfig: AppConfig)(implicit
+class InvitationsConnector @Inject() (httpClient: HttpClientV2, val metrics: Metrics, appConfig: AppConfig)(implicit
   val ec: ExecutionContext
 ) extends HttpAPIMonitor {
 
@@ -44,9 +45,6 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
   import uk.gov.hmrc.http.HttpReads.Implicits._
 
   private val isoDateFormat = DateTimeFormatter.ISO_LOCAL_DATE
-
-  private[connectors] def createAgentLinkUrl(arn: Arn, clientType: String): URL =
-    new URL(s"$acaUrl/agencies/references/arn/${encodePathSegment(arn.value)}/clientType/$clientType")
 
   private[connectors] def createInvitationUrl(arn: Arn): URL =
     new URL(s"$acaUrl/agencies/${encodePathSegment(arn.value)}/invitations/sent")
@@ -79,13 +77,12 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
     ec: ExecutionContext
   ): Future[Option[String]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
-      val url = createInvitationUrl(arn).toString
+      val url = createInvitationUrl(arn)
       httpClient
-        .POST[AgentInvitation, HttpResponse](
-          url,
-          agentInvitation,
-          Seq("Origin" -> "agent-authorisation-api")
-        )
+        .post(url)
+        .setHeader("Origin" -> "agent-authorisation-api")
+        .withBody(Json.toJson(agentInvitation))
+        .execute[HttpResponse]
         .map {
           case r if r.status.isSuccess => r.header("InvitationId")
           case r =>
@@ -100,7 +97,8 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
   ): Future[KnownFactCheckResult] =
     monitor(s"ConsumedAPI-CheckPostcode-GET") {
       httpClient
-        .GET[HttpResponse](checkPostcodeUrl(nino, postcode).toString)
+        .get(checkPostcodeUrl(nino, postcode.replace(" ", "%20")))
+        .execute[HttpResponse]
         .map { response =>
           response.status match {
             case NO_CONTENT => KnownFactCheckPassed
@@ -117,7 +115,8 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
   ): Future[KnownFactCheckResult] =
     monitor(s"ConsumedAPI-CheckVatRegDate-GET") {
       httpClient
-        .GET[HttpResponse](checkVatRegisteredClientUrl(vrn, registrationDateKnownFact).toString)
+        .get(checkVatRegisteredClientUrl(vrn, registrationDateKnownFact))
+        .execute[HttpResponse]
         .map { response =>
           response.status match {
             case NO_CONTENT => KnownFactCheckPassed
@@ -134,7 +133,8 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
   ): Future[Option[StoredInvitation]] =
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
       httpClient
-        .GET[Option[StoredInvitation]](getInvitationUrl(arn, invitationId).toString)
+        .get(getInvitationUrl(arn, invitationId))
+        .execute[Option[StoredInvitation]]
     }.recoverWith { case _ =>
       Future successful None
     }
@@ -144,7 +144,9 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
   ): Future[Option[Int]] =
     monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
       httpClient
-        .PUT[String, HttpResponse](cancelInvitationUrl(arn, invitationId).toString, "")
+        .put(cancelInvitationUrl(arn, invitationId))
+        .withBody("")
+        .execute[HttpResponse]
         .map {
           case r if r.body.contains("INVALID_INVITATION_STATUS") => Some(500)
           case response                                          => Some(response.status)
@@ -158,7 +160,8 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
     monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
       val url = getAgencyInvitationsUrl(arn, createdOnOrAfter)
       httpClient
-        .GET[JsObject](url.toString)
+        .get(url)
+        .execute[JsObject]
         .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
     }
 
@@ -169,7 +172,8 @@ class InvitationsConnector @Inject() (httpClient: HttpClient, val metrics: Metri
     monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {
       val url = getAllInvitationsForClientUrl(arn, clientId, serviceName)
       httpClient
-        .GET[JsObject](url.toString)
+        .get(url)
+        .execute[JsObject]
         .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
     }
 }

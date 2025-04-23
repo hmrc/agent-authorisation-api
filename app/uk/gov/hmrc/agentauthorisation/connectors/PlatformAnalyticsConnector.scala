@@ -16,17 +16,19 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import org.apache.pekko.Done
 import com.google.inject.ImplementedBy
+import org.apache.pekko.Done
+import play.api.Logger
+import play.api.libs.json.Json
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models.AnalyticsRequest
-import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
-import play.api.Logger
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse, StringContextOps}
+
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
-import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @ImplementedBy(classOf[PlatformAnalyticsConnectorImpl])
 trait PlatformAnalyticsConnector {
@@ -34,14 +36,16 @@ trait PlatformAnalyticsConnector {
 }
 
 @Singleton
-class PlatformAnalyticsConnectorImpl @Inject() (appConfig: AppConfig, http: HttpClient)
+class PlatformAnalyticsConnectorImpl @Inject() (appConfig: AppConfig, http: HttpClientV2)
     extends PlatformAnalyticsConnector with HttpErrorFunctions {
 
   val serviceUrl: String = s"${appConfig.platformAnalyticsBaseUrl}/platform-analytics/event"
 
   def sendEvent(request: AnalyticsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
     http
-      .POST[AnalyticsRequest, HttpResponse](serviceUrl, request)
+      .post(url"$serviceUrl")
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse]
       .map { response =>
         response.status match {
           case status if is2xx(status) => Done
