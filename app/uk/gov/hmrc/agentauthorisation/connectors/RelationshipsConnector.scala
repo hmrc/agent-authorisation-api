@@ -16,39 +16,33 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import Syntax.intOps
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
+import uk.gov.hmrc.agentauthorisation.connectors.Syntax.intOps
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
-import java.net.URL
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RelationshipsConnector @Inject() (httpClient: HttpClient, val metrics: Metrics, appConfig: AppConfig)(implicit
+class RelationshipsConnector @Inject() (httpClient: HttpClientV2, val metrics: Metrics, appConfig: AppConfig)(implicit
   val ec: ExecutionContext
 ) extends HttpAPIMonitor {
 
   val acrUrl = s"${appConfig.acrBaseUrl}/agent-client-relationships"
 
-  private[connectors] def checkItsaRelationshipUrl(arn: Arn, nino: Nino): URL =
-    new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-IT/client/NI/${nino.value}")
-
-  private[connectors] def checkItsaSuppRelationshipUrl(arn: Arn, nino: Nino): URL =
-    new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-IT-SUPP/client/NI/${nino.value}")
-
-  private[connectors] def checkVatRelationshipUrl(arn: Arn, vrn: Vrn): URL =
-    new URL(s"$acrUrl/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}")
-
   def checkItsaRelationship(arn: Arn, nino: Nino)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaRelationship-GET") {
-      val url = checkItsaRelationshipUrl(arn, nino).toString
-      httpClient.GET[HttpResponse](url) map handle(url)
+      val requestUrl = url"$acrUrl/agent/${arn.value}/service/HMRC-MTD-IT/client/NI/${nino.value}"
+      httpClient
+        .get(requestUrl)
+        .execute[HttpResponse]
+        .map(handle(requestUrl.toString))
     }
 
   def checkItsaSuppRelationship(arn: Arn, nino: Nino)(implicit
@@ -56,14 +50,20 @@ class RelationshipsConnector @Inject() (httpClient: HttpClient, val metrics: Met
     ec: ExecutionContext
   ): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-ItsaSuppRelationship-GET") {
-      val url = checkItsaSuppRelationshipUrl(arn, nino).toString
-      httpClient.GET[HttpResponse](url) map handle(url)
+      val requestUrl = url"$acrUrl/agent/${arn.value}/service/HMRC-MTD-IT-SUPP/client/NI/${nino.value}"
+      httpClient
+        .get(requestUrl)
+        .execute[HttpResponse]
+        .map(handle(requestUrl.toString))
     }
 
   def checkVatRelationship(arn: Arn, vrn: Vrn)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
     monitor(s"ConsumedAPI-Check-VatRelationship-GET") {
-      val url = checkVatRelationshipUrl(arn, vrn).toString
-      httpClient.GET[HttpResponse](checkVatRelationshipUrl(arn, vrn).toString) map handle(url)
+      val requestUrl = url"$acrUrl/agent/${arn.value}/service/HMRC-MTD-VAT/client/VRN/${vrn.value}"
+      httpClient
+        .get(requestUrl)
+        .execute[HttpResponse]
+        .map(handle(requestUrl.toString))
     }
 
   private val handle = (url: String) =>
