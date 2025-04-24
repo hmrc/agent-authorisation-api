@@ -39,11 +39,10 @@ trait PlatformAnalyticsConnector {
 class PlatformAnalyticsConnectorImpl @Inject() (appConfig: AppConfig, http: HttpClientV2)
     extends PlatformAnalyticsConnector with HttpErrorFunctions {
 
-  val serviceUrl: String = s"${appConfig.platformAnalyticsBaseUrl}/platform-analytics/event"
-
-  def sendEvent(request: AnalyticsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] =
+  def sendEvent(request: AnalyticsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Done] = {
+    val requestUrl = url"${appConfig.platformAnalyticsBaseUrl}/platform-analytics/event"
     http
-      .post(url"$serviceUrl")
+      .post(requestUrl)
       .withBody(Json.toJson(request))
       .execute[HttpResponse]
       .map { response =>
@@ -58,4 +57,5 @@ class PlatformAnalyticsConnectorImpl @Inject() (appConfig: AppConfig, http: Http
         Logger(getClass).warn(s"Couldn't send analytics event, error: $ex")
         Done
       }
+  }
 }
