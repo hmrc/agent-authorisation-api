@@ -10,8 +10,8 @@ object AppDependencies {
     "uk.gov.hmrc"             %% "bootstrap-frontend-play-30" % bootstrapVersion,
     "com.github.blemale"      %% "scaffeine"                  % "5.3.0",
     "uk.gov.hmrc"             %% "agent-mtd-identifiers"      % "2.2.0",
-    "uk.gov.hmrc"             %% "play-hal-play-30"           % "4.1.0",
-    "uk.gov.hmrc"             %% "play-hmrc-api-play-30"      % "8.2.0"
+    "uk.gov.hmrc"             %% "play-hal-play-30"           % "4.0.0",
+    "uk.gov.hmrc"             %% "play-hmrc-api-play-30"      % "8.0.0"
   )
 
   val test: Seq[ModuleID] = Seq(
