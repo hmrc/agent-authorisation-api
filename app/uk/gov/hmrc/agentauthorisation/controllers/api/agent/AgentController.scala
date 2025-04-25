@@ -29,7 +29,7 @@ import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentauthorisation.services.{InvitationService, PlatformAnalyticsService, RelationshipService}
+import uk.gov.hmrc.agentauthorisation.services.{InvitationService, RelationshipService}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
@@ -48,7 +48,6 @@ class AgentController @Inject() (
   relationshipsConnector: RelationshipsConnector,
   relationshipService: RelationshipService,
   auditService: AuditService,
-  platformAnalyticsService: PlatformAnalyticsService,
   val authConnector: AuthConnector,
   ecp: Provider[ExecutionContext],
   cc: ControllerComponents,
@@ -114,7 +113,6 @@ class AgentController @Inject() (
                 val id = pendingInv.get.href.toString.split("/").to(LazyList).last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
-                ga("get-authorisation-request", pendingInvitation.service.headOption.map(_.internalServiceName))
 
                 implicit val writer =
                   if (appConfig.itsaSupportingAgentEnabled) PendingInvitation.writesExternalWithAgentType
@@ -128,7 +126,6 @@ class AgentController @Inject() (
                 val id = respondedInv.get.href.split("/").to(LazyList).last
                 val newInvitationUrl =
                   s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
-                ga("get-authorisation-request", respondedInvitation.service.headOption.map(_.internalServiceName))
 
                 implicit val writer =
                   if (appConfig.itsaSupportingAgentEnabled) RespondedInvitation.writesExternalWithAgentType
@@ -156,7 +153,6 @@ class AgentController @Inject() (
             .map {
               case Some(204) =>
                 auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Success")
-                ga("cancel-authorisation-request", None)
                 NoContent
               case Some(404) => InvitationNotFound
               case Some(403) => NoPermissionOnAgency
@@ -375,7 +371,6 @@ class AgentController @Inject() (
                   .getInvitationApi(arn, InvitationId(invitationId))
                   .url
                 auditService.sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, "Success")
-                ga("create-authorisation-request", Some(agentInvitation.service.internalServiceName))
                 Future successful NoContent.withHeaders(LOCATION -> locationLink)
               }
               .recoverWith { case e =>
@@ -431,7 +426,6 @@ class AgentController @Inject() (
       case ItsaMain =>
         val res = for {
           result <- relationshipsConnector.checkItsaRelationship(arn, Nino(relationshipRequest.clientId))
-          _      <- ga("check-relationship", Some(relationshipRequest.service.internalServiceName))
         } yield result
         res.map {
           case true => NoContent
@@ -443,7 +437,6 @@ class AgentController @Inject() (
       case ItsaSupp =>
         val res = for {
           result <- relationshipsConnector.checkItsaSuppRelationship(arn, Nino(relationshipRequest.clientId))
-          _      <- ga("check-relationship", Some(relationshipRequest.service.internalServiceName))
         } yield result
         res.map {
           case true => NoContent
@@ -455,7 +448,6 @@ class AgentController @Inject() (
       case Vat =>
         val res = for {
           result <- relationshipsConnector.checkVatRelationship(arn, Vrn(relationshipRequest.clientId))
-          _      <- ga("check-relationship", Some(relationshipRequest.service.internalServiceName))
         } yield result
         res.map {
           case true => NoContent
@@ -469,7 +461,6 @@ class AgentController @Inject() (
     withAuthorisedAsAgent { arn =>
       implicit val loggedInArn: Arn = arn
       forThisAgency(givenArn) {
-        ga("get-authorisation-requests", None)
         val previousDate =
           LocalDate.now(ZoneOffset.UTC).minusDays(getRequestsShowLastDays)
         invitationService
@@ -526,9 +517,6 @@ class AgentController @Inject() (
       }
     }
   }
-
-  private def ga(action: String, label: Option[String])(implicit hc: HeaderCarrier) =
-    platformAnalyticsService.sendEvent(action, label)
 
   private def getLocationLink(arn: Arn, invitation: StoredInvitation): String =
     routes.AgentController.getInvitationApi(arn, InvitationId(invitation.href.split("/").last)).url

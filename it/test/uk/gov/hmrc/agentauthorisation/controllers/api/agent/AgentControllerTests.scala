@@ -161,7 +161,6 @@ trait AgentControllerTests extends BaseISpec {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
-      givenPlatformAnalyticsEventWasSent()
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       createInvitationStub(
         arn,
@@ -180,7 +179,6 @@ trait AgentControllerTests extends BaseISpec {
       status(result) shouldBe 204
       header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
-      verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
       verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
       verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
 
@@ -190,7 +188,6 @@ trait AgentControllerTests extends BaseISpec {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDITSUPP)
-      givenPlatformAnalyticsEventWasSent()
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       createInvitationStub(
         arn,
@@ -211,7 +208,6 @@ trait AgentControllerTests extends BaseISpec {
         status(result) shouldBe 204
         header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
         verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT-SUPP", None)
-        verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT-SUPP"))
         verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
         verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
       } else {
@@ -227,7 +223,6 @@ trait AgentControllerTests extends BaseISpec {
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDIT)
       givenNoInvitationsExistForClient(arn, validNino, HMRCMTDITSUPP)
       getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
-      givenPlatformAnalyticsEventWasSent()
       givenMatchingClientIdAndPostcode(validNino, validPostcode)
       createInvitationStub(
         arn,
@@ -248,7 +243,6 @@ trait AgentControllerTests extends BaseISpec {
         status(result) shouldBe 204
         header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
         verifyAgentClientInvitationSubmittedEvent(arn.value, validNino.value, "ni", "Success", "HMRC-MTD-IT", None)
-        verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-IT"))
         verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
         verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
       } else {
@@ -489,7 +483,6 @@ trait AgentControllerTests extends BaseISpec {
     "return 204 when invitation is successfully created for VAT" in {
       givenNoInvitationsExistForClient(arn, validVrn, "HMRC-MTD-VAT")
       getStatusRelationshipVat(arn.value, validVrn, 404)
-      givenPlatformAnalyticsEventWasSent()
       checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
       createInvitationStub(
         arn,
@@ -508,7 +501,6 @@ trait AgentControllerTests extends BaseISpec {
       status(result) shouldBe 204
       header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/CZTW1KY6RTAAT")
       verifyAgentClientInvitationSubmittedEvent(arn.value, validVrn.value, "vrn", "Success", "HMRC-MTD-VAT", None)
-      verifyPlatformAnalyticsEventWasSent("create-authorisation-request", Some("HMRC-MTD-VAT"))
     }
 
     "return 400 when invitation provided an agentType however is not supported for VAT" in {
@@ -808,47 +800,39 @@ trait AgentControllerTests extends BaseISpec {
       "return 200 and a json body of a pending invitation" in {
 
         givenGetITSAInvitationStub(arn, "Pending")
-        givenPlatformAnalyticsEventWasSent()
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
         Helpers.contentAsJson(result) shouldBe toJson(pendingItsaInvitation(Service.ItsaMain)).as[JsObject]
-        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("HMRC-MTD-IT"))
       }
 
       "return 200 and a json body of a pending supporting invitation" in {
 
         givenGetITSASuppInvitationStub(arn, "Pending")
-        givenPlatformAnalyticsEventWasSent()
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
         Helpers.contentAsJson(result) shouldBe toJson(pendingItsaInvitation(Service.ItsaSupp)).as[JsObject]
-        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("HMRC-MTD-IT-SUPP"))
       }
 
       "return 200 and a json body of a responded invitation" in {
 
         givenGetITSAInvitationStub(arn, "Accepted")
-        givenPlatformAnalyticsEventWasSent()
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
         Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation(Service.ItsaMain)).as[JsObject]
-        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("HMRC-MTD-IT"))
       }
 
       "return 200 and a json body of a responded supporting invitation" in {
 
         givenGetITSASuppInvitationStub(arn, "Accepted")
-        givenPlatformAnalyticsEventWasSent()
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
         Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation(Service.ItsaSupp)).as[JsObject]
-        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("HMRC-MTD-IT-SUPP"))
       }
 
       "return 403 for Not An Agent" in {
@@ -947,23 +931,19 @@ trait AgentControllerTests extends BaseISpec {
       "return 200 and a json body of invitation" in {
 
         givenGetVATInvitationStub(arn, "Pending")
-        givenPlatformAnalyticsEventWasSent()
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
         status(result) shouldBe 200
         Helpers.contentAsJson(result) shouldBe toJson(pendingVatInvitation).as[JsObject]
-        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("HMRC-MTD-VAT"))
       }
 
       "return 200 and a json body of a responded invitation" in {
 
         givenGetVATInvitationStub(arn, "Accepted")
-        givenPlatformAnalyticsEventWasSent()
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
         status(result) shouldBe 200
         Helpers.contentAsJson(result) shouldBe toJson(respondedVatInvitation).as[JsObject]
-        verifyPlatformAnalyticsEventWasSent("get-authorisation-request", Some("HMRC-MTD-VAT"))
       }
 
       "return 403 for Not An Agent" in {
@@ -1057,11 +1037,9 @@ trait AgentControllerTests extends BaseISpec {
 
       "return 204 for a successful cancellation" in {
         givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
-        givenPlatformAnalyticsEventWasSent()
         val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
         status(result) shouldBe 204
         verifyAgentClientInvitationCancelledEvent(arn.value, invitationIdITSA)
-        verifyPlatformAnalyticsEventWasSent("cancel-authorisation-request", None)
       }
 
       "return 403 INVALID_INVITATION_STATUS when the status of the invitation is not Pending" in {
@@ -1140,11 +1118,9 @@ trait AgentControllerTests extends BaseISpec {
 
       "return 204 for a successful cancellation" in {
         givenCancelAgentInvitationStub(arn, invitationIdVAT, 204)
-        givenPlatformAnalyticsEventWasSent()
         val result = cancelInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
         status(result) shouldBe 204
         verifyAgentClientInvitationCancelledEvent(arn.value, invitationIdVAT)
-        verifyPlatformAnalyticsEventWasSent("cancel-authorisation-request", None)
       }
     }
   }
@@ -1158,24 +1134,20 @@ trait AgentControllerTests extends BaseISpec {
 
       "return 204 when the relationship is active for ITSA" in {
         getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDIT)
-        givenPlatformAnalyticsEventWasSent()
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
         status(result) shouldBe 204
-        verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-IT"))
         verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
         verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
       }
 
       "return 204 when the relationship is active for ITSA supporting" in {
         getStatusRelationshipItsa(arn.value, validNino, 200, HMRCMTDITSUPP)
-        givenPlatformAnalyticsEventWasSent()
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
         val result =
           checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
         if (itsaSupportingAgentEnabled) {
           status(result) shouldBe 204
-          verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-IT-SUPP"))
           verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
           verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
         } else {
@@ -1189,31 +1161,25 @@ trait AgentControllerTests extends BaseISpec {
 
       "return 204 when the relationship is active for VAT" in {
         getStatusRelationshipVat(arn.value, validVrn, 200)
-        givenPlatformAnalyticsEventWasSent()
         checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
         status(result) shouldBe 204
-        verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-VAT"))
       }
 
       "return 404 when the relationship is not found for ITSA" in {
         getStatusRelationshipItsa(arn.value, validNino, 404, HMRCMTDIT)
         givenMatchingClientIdAndPostcode(validNino, validPostcode)
-        givenPlatformAnalyticsEventWasSent()
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
         status(result) shouldBe 404
-        verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-IT"))
         verifyStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDIT)
         verifyNoStatusRelationshipItsaEventWasSent(arn.value, validNino, HMRCMTDITSUPP)
       }
 
       "return 404 when the relationship is not found for VAT" in {
         getStatusRelationshipVat(arn.value, validVrn, 404)
-        givenPlatformAnalyticsEventWasSent()
         checkClientIdAndVatRegDate(validVrn, LocalDate.parse(validVatRegDate), 204)
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
         status(result) shouldBe 404
-        verifyPlatformAnalyticsEventWasSent("check-relationship", Some("HMRC-MTD-VAT"))
       }
 
       "return 400 SERVICE_NOT_SUPPORTED when the service is not supported" in {
@@ -1390,31 +1356,25 @@ trait AgentControllerTests extends BaseISpec {
 
         "return 200 and a json body of a pending invitation filtering out PIR and TERS invitations" in {
           givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
-          givenPlatformAnalyticsEventWasSent()
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 200
           Helpers.contentAsJson(result) shouldBe toJson(gettingPendingInvitations(Service.ItsaMain))
-          verifyPlatformAnalyticsEventWasSent("get-authorisation-requests", None)
         }
 
         "return 200 and a json body of a responded invitation IRV and TERS invitations" in {
           givenInvitationsServiceReturns(arn, Seq(irv(arn), ters(arn)))
-          givenPlatformAnalyticsEventWasSent()
 
           intercept[RuntimeException] {
             await(getInvitations(authorisedAsValidAgent(request, arn.value)))
           }.getMessage shouldBe "Unexpected Service has been passed through: PERSONAL-INCOME-RECORD"
-          verifyPlatformAnalyticsEventWasSent("get-authorisation-requests", None)
         }
 
         "return 204 if there are no invitations for the agent" in {
           givenAllInvitationsEmptyStub(arn)
-          givenPlatformAnalyticsEventWasSent()
           val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
           status(result) shouldBe 204
-          verifyPlatformAnalyticsEventWasSent("get-authorisation-requests", None)
         }
       }
     }

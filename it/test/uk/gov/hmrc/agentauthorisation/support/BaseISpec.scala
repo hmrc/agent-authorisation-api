@@ -24,7 +24,7 @@ import uk.gov.hmrc.agentauthorisation.stubs._
 
 abstract class BaseISpec
     extends UnitSpec with GuiceOneServerPerSuite with WireMockSupport with AuthStubs with ACAStubs with DataStreamStubs
-    with ACRStubs with PlatformAnalyticsStubs with TestIdentifiers {
+    with ACRStubs with TestIdentifiers {
   override implicit lazy val app: Application = appBuilder.build()
 
   def isEnabledItsaSupportingAgent: Boolean = true
