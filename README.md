@@ -954,6 +954,12 @@ Relationship is active. Agent is authorised to act for the client.
     "message": "The VAT registration number belongs to a customer that is insolvent."
 }
 ```
+```
+{
+    "code": "ALREADY_BEING_PROCESSED"
+    "message": "More than one request received to create the same invitation."
+}
+```
 
 ##### *errorResponse*:
 | Name | Type | Description | Required | Pattern |

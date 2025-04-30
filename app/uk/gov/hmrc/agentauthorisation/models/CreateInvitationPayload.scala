@@ -28,14 +28,6 @@ case class CreateInvitationPayload(
   agentType: Option[String]
 )
 
-case class AgentInvitation(
-  service: Service,
-  clientType: ClientType,
-  clientIdType: String,
-  clientId: String,
-  knownFact: String
-)
-
 object CreateInvitationPayload {
 
   implicit val reads: Reads[CreateInvitationPayload] =
@@ -51,20 +43,6 @@ object CreateInvitationPayload {
 
   implicit val writes: Writes[CreateInvitationPayload] = new Writes[CreateInvitationPayload] {
     override def writes(o: CreateInvitationPayload): JsValue =
-      Json.obj(
-        "service"      -> o.service,
-        "clientType"   -> o.clientType,
-        "clientIdType" -> o.clientIdType,
-        "clientId"     -> o.clientId.replaceAll(" ", ""),
-        "knownFact"    -> o.knownFact
-      )
-  }
-}
-
-object AgentInvitation {
-
-  implicit val writes: Writes[AgentInvitation] = new Writes[AgentInvitation] {
-    override def writes(o: AgentInvitation): JsValue =
       Json.obj(
         "service"      -> o.service,
         "clientType"   -> o.clientType,

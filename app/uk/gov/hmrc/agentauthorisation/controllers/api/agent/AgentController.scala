@@ -26,10 +26,9 @@ import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.connectors.{InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
-import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentauthorisation.services.{InvitationService, RelationshipService}
+import uk.gov.hmrc.agentauthorisation.services.InvitationService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
@@ -46,7 +45,6 @@ class AgentController @Inject() (
   invitationsConnector: InvitationsConnector,
   invitationService: InvitationService,
   relationshipsConnector: RelationshipsConnector,
-  relationshipService: RelationshipService,
   auditService: AuditService,
   val authConnector: AuthConnector,
   ecp: Provider[ExecutionContext],
@@ -59,47 +57,6 @@ class AgentController @Inject() (
   val getRequestsShowLastDays = appConfig.showLastDays
 
   import AgentController._
-
-  def createInvitationApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAsAgent { arn =>
-      implicit val loggedInArn: Arn = arn
-      forThisAgency(givenArn) {
-        request.body.asJson.map(_.validate[CreateInvitationPayload]) match {
-          case Some(JsSuccess(ItsaInvitation(invitation), _)) =>
-            validateClientType(invitation) {
-              validateNino(invitation.clientId) {
-                checkKnownFactAndCreate(arn, invitation)
-              }
-            }
-          case Some(JsSuccess(VatInvitation(invitation), _)) =>
-            validateClientType(invitation) {
-              validateVrn(invitation.clientId) {
-                checkKnownFactAndCreate(arn, invitation)
-              }
-            }
-          case Some(JsSuccess(CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(agentType)), _)) =>
-            Logger(getClass).warn(s"Unsupported Agent Type $agentType")
-            if (appConfig.itsaSupportingAgentEnabled) Future successful UnsupportedAgentType
-            else Future successful InvalidPayload
-          case Some(JsSuccess(CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, Some(agentType)), _)) =>
-            Logger(getClass).warn(s"agentType: $agentType is not supported for VAT")
-            Future successful InvalidPayload
-          case Some(JsSuccess(s, _)) =>
-            Logger(getClass).warn(s"Unsupported service received: ${s.service.mkString("[", ",", "]")}")
-            Future successful UnsupportedService
-          case Some(JsError(errors)) =>
-            Logger(getClass).warn(s"Invalid payload: $errors")
-            Future successful InvalidPayload
-          case None =>
-            Logger(getClass).warn(
-              s"Unsupported Content-Type, should be application/json but was ${request.contentType}"
-            )
-            Future successful InvalidPayload
-        }
-      }
-
-    }
-  }
 
   def getInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
     Action.async { implicit request =>
@@ -121,7 +78,7 @@ class AgentController @Inject() (
 
               case Some(PendingInvitation(pendingInvitation)) =>
                 Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
-                UnsupportedService
+                UnsupportedServiceResult
               case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
                 val id = respondedInv.get.href.split("/").to(LazyList).last
                 val newInvitationUrl =
@@ -134,10 +91,10 @@ class AgentController @Inject() (
 
               case Some(RespondedInvitation(respondedInvitation)) =>
                 Logger(getClass).warn(s"Service ${respondedInvitation.service} Not Supported")
-                UnsupportedService
+                UnsupportedServiceResult
               case _ =>
                 Logger(getClass).warn(s"Invitation ${invitationId.value} Not Found")
-                InvitationNotFound
+                InvitationNotFoundResult
             }
         }
       }
@@ -154,8 +111,8 @@ class AgentController @Inject() (
               case Some(204) =>
                 auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Success")
                 NoContent
-              case Some(404) => InvitationNotFound
-              case Some(403) => NoPermissionOnAgency
+              case Some(404) => InvitationNotFoundResult
+              case Some(403) => NoPermissionOnAgencyResult
               case _ =>
                 auditService.sendAgentInvitationCancelled(
                   arn,
@@ -166,7 +123,7 @@ class AgentController @Inject() (
                 Logger(getClass).warn(
                   s"Invitation Cancellation Failed: cannot transition the current status to Cancelled"
                 )
-                InvalidInvitationStatus
+                InvalidInvitationStatusResult
             }
             .recoverWith { case e =>
               auditService.sendAgentInvitationCancelled(
@@ -202,17 +159,17 @@ class AgentController @Inject() (
           case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(agentType)) =>
             if (appConfig.itsaSupportingAgentEnabled) {
               Logger(getClass).warn(s"Unsupported Agent Type $agentType")
-              Future successful UnsupportedAgentType
+              Future successful UnsupportedAgentTypeResult
             } else {
               Logger(getClass).warn(s"agentType: $agentType is not supported for MTD-IT")
-              Future successful InvalidPayload
+              Future successful InvalidPayloadResult
             }
           case CheckRelationshipPayload(List("MTD-VAT"), "vrn", _, _, Some(agentType)) =>
             Logger(getClass).warn(s"agentType: $agentType is not supported for VAT")
-            Future successful InvalidPayload
+            Future successful InvalidPayloadResult
           case s =>
             Logger(getClass).warn(s"Unsupported service received: ${s.service}")
-            Future successful UnsupportedService
+            Future successful UnsupportedServiceResult
         }
       }
     }
@@ -231,10 +188,10 @@ class AgentController @Inject() (
             Future successful knownFactDoesNotMatch(relationshipRequest.service)
           case KnownFactCheckFailed(reason) if reason.contains("NOT_FOUND") =>
             Logger(getClass).warn(s"Client registration not found")
-            Future successful ClientRegistrationNotFound
+            Future successful ClientRegistrationNotFoundResult
           case KnownFactCheckFailed(reason) if reason.contains("CLIENT_INSOLVENT") =>
             Logger(getClass).warn(s"Known fact check failed: $reason")
-            Future successful VatClientInsolvent
+            Future successful VatClientInsolventResult
           case KnownFactCheckFailed(reason) =>
             Logger(getClass).warn(s"Known fact check failed due to: $reason")
             Future successful InternalServerError
@@ -244,170 +201,10 @@ class AgentController @Inject() (
       Future successful knownFactFormatInvalid(relationshipRequest.service)
     }
 
-  private def checkForPendingVatInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
-    successResult: => Future[Result]
-  )(implicit hc: HeaderCarrier): Future[Result] = {
-
-    val allInvitationsForClient: Future[Seq[StoredInvitation]] = invitationsConnector
-      .getAllInvitationsForClient(arn, clientId, service.internalServiceName)
-
-    def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
-      allInvitationsForClient
-        .flatMap(
-          _.find(_.status == "Pending") match {
-            case Some(invitation) =>
-              Future successful DuplicateAuthorisationRequest.withHeaders(LOCATION -> getLocationLink(arn, invitation))
-            case None => whenNoPendingInvitationFound
-          }
-        )
-
-    def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] =
-      relationshipService
-        .hasActiveRelationship(arn, clientId, service)
-        .flatMap(hasRelationship =>
-          if (hasRelationship) {
-            allInvitationsForClient
-              .flatMap(
-                _.find(_.status == "Accepted") match {
-                  case Some(invitation) =>
-                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
-                  case None => whenNoActiveRelationshipFound
-                }
-              )
-          } else whenNoActiveRelationshipFound
-        )
-
-    checkPendingInvitationExists(
-      whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
-    )
-  }
-
-  private def checkForPendingItsaInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
-    successResult: => Future[Result]
-  )(implicit hc: HeaderCarrier): Future[Result] = {
-
-    val otherItsaService = if (service == Service.ItsaMain) Service.ItsaSupp else Service.ItsaMain
-
-    val allInvitationsForClientForServiceF: Future[Seq[StoredInvitation]] = invitationsConnector
-      .getAllInvitationsForClient(arn, clientId, service.internalServiceName)
-
-    val allInvitationsForClientForOtherServiceF: Future[Seq[StoredInvitation]] = invitationsConnector
-      .getAllInvitationsForClient(arn, clientId, otherItsaService.internalServiceName)
-
-    def checkPendingInvitationExists(whenNoPendingInvitationFound: => Future[Result]): Future[Result] =
-      for {
-        allInvitationsForClientForService      <- allInvitationsForClientForServiceF
-        allInvitationsForClientForOtherService <- allInvitationsForClientForOtherServiceF
-        allInvitationsForClient = allInvitationsForClientForService ++ allInvitationsForClientForOtherService
-        allPendingInvitationsForClient <- allInvitationsForClient.find(_.status == "Pending") match {
-                                            case Some(invitation) =>
-                                              Future successful DuplicateAuthorisationRequest.withHeaders(
-                                                LOCATION -> getLocationLink(arn, invitation)
-                                              )
-                                            case None => whenNoPendingInvitationFound
-                                          }
-
-      } yield allPendingInvitationsForClient
-
-    def checkActiveRelationshipExists(whenNoActiveRelationshipFound: => Future[Result]): Future[Result] =
-      relationshipService
-        .hasActiveRelationship(arn, clientId, service)
-        .flatMap(hasRelationship =>
-          if (hasRelationship) {
-            allInvitationsForClientForServiceF
-              .flatMap(
-                _.find(_.status == "Accepted") match {
-                  case Some(invitation) =>
-                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
-                  case None => Future successful AlreadyAuthorised
-                }
-              )
-          } else {
-            allInvitationsForClientForServiceF
-              .flatMap(
-                _.find(_.status == "Partialauth") match {
-                  case Some(invitation) =>
-                    Future successful AlreadyAuthorised.withHeaders(LOCATION -> getLocationLink(arn, invitation))
-                  case None => whenNoActiveRelationshipFound
-                }
-              )
-          }
-        )
-
-    checkPendingInvitationExists(
-      whenNoPendingInvitationFound = checkActiveRelationshipExists(whenNoActiveRelationshipFound = successResult)
-    )
-  }
-
-  private def checkForPendingInvitationOrActiveRelationship(arn: Arn, clientId: String, service: Service)(
-    successResult: => Future[Result]
-  )(implicit hc: HeaderCarrier): Future[Result] = service match {
-    case Service.ItsaMain | Service.ItsaSupp =>
-      checkForPendingItsaInvitationOrActiveRelationship(arn, clientId, service)(successResult)
-    case Service.Vat => checkForPendingVatInvitationOrActiveRelationship(arn, clientId, service)(successResult)
-  }
-
-  private def checkKnownFactAndCreate(arn: Arn, agentInvitation: AgentInvitation)(implicit
-    hc: HeaderCarrier,
-    request: Request[_]
-  ): Future[Result] =
-    if (checkKnownFactValid(agentInvitation.service, agentInvitation.knownFact)) {
-
-      checkKnownFactMatches(
-        agentInvitation.service,
-        agentInvitation.clientId,
-        agentInvitation.knownFact
-      ).flatMap {
-        case KnownFactCheckPassed =>
-          checkForPendingInvitationOrActiveRelationship(
-            arn,
-            agentInvitation.clientId,
-            agentInvitation.service
-          )(
-            successResult = invitationService
-              .createInvitation(arn, agentInvitation)
-              .flatMap { invitationId =>
-                val locationLink = routes.AgentController
-                  .getInvitationApi(arn, InvitationId(invitationId))
-                  .url
-                auditService.sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, "Success")
-                Future successful NoContent.withHeaders(LOCATION -> locationLink)
-              }
-              .recoverWith { case e =>
-                Logger(getClass).warn(s"Invitation Creation Failed: ${e.getMessage}")
-                auditService
-                  .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(e.getMessage))
-                Future.failed(e)
-              }
-          )
-        case KnownFactCheckFailed(reason) if reason.contains("DOES_NOT_MATCH") =>
-          auditService.sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(reason))
-          Future successful knownFactDoesNotMatch(agentInvitation.service)
-        case KnownFactCheckFailed(reason) if reason.contains("NOT_FOUND") =>
-          auditService
-            .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some("CLIENT_REGISTRATION_NOT_FOUND"))
-          Logger(getClass).warn(s"Client Registration Not Found")
-          Future successful ClientRegistrationNotFound
-        case KnownFactCheckFailed(reason) if reason.contains("CLIENT_INSOLVENT") =>
-          Logger(getClass).warn(s"Invitation creation failed: $reason")
-          auditService
-            .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(reason))
-          Future successful VatClientInsolvent
-        case KnownFactCheckFailed(reason) =>
-          Logger(getClass).warn(s"invitation creation failed: $reason")
-          auditService
-            .sendAgentInvitationSubmitted(arn, "", agentInvitation, "Fail", Some(reason))
-          Future successful InternalServerError
-      }
-    } else {
-      Logger(getClass).warn(s"Invalid Format for supplied Known Fact")
-      Future successful knownFactFormatInvalid(agentInvitation.service)
-    }
-
   private def forThisAgency(requestedArn: Arn)(block: => Future[Result])(implicit arn: Arn) =
     if (requestedArn != arn) {
       Logger(getClass).warn(s"Requested Arn ${requestedArn.value} does not match to logged in Arn")
-      Future successful NoPermissionOnAgency
+      Future successful NoPermissionOnAgencyResult
     } else block
 
   private def checkKnownFactMatches(service: Service, clientId: String, knownFact: String)(implicit
@@ -431,7 +228,7 @@ class AgentController @Inject() (
           case true => NoContent
           case false =>
             Logger(getClass).warn(s"No ITSA main Relationship Found")
-            RelationshipNotFound
+            RelationshipNotFoundResult
         }
 
       case ItsaSupp =>
@@ -442,7 +239,7 @@ class AgentController @Inject() (
           case true => NoContent
           case false =>
             Logger(getClass).warn(s"No ITSA supporting Relationship Found")
-            RelationshipNotFound
+            RelationshipNotFoundResult
         }
 
       case Vat =>
@@ -453,7 +250,7 @@ class AgentController @Inject() (
           case true => NoContent
           case false =>
             Logger(getClass).warn(s"No VAT Relationship Found")
-            RelationshipNotFound
+            RelationshipNotFoundResult
         }
     }
 
@@ -518,34 +315,14 @@ class AgentController @Inject() (
     }
   }
 
-  private def getLocationLink(arn: Arn, invitation: StoredInvitation): String =
-    routes.AgentController.getInvitationApi(arn, InvitationId(invitation.href.split("/").last)).url
-
-  object ItsaInvitation {
-    def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
-      arg match {
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, None) =>
-          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact))
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(AgentType.Main.agentTypeName))
-            if appConfig.itsaSupportingAgentEnabled =>
-          Some(AgentInvitation(ItsaMain, personal, arg.clientIdType, arg.clientId, arg.knownFact))
-        case CreateInvitationPayload(List("MTD-IT"), "personal", "ni", _, _, Some(AgentType.Supporting.agentTypeName))
-            if appConfig.itsaSupportingAgentEnabled =>
-          Some(AgentInvitation(ItsaSupp, personal, arg.clientIdType, arg.clientId, arg.knownFact))
-        case _ => None
-      }
-  }
-
   object RelationshipItsaRequest {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =
       arg match {
         case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, None) =>
           Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact))
-        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(AgentType.Main.agentTypeName))
-            if appConfig.itsaSupportingAgentEnabled =>
+        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(AgentType.Main.agentTypeName)) =>
           Some(RelationshipRequest(ItsaMain, arg.clientIdType, arg.clientId, arg.knownFact))
-        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(AgentType.Supporting.agentTypeName))
-            if appConfig.itsaSupportingAgentEnabled =>
+        case CheckRelationshipPayload(List("MTD-IT"), "ni", _, _, Some(AgentType.Supporting.agentTypeName)) =>
           Some(RelationshipRequest(ItsaSupp, arg.clientIdType, arg.clientId, arg.knownFact))
         case _ => None
       }
@@ -558,34 +335,24 @@ object AgentController {
   private val postcodeRegex =
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
-  private val supportedClientTypes: Map[Service, Seq[ClientType]] =
-    Map(ItsaMain -> Seq(personal), ItsaSupp -> Seq(personal), Vat -> Seq(personal, business))
-
-  private def validateClientType(agentInvitation: AgentInvitation)(body: => Future[Result]): Future[Result] =
-    if (supportedClientTypes(agentInvitation.service).contains(agentInvitation.clientType)) body
-    else {
-      Logger(getClass).warn(s"Unsupported Client Type")
-      Future successful UnsupportedClientType
-    }
-
   private def validateNino(clientId: String)(body: => Future[Result]): Future[Result] =
     if (Nino.isValid(clientId)) body
     else if (Vrn.isValid(clientId)) {
       Logger(getClass).warn(s"Client Id does not match service")
-      Future successful ClientIdDoesNotMatchService
+      Future successful ClientIdDoesNotMatchServiceResult
     } else {
       Logger(getClass).warn(s"Invalid Nino provided for ITSA")
-      Future successful ClientIdInvalidFormat
+      Future successful ClientIdInvalidFormatResult
     }
 
   private def validateVrn(clientId: String)(body: => Future[Result]): Future[Result] =
     if (Vrn.isValid(clientId)) body
     else if (Nino.isValid(clientId)) {
       Logger(getClass).warn(s"Client Id does not match service")
-      Future successful ClientIdDoesNotMatchService
+      Future successful ClientIdDoesNotMatchServiceResult
     } else {
       Logger(getClass).warn(s"Invalid Vrn provided for VAT")
-      Future successful ClientIdInvalidFormat
+      Future successful ClientIdInvalidFormatResult
     }
 
   def validateDate(value: String): Boolean =
@@ -610,32 +377,15 @@ object AgentController {
 
   private def knownFactDoesNotMatch(service: Service) =
     service match {
-      case ItsaMain | ItsaSupp => PostcodeDoesNotMatch
-      case Vat                 => VatRegDateDoesNotMatch
+      case ItsaMain | ItsaSupp => PostcodeDoesNotMatchResult
+      case Vat                 => VatRegDateDoesNotMatchResultResult
     }
 
   private def knownFactFormatInvalid(service: Service) =
     service match {
-      case ItsaMain | ItsaSupp => PostcodeFormatInvalid
-      case Vat                 => VatRegDateFormatInvalid
+      case ItsaMain | ItsaSupp => PostcodeFormatInvalidResult
+      case Vat                 => VatRegDateFormatInvalidResult
     }
-
-  object VatInvitation {
-    def unapply(arg: CreateInvitationPayload): Option[AgentInvitation] =
-      arg match {
-        case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, None) =>
-          Some(
-            AgentInvitation(
-              Vat,
-              ClientType.stringToClientType(arg.clientType),
-              arg.clientIdType,
-              arg.clientId,
-              arg.knownFact
-            )
-          )
-        case _ => None
-      }
-  }
 
   object RelationshipVatRequest {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =

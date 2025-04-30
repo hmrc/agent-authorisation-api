@@ -1,3 +1,7 @@
+## [0.133.0] 7 May 2025
+* Introduce handling for duplicate requests, now whenever the same request is received multiple times, a new error case will return 403 rather than permit the subsequent requests to proceed and fail as duplicates
+
+
 ## [0.132.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.132.0) 10 October 2024
 * Add support for multiple supporting agents on MTD-IT (NOTE: the agentType field, which provides for different agent types of “main” or “supporting”, is only available in the Sandbox environment.
   From April 2025, agentType will also be available in the Production (Live) environment)

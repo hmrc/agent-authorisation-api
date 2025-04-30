@@ -23,9 +23,6 @@ import org.scalatest.concurrent.Eventually
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
-import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
-import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, Vat}
 import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, RequestId, SessionId}
@@ -37,98 +34,6 @@ import scala.concurrent.ExecutionContext
 class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
   "auditEvent" should {
-
-    "send an agentAuthorisationCreatedViaApi Event for ITSA" in {
-      val mockConnector = mock[AuditConnector]
-      val service = new AuditService(mockConnector)
-
-      val hc = HeaderCarrier(
-        authorization = Some(Authorization("dummy bearer token")),
-        sessionId = Some(SessionId("dummy session id")),
-        requestId = Some(RequestId("dummy request id"))
-      )
-
-      val arn: Arn = Arn("HX2345")
-      val agentInvitation: AgentInvitation =
-        AgentInvitation(ItsaMain, personal, "ni", "AB123456A", "DH14EJ")
-      val invitationId: String = "1"
-      val result: String = "Success"
-
-      await(
-        service
-          .sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, result)(
-            hc,
-            FakeRequest("GET", "/path"),
-            ExecutionContext.Implicits.global
-          )
-      )
-
-      eventually {
-        val captor = ArgumentCaptor.forClass(classOf[DataEvent])
-        verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
-        val sentEvent = captor.getValue.asInstanceOf[DataEvent]
-
-        sentEvent.auditType shouldBe "agentAuthorisationCreatedViaApi"
-        sentEvent.auditSource shouldBe "agent-authorisation-api"
-        sentEvent.detail("factCheck") shouldBe "Success"
-        sentEvent.detail("invitationId") shouldBe "1"
-        sentEvent.detail("agentReferenceNumber") shouldBe "HX2345"
-        sentEvent.detail("clientIdType") shouldBe "ni"
-        sentEvent.detail("clientId") shouldBe "AB123456A"
-        sentEvent.detail("service") shouldBe "HMRC-MTD-IT"
-
-        sentEvent.tags("transactionName") shouldBe "agent-created-invitation-via-api"
-        sentEvent.tags("path") shouldBe "/path"
-        sentEvent.tags("X-Session-ID") shouldBe "dummy session id"
-        sentEvent.tags("X-Request-ID") shouldBe "dummy request id"
-      }
-    }
-
-    "send an agentAuthorisationCreatedViaApi Event for VAT" in {
-      val mockConnector = mock[AuditConnector]
-      val service = new AuditService(mockConnector)
-
-      val hc = HeaderCarrier(
-        authorization = Some(Authorization("dummy bearer token")),
-        sessionId = Some(SessionId("dummy session id")),
-        requestId = Some(RequestId("dummy request id"))
-      )
-
-      val arn: Arn = Arn("HX2345")
-      val agentInvitation: AgentInvitation =
-        AgentInvitation(Vat, business, "vrn", "101747641", "2008-08-08")
-      val invitationId: String = "1"
-      val result: String = "Success"
-
-      await(
-        service
-          .sendAgentInvitationSubmitted(arn, invitationId, agentInvitation, result)(
-            hc,
-            FakeRequest("GET", "/path"),
-            ExecutionContext.Implicits.global
-          )
-      )
-
-      eventually {
-        val captor = ArgumentCaptor.forClass(classOf[DataEvent])
-        verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
-        val sentEvent = captor.getValue.asInstanceOf[DataEvent]
-
-        sentEvent.auditType shouldBe "agentAuthorisationCreatedViaApi"
-        sentEvent.auditSource shouldBe "agent-authorisation-api"
-        sentEvent.detail("factCheck") shouldBe "Success"
-        sentEvent.detail("invitationId") shouldBe "1"
-        sentEvent.detail("agentReferenceNumber") shouldBe "HX2345"
-        sentEvent.detail("clientIdType") shouldBe "vrn"
-        sentEvent.detail("clientId") shouldBe "101747641"
-        sentEvent.detail("service") shouldBe "HMRC-MTD-VAT"
-
-        sentEvent.tags("transactionName") shouldBe "agent-created-invitation-via-api"
-        sentEvent.tags("path") shouldBe "/path"
-        sentEvent.tags("X-Session-ID") shouldBe "dummy session id"
-        sentEvent.tags("X-Request-ID") shouldBe "dummy request id"
-      }
-    }
 
     "send an agentAuthorisedCancelledViaApi Event for ITSA" in {
       val mockConnector = mock[AuditConnector]

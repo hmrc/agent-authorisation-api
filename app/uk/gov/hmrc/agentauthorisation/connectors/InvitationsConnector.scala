@@ -17,15 +17,14 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.http.Status.{FORBIDDEN, LOCKED, NOT_FOUND, NO_CONTENT}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.connectors.Syntax.intOps
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import java.time.LocalDate
@@ -43,25 +42,6 @@ class InvitationsConnector @Inject() (httpClient: HttpClientV2, val metrics: Met
   import uk.gov.hmrc.http.HttpReads.Implicits._
 
   private val isoDateFormat = DateTimeFormatter.ISO_LOCAL_DATE
-
-  def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Option[String]] =
-    monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
-      val requestUrl = url"$acaUrl/agencies/${arn.value}/invitations/sent"
-      httpClient
-        .post(requestUrl)
-        .setHeader("Origin" -> "agent-authorisation-api")
-        .withBody(Json.toJson(agentInvitation))
-        .execute[HttpResponse]
-        .map {
-          case r if r.status.isSuccess => r.header("InvitationId")
-          case r =>
-            throw UpstreamErrorResponse
-              .apply(s"POST of '$requestUrl' returned ${r.status}. Response body: '${r.body}'", r.status)
-        }
-    }
 
   def checkPostcodeForClient(nino: Nino, postcode: String)(implicit
     hc: HeaderCarrier,
