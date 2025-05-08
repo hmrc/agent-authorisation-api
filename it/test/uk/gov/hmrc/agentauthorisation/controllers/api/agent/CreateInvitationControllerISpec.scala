@@ -26,8 +26,10 @@ import uk.gov.hmrc.agentauthorisation.models.ClientType._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
-
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.Future
+
+import java.time.LocalDateTime
 
 class CreateInvitationControllerISpec extends BaseISpec {
 
@@ -231,6 +233,18 @@ class CreateInvitationControllerISpec extends BaseISpec {
         createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
       status(result) shouldBe 400
       await(result) shouldBe ClientIdDoesNotMatchServiceResult
+    }
+
+    "return 403 ALREADY_PROCESSING when lock cannot be acquired" in {
+      mongoLockRepository.takeLock(
+        lockId =  s"create-invitation-${arn.value}-HMRC-MTD-VAT-${validVrn.value}",
+        owner = "34a34ff7-2a7d-4695-8d4a-3f210fb03686",
+        ttl = 10.seconds
+      )
+      val result: Result =
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value)).futureValue
+      status(result) shouldBe 403
+      contentAsJson(result) shouldBe LockedRequest.toJson
     }
 
     "return 403 CLIENT_REGISTRATION_NOT_FOUND when no registration found" in {

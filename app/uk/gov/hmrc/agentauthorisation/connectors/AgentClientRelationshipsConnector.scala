@@ -18,13 +18,12 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.http.Status.CREATED
 import play.api.libs.json.Json
-import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, InvalidPayload, ValidCreateInvitationRequest}
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import javax.inject.{Inject, Singleton}
@@ -43,7 +42,7 @@ class AgentClientRelationshipsConnector @Inject() (
   import uk.gov.hmrc.http.HttpReads.Implicits._
 
   def createInvitation(arn: Arn, validCreateInvitationRequest: ValidCreateInvitationRequest)(implicit
-    request: RequestHeader
+    hc: HeaderCarrier
   ): Future[Either[ApiErrorResponse, InvitationId]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
       val requestUrl = url"$acrUrl/api/${arn.value}/invitation"
