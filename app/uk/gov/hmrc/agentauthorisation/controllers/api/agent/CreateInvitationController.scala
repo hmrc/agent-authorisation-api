@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-import com.google.inject.Provider
 import play.api.Logger
 import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
@@ -33,11 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class CreateInvitationController @Inject() (
   createInvitationService: CreateInvitationService,
   val authConnector: AuthConnector,
-  ecp: Provider[ExecutionContext],
   cc: ControllerComponents
-) extends BackendController(cc) with AuthActions {
-
-  implicit val ec: ExecutionContext = ecp.get
+)(implicit val ec: ExecutionContext)
+    extends BackendController(cc) with AuthActions {
 
   def createInvitation(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAsAgent { arn =>

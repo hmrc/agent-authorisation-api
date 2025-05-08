@@ -26,9 +26,10 @@ import uk.gov.hmrc.agentauthorisation.models.ClientType._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
+import uk.gov.hmrc.mongo.lock.MongoLockRepository
+
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.Future
-
 import java.time.LocalDateTime
 
 class CreateInvitationControllerISpec extends BaseISpec {
@@ -236,8 +237,11 @@ class CreateInvitationControllerISpec extends BaseISpec {
     }
 
     "return 403 ALREADY_PROCESSING when lock cannot be acquired" in {
+
+      val mongoLockRepository = app.injector.instanceOf[MongoLockRepository]
+
       mongoLockRepository.takeLock(
-        lockId =  s"create-invitation-${arn.value}-HMRC-MTD-VAT-${validVrn.value}",
+        lockId = s"create-invitation-${arn.value}-HMRC-MTD-VAT-${validVrn.value}",
         owner = "34a34ff7-2a7d-4695-8d4a-3f210fb03686",
         ttl = 10.seconds
       )

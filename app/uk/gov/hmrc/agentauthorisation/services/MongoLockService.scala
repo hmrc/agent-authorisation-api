@@ -16,24 +16,14 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import com.google.inject.ImplementedBy
 import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 
-@ImplementedBy(classOf[MongoLockServiceImpl])
-trait MongoLockService {
-
-  def acquireLock[T](arn: String, service: String, clientId: String)(body: => Future[T])(implicit
-    ec: ExecutionContext
-  ): Future[Option[T]]
-
-}
-
 @Singleton
-class MongoLockServiceImpl @Inject() (lockRepository: MongoLockRepository) extends MongoLockService {
+class MongoLockService @Inject() (lockRepository: MongoLockRepository) {
 
   def acquireLock[T](arn: String, service: String, clientId: String)(
     body: => Future[T]

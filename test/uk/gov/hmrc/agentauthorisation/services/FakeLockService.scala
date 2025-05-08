@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.services
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
-class FakeLockService extends MongoLockService {
+class FakeLockService extends MongoLockService(null) {
   val locked: mutable.Set[(String, String, String)] = mutable.Set.empty[(String, String, String)]
 
   override def acquireLock[T](arn: String, service: String, clientId: String)(

@@ -21,10 +21,11 @@ import org.apache.pekko.stream.Materializer
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.agentauthorisation.services.{MongoLockService, MongoLockServiceImpl}
+import uk.gov.hmrc.agentauthorisation.services.MongoLockService
 import uk.gov.hmrc.agentauthorisation.stubs._
 import uk.gov.hmrc.mongo.lock.MongoLockRepository
 import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 abstract class BaseISpec
@@ -60,7 +61,7 @@ abstract class BaseISpec
 
   protected implicit val materializer: Materializer = app.materializer
 
-  lazy val mongoLockService: MongoLockService = new MongoLockServiceImpl(mongoLockRepository)
+  lazy val mongoLockService: MongoLockService = new MongoLockService(mongoLockRepository)
   def mongoLockRepository = new MongoLockRepository(mongoComponent, new CurrentTimestampSupport)
 
   lazy val moduleWithOverrides = new AbstractModule {
