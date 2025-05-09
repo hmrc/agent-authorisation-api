@@ -1,0 +1,4 @@
+{
+  "code": "ALREADY_BEING_PROCESSED",
+  "message": "More than one request received to create the same invitation."
+}

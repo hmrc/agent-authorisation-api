@@ -74,7 +74,7 @@ class CreateInvitationService @Inject() (
         }
     }
 
-  def validateRequestToAcr(
+  private def validateRequestToAcr(
     value: CreateInvitationRequestToAcr
   ): Either[ApiErrorResponse, CreateInvitationRequestToAcr] =
     if (!supportedClientTypes(value.service).contains(value.clientType)) {
