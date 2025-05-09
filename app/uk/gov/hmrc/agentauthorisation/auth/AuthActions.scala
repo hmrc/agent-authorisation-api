@@ -82,4 +82,10 @@ trait AuthActions extends AuthorisedFunctions {
         Future successful StandardUnauthorised.toResult
     }
   }
+
+  protected def validateArnInRequest(requestedArn: Arn)(block: => Future[Result])(implicit arn: Arn): Future[Result] =
+    if (requestedArn != arn) {
+      Logger(getClass).warn(s"Requested Arn ${requestedArn.value} does not match to logged in Arn")
+      Future successful NoPermissionOnAgency.toResult
+    } else block
 }

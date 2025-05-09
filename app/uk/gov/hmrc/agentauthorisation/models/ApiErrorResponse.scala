@@ -33,6 +33,8 @@ abstract class ApiErrorResponse(val statusCode: Int, val code: String, val messa
         Unauthorized(this.toJson)
       case 403 =>
         Forbidden(this.toJson)
+      case 404 =>
+        NotFound(this.toJson)
       case _ =>
         InternalServerError(this.toJson)
     }
@@ -63,6 +65,7 @@ object ApiErrorResponse {
         case "VAT_REG_DATE_DOES_NOT_MATCH" => VatRegDateDoesNotMatch
         case "VAT_REG_DATE_FORMAT_INVALID" => VatRegDateFormatInvalid
         case "UNAUTHORIZED"                => StandardUnauthorised
+        case "INVITATION_NOT_FOUND"        => InvitationNotFound
         case value                         => throw new IllegalArgumentException(s"Unexpected error code: $value")
       }
       JsSuccess(response)
@@ -211,4 +214,11 @@ case object StandardInternalServerError
       500,
       "INTERNAL_SERVER_ERROR",
       "Internal server error."
+    )
+
+case object InvitationNotFound
+    extends ApiErrorResponse(
+      404,
+      "INVITATION_NOT_FOUND",
+      "The authorisation request cannot be found."
     )

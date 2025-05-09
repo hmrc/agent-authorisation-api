@@ -33,6 +33,7 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration
   val authBaseUrl = baseUrl("auth")
   val acaBaseUrl = baseUrl("agent-client-authorisation")
   val acrBaseUrl = baseUrl("agent-client-relationships")
+  val acrfExternalUrl: String = getConfString("agent-client-relationships-frontend.external-url")
 
   val desBaseUrl = baseUrl("des")
   val desEnv = getConfString("des.environment")

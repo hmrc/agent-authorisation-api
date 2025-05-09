@@ -22,6 +22,7 @@ sealed trait Service {
   def agentType: Option[AgentType]
   def externalServiceName: String
   def internalServiceName: String
+  def urlPart: String
 
 }
 
@@ -38,18 +39,21 @@ object Service {
     override def agentType: Option[AgentType] = Some(AgentType.Main)
     override def internalServiceName: String = "HMRC-MTD-IT"
     override def externalServiceName: String = "MTD-IT"
+    override def urlPart: String = "income-tax"
   }
 
   case object ItsaSupp extends Service {
     override def agentType: Option[AgentType] = Some(AgentType.Supporting)
     override def internalServiceName: String = "HMRC-MTD-IT-SUPP"
     override def externalServiceName: String = "MTD-IT"
+    override def urlPart: String = "income-tax"
   }
 
   case object Vat extends Service {
     override def agentType: Option[AgentType] = None
     override def externalServiceName: String = "MTD-VAT"
     override def internalServiceName: String = "HMRC-MTD-VAT"
+    override def urlPart: String = "vat"
   }
 
   implicit val reads: Reads[Service] = new Reads[Service] {
