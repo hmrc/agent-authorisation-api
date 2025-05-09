@@ -16,33 +16,19 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import java.time.LocalDate
-
-import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.agentauthorisation.connectors.InvitationsConnector
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
-import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDate
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class InvitationService @Inject() (invitationsConnector: InvitationsConnector) {
-
-  def createInvitation(arn: Arn, agentInvitation: AgentInvitation)(implicit
-    headerCarrier: HeaderCarrier,
-    executionContext: ExecutionContext
-  ): Future[String] =
-    invitationsConnector
-      .createInvitation(arn, agentInvitation)
-      .map(_.getOrElse(throw new Exception("Invitation Id expected but missing.")))
-
-  def checkPostcodeMatches(nino: Nino, postcode: String)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[KnownFactCheckResult] =
-    invitationsConnector.checkPostcodeForClient(nino, postcode)
+class InvitationService @Inject() (
+  invitationsConnector: InvitationsConnector
+) {
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
     headerCarrier: HeaderCarrier

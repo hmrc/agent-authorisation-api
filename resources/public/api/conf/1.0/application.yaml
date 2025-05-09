@@ -193,6 +193,9 @@ components:
             vatClientInsolvent:
               value:
                 $ref: './examples/errors/forbidden_vatClientInsolvent.json'
+            alreadyProcessing:
+              value:
+                $ref: './examples/errors/forbidden_alreadyProcessing.json'
     forbiddenGetInvitations:
       description: Forbidden
       content:

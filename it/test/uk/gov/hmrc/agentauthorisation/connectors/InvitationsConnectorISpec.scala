@@ -17,9 +17,8 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.test.Helpers._
-import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
-import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
-import uk.gov.hmrc.agentauthorisation.models.{AgentInvitation, KnownFactCheckFailed, KnownFactCheckPassed, Service, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.models.Service.ItsaMain
+import uk.gov.hmrc.agentauthorisation.models.{KnownFactCheckFailed, KnownFactCheckPassed, Service, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.domain.Nino
@@ -75,60 +74,6 @@ class InvitationsConnectorISpec extends BaseISpec {
     storedVatInvitation,
     storedItsaInvitationArn2(Service.ItsaSupp)
   )
-
-  "createInvitation" should {
-
-    "return a Invitation Id upon success for ITSA" in {
-      createInvitationStub(
-        arn,
-        validNino.value,
-        invitationIdITSA,
-        validNino.value,
-        "ni",
-        "personal",
-        "HMRC-MTD-IT",
-        "NI",
-        validPostcode
-      )
-      val agentInvitation = AgentInvitation(ItsaMain, personal, "ni", "AB123456A", "DH14EJ")
-      val result = await(connector.createInvitation(arn, agentInvitation))
-      result.get should include(invitationIdITSA.value)
-    }
-
-    "return a Invitation Id upon success for ITSA supporting" in {
-      createInvitationStub(
-        arn,
-        validNino.value,
-        invitationIdITSA,
-        validNino.value,
-        "ni",
-        "personal",
-        "HMRC-MTD-IT-SUPP",
-        "NI",
-        validPostcode
-      )
-      val agentInvitation = AgentInvitation(ItsaSupp, personal, "ni", "AB123456A", "DH14EJ")
-      val result = await(connector.createInvitation(arn, agentInvitation))
-      result.get should include(invitationIdITSA.value)
-    }
-
-    "return a Invitation Id upon success for VAT" in {
-      createInvitationStub(
-        arn,
-        validVrn.value,
-        invitationIdVAT,
-        validVrn.value,
-        "vrn",
-        "business",
-        "HMRC-MTD-VAT",
-        "VRN",
-        validVatRegDate
-      )
-      val agentInvitation = AgentInvitation(Vat, business, "vrn", validVrn.value, validVatRegDate)
-      val result = await(connector.createInvitation(arn, agentInvitation))
-      result.get should include(invitationIdVAT.value)
-    }
-  }
 
   "checkPostcodeForClient" should {
     "return KnownFactCheckPassed when the nino and postcode do match" in {

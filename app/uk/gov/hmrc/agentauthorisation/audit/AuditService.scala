@@ -16,16 +16,15 @@
 
 package uk.gov.hmrc.agentauthorisation.audit
 
-import javax.inject.{Inject, Singleton}
 import play.api.mvc.Request
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
-import uk.gov.hmrc.agentauthorisation.models.AgentInvitation
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -43,28 +42,6 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     details: Seq[(String, Any)] = Seq.empty
   )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
     send(createEvent(event, transactionName, details: _*))
-
-  def sendAgentInvitationSubmitted(
-    arn: Arn,
-    invitationId: String,
-    agentInvitation: AgentInvitation,
-    result: String,
-    failure: Option[String] = None
-  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
-    auditEvent(
-      AgentAuthorisationEvent.agentAuthorisationCreatedViaApi,
-      "agent-created-invitation-via-api",
-      Seq(
-        "factCheck"            -> result,
-        "invitationId"         -> invitationId,
-        "agentReferenceNumber" -> arn.value,
-        "clientIdType"         -> agentInvitation.clientIdType,
-        "clientId"             -> agentInvitation.clientId,
-        "service"              -> agentInvitation.service.internalServiceName
-      ).filter(_._2.nonEmpty) ++ failure
-        .map(e => Seq("failureDescription" -> e))
-        .getOrElse(Seq.empty)
-    )
 
   def sendAgentInvitationCancelled(arn: Arn, invitationId: String, result: String, failure: Option[String] = None)(
     implicit

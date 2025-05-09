@@ -29,46 +29,6 @@ import java.time.LocalDate
 trait ACAStubs {
   me: WireMockSupport with TestIdentifiers =>
 
-  def createInvitationStub(
-    arn: Arn,
-    clientId: String,
-    invitationId: InvitationId,
-    suppliedClientId: String,
-    suppliedClientType: String,
-    clientType: String,
-    service: String,
-    serviceIdentifier: String,
-    knownFact: String
-  ): Unit =
-    stubFor(
-      post(urlEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
-        .withRequestBody(equalToJson(s"""
-                                        |{
-                                        |   "service": "$service",
-                                        |   "clientType": "$clientType",
-                                        |   "clientIdType": "$suppliedClientType",
-                                        |   "clientId":"$suppliedClientId",
-                                        |   "knownFact":"$knownFact"
-                                        |}""".stripMargin))
-        .willReturn(
-          aResponse()
-            .withStatus(201)
-            .withHeader(
-              "InvitationId",
-              invitationId.value
-            )
-        )
-    )
-
-  def failedCreateInvitation(arn: Arn): Unit =
-    stubFor(
-      post(urlEqualTo(s"/agent-client-authorisation/agencies/${encodePathSegment(arn.value)}/invitations/sent"))
-        .willReturn(
-          aResponse()
-            .withStatus(400)
-        )
-    )
-
   def givenMatchingClientIdAndPostcode(nino: Nino, postcode: String) =
     stubFor(
       get(urlEqualTo(s"/agent-client-authorisation/known-facts/individuals/nino/${nino.value}/sa/postcode/$postcode"))

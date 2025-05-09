@@ -18,12 +18,74 @@ package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.Eventually.eventually
+import play.api.libs.json.Json
+import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, Service}
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
-import uk.gov.hmrc.agentmtdidentifiers.model.Vrn
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
 
 trait ACRStubs {
   me: WireMockSupport =>
+
+  def createInvitationStub(
+    arn: Arn,
+    invitationId: InvitationId,
+    service: Service,
+    clientId: String,
+    knownFact: String,
+    clientType: String
+  ): Unit = {
+    val requestBody = Json.obj(
+      "service"          -> service.internalServiceName,
+      "suppliedClientId" -> clientId,
+      "knownFact"        -> knownFact,
+      "clientType"       -> clientType
+    )
+    val responseBody = Json.obj(
+      "invitationId" -> invitationId.value
+    )
+    stubFor(
+      post(urlEqualTo(s"/agent-client-relationships/api/${arn.value}/invitation"))
+        .withRequestBody(equalToJson(requestBody.toString()))
+        .willReturn(
+          jsonResponse(
+            responseBody.toString(),
+            201
+          )
+        )
+    )
+  }
+
+  def createInvitationErrorStub(
+    error: ApiErrorResponse,
+    arn: Arn,
+    invitationId: InvitationId,
+    service: Service,
+    clientId: String,
+    knownFact: String,
+    clientType: String
+  ): Unit = {
+    val requestBody = Json.obj(
+      "service"          -> service.internalServiceName,
+      "suppliedClientId" -> clientId,
+      "knownFact"        -> knownFact,
+      "clientType"       -> clientType
+    )
+    val responseBody = Json.obj(
+      "code"         -> error.code,
+      "invitationId" -> invitationId.value
+    )
+    stubFor(
+      post(urlEqualTo(s"/agent-client-relationships/api/${arn.value}/invitation"))
+        .withRequestBody(equalToJson(requestBody.toString()))
+        .willReturn(
+          jsonResponse(
+            responseBody.toString(),
+            error.statusCode
+          )
+        )
+    )
+  }
 
   def getStatusRelationshipItsa(arn: String, nino: Nino, status: Int, service: String): Unit =
     stubFor(

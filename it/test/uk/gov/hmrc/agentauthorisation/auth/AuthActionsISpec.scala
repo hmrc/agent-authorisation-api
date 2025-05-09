@@ -72,7 +72,7 @@ class AuthActionsISpec extends BaseISpec {
       givenUnauthorisedWith("InsufficientEnrolments")
       val result = TestController.withAuthorisedAsAgent
       status(result) shouldBe 403
-      result shouldBe NotAnAgent
+      result shouldBe NotAnAgentResult
     }
 
     "return 403 Not An Agent when agent not enrolled for service" in {
@@ -87,7 +87,7 @@ class AuthActionsISpec extends BaseISpec {
            |]}""".stripMargin
       )
       val result = TestController.withAuthorisedAsAgent
-      result shouldBe NotAnAgent
+      result shouldBe NotAnAgentResult
     }
 
     "return 403 Agent Not Subscribed when expected agent's identifier missing" in {
@@ -102,7 +102,7 @@ class AuthActionsISpec extends BaseISpec {
            |]}""".stripMargin
       )
       val result = TestController.withAuthorisedAsAgent
-      result shouldBe AgentNotSubscribed
+      result shouldBe AgentNotSubscribedResult
     }
   }
 }

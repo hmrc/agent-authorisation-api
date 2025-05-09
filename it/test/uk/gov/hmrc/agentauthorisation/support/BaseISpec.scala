@@ -16,15 +16,22 @@
 
 package uk.gov.hmrc.agentauthorisation.support
 
+import com.google.inject.AbstractModule
 import org.apache.pekko.stream.Materializer
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import uk.gov.hmrc.agentauthorisation.services.MongoLockService
 import uk.gov.hmrc.agentauthorisation.stubs._
+import uk.gov.hmrc.mongo.lock.MongoLockRepository
+import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 abstract class BaseISpec
-    extends UnitSpec with GuiceOneServerPerSuite with WireMockSupport with AuthStubs with ACAStubs with DataStreamStubs
-    with ACRStubs with TestIdentifiers {
+    extends UnitSpec with GuiceOneServerPerSuite with WireMockSupport with AuthStubs with MongoApp with ACAStubs
+    with DataStreamStubs with ACRStubs with TestIdentifiers {
+
   override implicit lazy val app: Application = appBuilder.build()
 
   def isEnabledItsaSupportingAgent: Boolean = true
@@ -45,13 +52,24 @@ abstract class BaseISpec
         "microservice.services.des.host"                        -> wireMockHost,
         "microservice.services.des.port"                        -> wireMockPort,
         "api.supported-versions"                                -> Seq("1.0"),
-        "itsa-supporting-agent.enabled"                         -> isEnabledItsaSupportingAgent
+        "itsa-supporting-agent.enabled"                         -> isEnabledItsaSupportingAgent,
+        "mongodb.uri"                                           -> mongoUri
       )
       .configure(additionalConfiguration)
 
   protected def additionalConfiguration = Map.empty[String, Any]
 
   protected implicit val materializer: Materializer = app.materializer
+
+  lazy val mongoLockService: MongoLockService = new MongoLockService(mongoLockRepository)
+  def mongoLockRepository = new MongoLockRepository(mongoComponent, new CurrentTimestampSupport)
+
+  lazy val moduleWithOverrides = new AbstractModule {
+    override def configure(): Unit = {
+      bind(classOf[MongoComponent]).toInstance(mongoComponent)
+      bind(classOf[MongoLockService]).toInstance(mongoLockService)
+    }
+  }
 
   def commonStubs(): Unit =
     givenAuditConnector()
