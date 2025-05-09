@@ -1,6 +1,6 @@
 ## [0.137.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.137.0) 12 May 2025
 * Introduce handling for duplicate requests, now whenever the same request is received multiple times, a new error case will return 403 rather than permit the subsequent requests to proceed
-
+* Stop setting the Location header when the request is rejected with a 403 status code with code "ALREADY_AUTHORISED"
 
 ## [0.132.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.132.0) 10 October 2024
 * Add support for multiple supporting agents on MTD-IT (NOTE: the agentType field, which provides for different agent types of “main” or “supporting”, is only available in the Sandbox environment.
