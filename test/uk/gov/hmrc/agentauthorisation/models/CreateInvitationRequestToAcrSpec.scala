@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.models
 import uk.gov.hmrc.agentauthorisation.models.Service.ItsaMain
 import uk.gov.hmrc.agentauthorisation.support.BaseSpec
 
-class ValidCreateInvitationRequestSpec extends BaseSpec {
+class CreateInvitationRequestToAcrSpec extends BaseSpec {
   val nino = "AB123456A"
   val validPostcode = "DH14EJ"
 

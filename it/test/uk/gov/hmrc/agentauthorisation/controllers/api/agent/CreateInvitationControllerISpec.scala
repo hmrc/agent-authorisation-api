@@ -27,9 +27,8 @@ import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.mongo.lock.MongoLockRepository
 
-import scala.concurrent.duration.DurationInt
 import scala.concurrent.Future
-import java.time.LocalDateTime
+import scala.concurrent.duration.DurationInt
 
 class CreateInvitationControllerISpec extends BaseISpec {
 
@@ -37,7 +36,7 @@ class CreateInvitationControllerISpec extends BaseISpec {
 
   lazy val configuration: Configuration = app.injector.instanceOf[Configuration]
 
-  private def stubCreateItsaInAcr(error: Option[ApiErrorResponse], main: Boolean) = {
+  private def stubCreateItsaInAcr(error: Option[ApiErrorResponse], main: Boolean): Unit = {
     val service = if (main) ItsaMain else ItsaSupp
     if (error.isDefined) {
       createInvitationErrorStub(
@@ -59,7 +58,7 @@ class CreateInvitationControllerISpec extends BaseISpec {
     }
   }
 
-  private def stubCreateVatInAcr(error: Option[ApiErrorResponse] = None) =
+  private def stubCreateVatInAcr(error: Option[ApiErrorResponse] = None): Unit =
     if (error.isDefined) {
       createInvitationErrorStub(
         error.get,

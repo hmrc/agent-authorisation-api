@@ -17,15 +17,10 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.test.Helpers._
-import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.http.HeaderCarrier
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Right
 
 class AgentClientRelationshipsConnectorISpec extends BaseISpec {
 
