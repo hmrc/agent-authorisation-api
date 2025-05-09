@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.stubs
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.Eventually.eventually
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, ClientType, DuplicateAuthorisationRequest, Service}
+import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, DuplicateAuthorisationRequest, Service}
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
@@ -31,8 +31,6 @@ trait ACRStubs {
     arn: Arn,
     invitationId: InvitationId,
     service: Service,
-    clientType: ClientType,
-    clientIdType: String,
     clientId: String,
     knownFact: String
   ): Unit = {
@@ -61,8 +59,6 @@ trait ACRStubs {
     arn: Arn,
     invitationId: InvitationId,
     service: Service,
-    clientType: ClientType,
-    clientIdType: String,
     clientId: String,
     knownFact: String
   ): Unit = {

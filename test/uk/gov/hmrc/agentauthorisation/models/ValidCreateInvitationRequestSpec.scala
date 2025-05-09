@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import uk.gov.hmrc.agentauthorisation.models.ClientType.personal
 import uk.gov.hmrc.agentauthorisation.models.Service.ItsaMain
 import uk.gov.hmrc.agentauthorisation.support.BaseSpec
 
@@ -36,12 +35,12 @@ class ValidCreateInvitationRequestSpec extends BaseSpec {
         agentType = Some("main")
       )
 
-      ValidCreateInvitationRequest.unapply(payload) shouldBe Some(
-        ValidCreateInvitationRequest(
+      CreateInvitationRequestToAcr.unapply(payload) shouldBe Some(
+        CreateInvitationRequestToAcr(
           service = ItsaMain,
           suppliedClientId = nino,
           knownFact = validPostcode,
-          clientType = personal
+          clientType = "personal"
         )
       )
     }
@@ -56,7 +55,7 @@ class ValidCreateInvitationRequestSpec extends BaseSpec {
         agentType = Some("xxx")
       )
 
-      ValidCreateInvitationRequest.unapply(invalidPayload) shouldBe None
+      CreateInvitationRequestToAcr.unapply(invalidPayload) shouldBe None
     }
 
   }

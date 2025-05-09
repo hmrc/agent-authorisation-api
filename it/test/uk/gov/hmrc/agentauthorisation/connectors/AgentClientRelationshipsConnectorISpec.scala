@@ -18,7 +18,6 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.test.Helpers._
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
@@ -34,7 +33,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val testItsaInvite = ValidCreateInvitationRequest(ItsaMain, "AB123456A", "DH14EJ", personal)
+  val testItsaInvite = CreateInvitationRequestToAcr(ItsaMain, "AB123456A", "DH14EJ", "personal")
 
   "createInvitation" should {
 
@@ -43,8 +42,6 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         arn,
         invitationIdITSA,
         ItsaMain,
-        personal,
-        "ni",
         validNino.value,
         validPostcode
       )
@@ -57,8 +54,6 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         arn,
         invitationIdITSA,
         ItsaSupp,
-        personal,
-        "ni",
         validNino.value,
         validPostcode
       )
@@ -71,12 +66,10 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         arn,
         invitationIdVAT,
         Service.Vat,
-        business,
-        "vrn",
         validVrn.value,
         validVatRegDate
       )
-      val agentInvitation = ValidCreateInvitationRequest(Vat, validVrn.value, validVatRegDate, business)
+      val agentInvitation = CreateInvitationRequestToAcr(Vat, validVrn.value, validVatRegDate, "business")
       val result = connector.createInvitation(arn, agentInvitation).futureValue
       result shouldBe Right(invitationIdVAT)
     }
@@ -87,8 +80,6 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         arn,
         invitationIdITSA,
         ItsaMain,
-        personal,
-        "ni",
         validNino.value,
         validPostcode
       )

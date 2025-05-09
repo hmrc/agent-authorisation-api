@@ -19,56 +19,48 @@ package uk.gov.hmrc.agentauthorisation.models
 import play.api.libs.json._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 
-case class ValidCreateInvitationRequest(
+case class CreateInvitationRequestToAcr(
   service: Service,
   suppliedClientId: String,
   knownFact: String,
-  clientType: ClientType
+  clientType: String
 )
-object ValidCreateInvitationRequest {
-  def unapply(arg: CreateInvitationPayload): Option[ValidCreateInvitationRequest] =
+object CreateInvitationRequestToAcr {
+  def unapply(arg: CreateInvitationPayload): Option[CreateInvitationRequestToAcr] =
     arg match {
-      case CreateInvitationPayload(List("MTD-VAT"), _, "vrn", _, _, None) =>
+      case CreateInvitationPayload(List("MTD-VAT"), _, _, _, _, None) =>
         Some(
-          ValidCreateInvitationRequest(
+          CreateInvitationRequestToAcr(
             Vat,
             arg.clientId,
             arg.knownFact,
-            ClientType.stringToClientType(arg.clientType)
+            arg.clientType
           )
         )
-      case CreateInvitationPayload(List("MTD-IT"), _, "ni", _, _, Some("supporting")) =>
+      case CreateInvitationPayload(List("MTD-IT"), _, _, _, _, Some("supporting")) =>
         Some(
-          ValidCreateInvitationRequest(
+          CreateInvitationRequestToAcr(
             ItsaSupp,
             arg.clientId,
             arg.knownFact,
-            ClientType.stringToClientType(arg.clientType)
+            arg.clientType
           )
         )
-      case CreateInvitationPayload(List("MTD-IT"), _, "ni", _, _, Some("main")) =>
+      case CreateInvitationPayload(List("MTD-IT"), _, _, _, _, Some("main")) |
+          CreateInvitationPayload(List("MTD-IT"), _, _, _, _, None) =>
         Some(
-          ValidCreateInvitationRequest(
+          CreateInvitationRequestToAcr(
             ItsaMain,
             arg.clientId,
             arg.knownFact,
-            ClientType.stringToClientType(arg.clientType)
-          )
-        )
-      case CreateInvitationPayload(List("MTD-IT"), _, "ni", _, _, None) =>
-        Some(
-          ValidCreateInvitationRequest(
-            ItsaMain,
-            arg.clientId,
-            arg.knownFact,
-            ClientType.stringToClientType(arg.clientType)
+            arg.clientType
           )
         )
       case _ => None
     }
 
-  implicit val writes: Writes[ValidCreateInvitationRequest] = new Writes[ValidCreateInvitationRequest] {
-    override def writes(o: ValidCreateInvitationRequest): JsValue =
+  implicit val writes: Writes[CreateInvitationRequestToAcr] = new Writes[CreateInvitationRequestToAcr] {
+    override def writes(o: CreateInvitationRequestToAcr): JsValue =
       Json.obj(
         "service"          -> o.service,
         "suppliedClientId" -> o.suppliedClientId.replaceAll(" ", ""),

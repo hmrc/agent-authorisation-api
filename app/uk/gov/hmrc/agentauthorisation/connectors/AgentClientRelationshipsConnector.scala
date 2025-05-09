@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 import play.api.http.Status.CREATED
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, InvalidPayload, ValidCreateInvitationRequest}
+import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, CreateInvitationRequestToAcr, InvalidPayload}
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -41,7 +41,7 @@ class AgentClientRelationshipsConnector @Inject() (
 
   import uk.gov.hmrc.http.HttpReads.Implicits._
 
-  def createInvitation(arn: Arn, validCreateInvitationRequest: ValidCreateInvitationRequest)(implicit
+  def createInvitation(arn: Arn, validCreateInvitationRequest: CreateInvitationRequestToAcr)(implicit
     hc: HeaderCarrier
   ): Future[Either[ApiErrorResponse, InvitationId]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {

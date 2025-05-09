@@ -19,7 +19,6 @@ package uk.gov.hmrc.agentauthorisation.services
 import play.api.Logger
 import play.api.libs.json.{JsSuccess, JsValue}
 import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
-import uk.gov.hmrc.agentauthorisation.models.ClientType.{business, personal}
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
@@ -38,7 +37,7 @@ class CreateInvitationService @Inject() (
 
   def createInvitation(
     arn: Arn,
-    validCreateInvitationRequest: ValidCreateInvitationRequest
+    validCreateInvitationRequest: CreateInvitationRequestToAcr
   )(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Either[ApiErrorResponse, InvitationId]] =
     lockService
       .acquireLock(
@@ -54,14 +53,14 @@ class CreateInvitationService @Inject() (
         case None      => Left(LockedRequest)
       }
 
-  def validatePayload(payload: Option[JsValue]): Either[ApiErrorResponse, ValidCreateInvitationRequest] =
+  def validatePayload(payload: Option[JsValue]): Either[ApiErrorResponse, CreateInvitationRequestToAcr] =
     payload match {
       case None =>
         Logger(getClass).warn("The payload could not be parsed as Json")
         Left(InvalidPayload)
       case Some(jsValue) =>
         jsValue.validate[CreateInvitationPayload] match {
-          case JsSuccess(ValidCreateInvitationRequest(value), _) =>
+          case JsSuccess(CreateInvitationRequestToAcr(value), _) =>
             if (!supportedClientTypes(value.service).contains(value.clientType)) {
               Left(UnsupportedClientType)
             } else if (!validateClientId(value)) {
@@ -91,10 +90,10 @@ class CreateInvitationService @Inject() (
   private val postcodeRegex =
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
-  private val supportedClientTypes: Map[Service, Seq[ClientType]] =
-    Map(ItsaMain -> Seq(personal), ItsaSupp -> Seq(personal), Vat -> Seq(personal, business))
+  private val supportedClientTypes: Map[Service, Seq[String]] =
+    Map(ItsaMain -> Seq("personal"), ItsaSupp -> Seq("personal"), Vat -> Seq("personal", "business"))
 
-  private def validateClientId(agentInvitation: ValidCreateInvitationRequest): Boolean =
+  private def validateClientId(agentInvitation: CreateInvitationRequestToAcr): Boolean =
     if (agentInvitation.service == Vat) {
       Vrn.isValid(agentInvitation.suppliedClientId)
     } else {

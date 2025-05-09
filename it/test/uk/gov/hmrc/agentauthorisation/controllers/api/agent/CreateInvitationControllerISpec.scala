@@ -22,7 +22,6 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
-import uk.gov.hmrc.agentauthorisation.models.ClientType._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
@@ -46,8 +45,6 @@ class CreateInvitationControllerISpec extends BaseISpec {
         arn,
         invitationIdITSA,
         service,
-        personal,
-        "ni",
         validNino.value,
         validPostcode
       )
@@ -56,8 +53,6 @@ class CreateInvitationControllerISpec extends BaseISpec {
         arn,
         invitationIdITSA,
         service,
-        personal,
-        "ni",
         validNino.value,
         validPostcode
       )
@@ -71,8 +66,6 @@ class CreateInvitationControllerISpec extends BaseISpec {
         arn,
         invitationIdVAT,
         Service.Vat,
-        business,
-        "vrn",
         validVrn.value,
         validVatRegDate
       )
@@ -81,8 +74,6 @@ class CreateInvitationControllerISpec extends BaseISpec {
         arn,
         invitationIdVAT,
         Service.Vat,
-        business,
-        "vrn",
         validVrn.value,
         validVatRegDate
       )
@@ -172,6 +163,15 @@ class CreateInvitationControllerISpec extends BaseISpec {
         createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyInvalidService), arn.value)).futureValue
       status(result) shouldBe 400
       contentAsJson(result) shouldBe UnsupportedService.toJson
+    }
+
+    "return 400 CLIENT_TYPE_NOT_SUPPORTED when the client type is not valid" in {
+      val result =
+        createInvitation(
+          authorisedAsValidAgent(request.withJsonBody(Json.toJson(itsaPayload.copy(clientType = "trust"))), arn.value)
+        ).futureValue
+      status(result) shouldBe 400
+      contentAsJson(result) shouldBe UnsupportedClientType.toJson
     }
 
     "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for ITSA" in {
