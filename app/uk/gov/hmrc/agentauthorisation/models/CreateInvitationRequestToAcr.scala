@@ -64,7 +64,8 @@ object CreateInvitationRequestToAcr {
       Json.obj(
         "service"          -> o.service,
         "suppliedClientId" -> o.suppliedClientId.replaceAll(" ", ""),
-        "knownFact"        -> o.knownFact
+        "knownFact"        -> o.knownFact,
+        "clientType"       -> o.clientType
       )
   }
 }

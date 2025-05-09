@@ -45,7 +45,8 @@ class CreateInvitationControllerISpec extends BaseISpec {
         invitationIdITSA,
         service,
         validNino.value,
-        validPostcode
+        validPostcode,
+        "personal"
       )
     } else {
       createInvitationStub(
@@ -53,7 +54,8 @@ class CreateInvitationControllerISpec extends BaseISpec {
         invitationIdITSA,
         service,
         validNino.value,
-        validPostcode
+        validPostcode,
+        "personal"
       )
     }
   }
@@ -66,7 +68,8 @@ class CreateInvitationControllerISpec extends BaseISpec {
         invitationIdVAT,
         Service.Vat,
         validVrn.value,
-        validVatRegDate
+        validVatRegDate,
+        "business"
       )
     } else {
       createInvitationStub(
@@ -74,7 +77,8 @@ class CreateInvitationControllerISpec extends BaseISpec {
         invitationIdVAT,
         Service.Vat,
         validVrn.value,
-        validVatRegDate
+        validVatRegDate,
+        "business"
       )
     }
 

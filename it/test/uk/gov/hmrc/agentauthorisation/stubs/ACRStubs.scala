@@ -32,12 +32,14 @@ trait ACRStubs {
     invitationId: InvitationId,
     service: Service,
     clientId: String,
-    knownFact: String
+    knownFact: String,
+    clientType: String
   ): Unit = {
     val requestBody = Json.obj(
       "service"          -> service.internalServiceName,
       "suppliedClientId" -> clientId,
-      "knownFact"        -> knownFact
+      "knownFact"        -> knownFact,
+      "clientType"       -> clientType
     )
     val responseBody = Json.obj(
       "invitationId" -> invitationId.value
@@ -60,12 +62,14 @@ trait ACRStubs {
     invitationId: InvitationId,
     service: Service,
     clientId: String,
-    knownFact: String
+    knownFact: String,
+    clientType: String
   ): Unit = {
     val requestBody = Json.obj(
       "service"          -> service.internalServiceName,
       "suppliedClientId" -> clientId,
-      "knownFact"        -> knownFact
+      "knownFact"        -> knownFact,
+      "clientType"       -> clientType
     )
     val responseBody = Json.obj(
       "code"         -> error.code,

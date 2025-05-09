@@ -38,7 +38,8 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         invitationIdITSA,
         ItsaMain,
         validNino.value,
-        validPostcode
+        validPostcode,
+        "personal"
       )
       val result = connector.createInvitation(arn, testItsaInvite).futureValue
       result shouldBe Right(invitationIdITSA)
@@ -50,7 +51,8 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         invitationIdITSA,
         ItsaSupp,
         validNino.value,
-        validPostcode
+        validPostcode,
+        "personal"
       )
       val result = connector.createInvitation(arn, testItsaInvite.copy(service = ItsaSupp)).futureValue
       result shouldBe Right(invitationIdITSA)
@@ -62,7 +64,8 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         invitationIdVAT,
         Service.Vat,
         validVrn.value,
-        validVatRegDate
+        validVatRegDate,
+        "business"
       )
       val agentInvitation = CreateInvitationRequestToAcr(Vat, validVrn.value, validVatRegDate, "business")
       val result = connector.createInvitation(arn, agentInvitation).futureValue
@@ -76,7 +79,8 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         invitationIdITSA,
         ItsaMain,
         validNino.value,
-        validPostcode
+        validPostcode,
+        "personal"
       )
       val result = await(connector.createInvitation(arn, testItsaInvite))
       result shouldBe Left(ClientRegistrationNotFound)
