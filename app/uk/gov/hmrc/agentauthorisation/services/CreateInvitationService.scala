@@ -61,20 +61,7 @@ class CreateInvitationService @Inject() (
       case Some(jsValue) =>
         jsValue.validate[CreateInvitationPayload] match {
           case JsSuccess(CreateInvitationRequestToAcr(value), _) =>
-            if (!supportedClientTypes(value.service).contains(value.clientType)) {
-              Left(UnsupportedClientType)
-            } else if (!validateClientId(value)) {
-              if (Nino.isValid(value.suppliedClientId) || Vrn.isValid(value.suppliedClientId)) {
-                Left(ClientIdDoesNotMatchService)
-              } else Left(ClientIdInvalidFormat)
-            } else if (validateKnownFactType(value.service, value.knownFact)) {
-              Right(value)
-            } else {
-              value.service match {
-                case ItsaMain | ItsaSupp => Left(PostcodeFormatInvalid)
-                case _                   => Left(VatRegDateFormatInvalid)
-              }
-            }
+            validateRequestToAcr(value)
           case JsSuccess(CreateInvitationPayload(service, _, _, _, _, _), _)
               if !List("MTD-IT", "MTD-VAT").contains(service.head) =>
             Left(UnsupportedService)
@@ -85,6 +72,24 @@ class CreateInvitationService @Inject() (
             Logger(getClass).debug(s"The payload is not valid: $other")
             Left(InvalidPayload)
         }
+    }
+
+  def validateRequestToAcr(
+    value: CreateInvitationRequestToAcr
+  ): Either[ApiErrorResponse, CreateInvitationRequestToAcr] =
+    if (!supportedClientTypes(value.service).contains(value.clientType)) {
+      Left(UnsupportedClientType)
+    } else if (!validateClientId(value)) {
+      if (Nino.isValid(value.suppliedClientId) || Vrn.isValid(value.suppliedClientId)) {
+        Left(ClientIdDoesNotMatchService)
+      } else Left(ClientIdInvalidFormat)
+    } else if (validateKnownFactType(value.service, value.knownFact)) {
+      Right(value)
+    } else {
+      value.service match {
+        case ItsaMain | ItsaSupp => Left(PostcodeFormatInvalid)
+        case _                   => Left(VatRegDateFormatInvalid)
+      }
     }
 
   private val postcodeRegex =

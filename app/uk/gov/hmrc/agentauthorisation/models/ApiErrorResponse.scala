@@ -126,7 +126,8 @@ case object NoPermissionOnAgency
     extends ApiErrorResponse(
       403,
       "NO_PERMISSION_ON_AGENCY",
-      "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+      "The user that is signed in cannot access this authorisation request. Their details do not match the agent " +
+        "business that created the authorisation request."
     )
 
 case object PostcodeFormatInvalid
