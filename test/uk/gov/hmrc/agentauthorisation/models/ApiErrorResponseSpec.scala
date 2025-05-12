@@ -24,6 +24,7 @@ class ApiErrorResponseSpec extends BaseSpec {
   "ApiErrorResponse" should {
 
     "read from JSON when the code is recognised" in {
+      Json.obj("code" -> "AGENT_SUSPENDED").as[ApiErrorResponse] shouldBe NoPermissionOnAgency
       Json.obj("code" -> "AGENT_NOT_SUBSCRIBED").as[ApiErrorResponse] shouldBe AgentNotSubscribed
       Json.obj("code" -> "ALREADY_AUTHORISED").as[ApiErrorResponse] shouldBe AlreadyAuthorised
       Json.obj("code" -> "ALREADY_BEING_PROCESSED").as[ApiErrorResponse] shouldBe LockedRequest

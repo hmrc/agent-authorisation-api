@@ -44,6 +44,7 @@ object ApiErrorResponse {
   implicit val reads: Reads[ApiErrorResponse] =
     Reads { json =>
       val response = (json \ "code").as[String] match {
+        case "AGENT_SUSPENDED"                  => NoPermissionOnAgency
         case "AGENT_NOT_SUBSCRIBED"             => AgentNotSubscribed
         case "ALREADY_AUTHORISED"               => AlreadyAuthorised
         case "ALREADY_BEING_PROCESSED"          => LockedRequest
