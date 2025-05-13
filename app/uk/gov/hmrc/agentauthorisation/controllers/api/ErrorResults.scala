@@ -30,7 +30,7 @@ object ErrorResults {
       Json.obj("code" -> body.code, "message" -> body.message)
   }
 
-  val UnsupportedService: Result = BadRequest(
+  val UnsupportedServiceResult: Result = BadRequest(
     toJson(
       ErrorBody(
         "SERVICE_NOT_SUPPORTED",
@@ -39,7 +39,7 @@ object ErrorResults {
     )
   )
 
-  val UnsupportedClientType: Result = BadRequest(
+  val UnsupportedClientTypeResult: Result = BadRequest(
     toJson(
       ErrorBody(
         "CLIENT_TYPE_NOT_SUPPORTED",
@@ -48,7 +48,7 @@ object ErrorResults {
     )
   )
 
-  val UnsupportedAgentType: Result = BadRequest(
+  val UnsupportedAgentTypeResult: Result = BadRequest(
     toJson(
       ErrorBody(
         "AGENT_TYPE_NOT_SUPPORTED",
@@ -57,7 +57,7 @@ object ErrorResults {
     )
   )
 
-  val ClientIdDoesNotMatchService: Result = BadRequest(
+  val ClientIdDoesNotMatchServiceResult: Result = BadRequest(
     toJson(
       ErrorBody(
         "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
@@ -66,7 +66,7 @@ object ErrorResults {
     )
   )
 
-  val ClientIdInvalidFormat: Result = BadRequest(
+  val ClientIdInvalidFormatResult: Result = BadRequest(
     toJson(
       ErrorBody(
         "CLIENT_ID_FORMAT_INVALID",
@@ -75,7 +75,7 @@ object ErrorResults {
     )
   )
 
-  val PostcodeFormatInvalid: Result = BadRequest(
+  val PostcodeFormatInvalidResult: Result = BadRequest(
     toJson(
       ErrorBody(
         "POSTCODE_FORMAT_INVALID",
@@ -84,7 +84,7 @@ object ErrorResults {
     )
   )
 
-  val VatRegDateFormatInvalid: Result = BadRequest(
+  val VatRegDateFormatInvalidResult: Result = BadRequest(
     toJson(
       ErrorBody(
         "VAT_REG_DATE_FORMAT_INVALID",
@@ -93,11 +93,15 @@ object ErrorResults {
     )
   )
 
-  val PostcodeDoesNotMatch: Result = Forbidden(
+  val LockedRequestResult: Result = Forbidden(
+    toJson(ErrorBody("ALREADY_BEING_PROCESSED", "More than one request received to create the same invitation."))
+  )
+
+  val PostcodeDoesNotMatchResult: Result = Forbidden(
     toJson(ErrorBody("POSTCODE_DOES_NOT_MATCH", "The postcode provided does not match HMRC's record for this client."))
   )
 
-  val VatRegDateDoesNotMatch: Result = Forbidden(
+  val VatRegDateDoesNotMatchResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "VAT_REG_DATE_DOES_NOT_MATCH",
@@ -106,7 +110,7 @@ object ErrorResults {
     )
   )
 
-  val VatClientInsolvent: Result = Forbidden(
+  val VatClientInsolventResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "VAT_CLIENT_INSOLVENT",
@@ -115,13 +119,13 @@ object ErrorResults {
     )
   )
 
-  val ClientRegistrationNotFound: Result = Forbidden(
+  val ClientRegistrationNotFoundResult: Result = Forbidden(
     toJson(
       ErrorBody("CLIENT_REGISTRATION_NOT_FOUND", "The details provided for this client do not match HMRC's records.")
     )
   )
 
-  val NoPermissionOnAgency: Result = Forbidden(
+  val NoPermissionOnAgencyResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "NO_PERMISSION_ON_AGENCY",
@@ -130,7 +134,7 @@ object ErrorResults {
     )
   )
 
-  val NotAnAgent: Result = Forbidden(
+  val NotAnAgentResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "NOT_AN_AGENT",
@@ -139,7 +143,7 @@ object ErrorResults {
     )
   )
 
-  val AgentNotSubscribed: Result = Forbidden(
+  val AgentNotSubscribedResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "AGENT_NOT_SUBSCRIBED",
@@ -148,11 +152,11 @@ object ErrorResults {
     )
   )
 
-  val InvitationNotFound: Result = NotFound(
+  val InvitationNotFoundResult: Result = NotFound(
     toJson(ErrorBody("INVITATION_NOT_FOUND", "The authorisation request cannot be found."))
   )
 
-  val InvalidInvitationStatus: Result = Forbidden(
+  val InvalidInvitationStatusResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "INVALID_INVITATION_STATUS",
@@ -161,15 +165,15 @@ object ErrorResults {
     )
   )
 
-  val RelationshipNotFound: Result = NotFound(
+  val RelationshipNotFoundResult: Result = NotFound(
     toJson(
       ErrorBody("RELATIONSHIP_NOT_FOUND", "Relationship is inactive. Agent is not authorised to act for this client.")
     )
   )
 
-  val InvalidPayload: Result = BadRequest(toJson(ErrorBody("INVALID_PAYLOAD", "The payload is invalid.")))
+  val InvalidPayloadResult: Result = BadRequest(toJson(ErrorBody("INVALID_PAYLOAD", "The payload is invalid.")))
 
-  val DuplicateAuthorisationRequest: Result = Forbidden(
+  val DuplicateAuthorisationRequestResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "DUPLICATE_AUTHORISATION_REQUEST",
@@ -178,7 +182,7 @@ object ErrorResults {
     )
   )
 
-  val AlreadyAuthorised: Result = Forbidden(
+  val AlreadyAuthorisedResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "ALREADY_AUTHORISED",

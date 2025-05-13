@@ -18,8 +18,7 @@ package uk.gov.hmrc.agentauthorisation.auth
 
 import play.api.Logger
 import play.api.mvc.{Request, Result}
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
-import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
+import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
@@ -58,14 +57,14 @@ trait AuthActions extends AuthorisedFunctions {
               Logger(getClass).warn(
                 s"Logged in user has Affinity Group: Agent but does not have Enrolment: HMRC-AS-AGENT"
               )
-              Future successful AgentNotSubscribed
+              Future successful AgentNotSubscribed.toResult
             case _ =>
               Logger(getClass).warn(s"Logged in user does not have Affinity Group: Agent. Discovered: $affinity")
-              Future successful NotAnAgent
+              Future successful NotAnAgent.toResult
           }
         case _ =>
           Logger(getClass).warn(s"User Attempted to Login with Invalid Credentials")
-          Future successful NotAnAgent
+          Future successful NotAnAgent.toResult
       }
 
   protected def withAuthorisedAsAgent[A](
@@ -77,10 +76,10 @@ trait AuthActions extends AuthorisedFunctions {
     } recoverWith {
       case _: InsufficientEnrolments =>
         Logger(getClass).warn(s"User has Insufficient Enrolments to Login")
-        Future successful NotAnAgent
+        Future successful NotAnAgent.toResult
       case e: AuthorisationException =>
         Logger(getClass).warn(s"User has Missing Bearer Token in Header or: $e")
-        Future successful standardUnauthorised
+        Future successful StandardUnauthorised.toResult
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentauthorisation.controllers.api.agent
+package uk.gov.hmrc.agentauthorisation.models
 
-class AgentControllerAgentTypeTurnedOffISpec extends AgentControllerTests {
-  override val isEnabledItsaSupportingAgent: Boolean = false
+import uk.gov.hmrc.agentauthorisation.support.BaseSpec
+
+class AgentTypeSpec extends BaseSpec {
+
+  "AgentType" should {
+    "accept a valid string value" in {
+      AgentType("main") shouldBe AgentType.Main
+      AgentType("supporting") shouldBe AgentType.Supporting
+    }
+    "have the correct agentTypeName for the type" in {
+      AgentType.Main.agentTypeName shouldBe "main"
+      AgentType.Supporting.agentTypeName shouldBe "supporting"
+    }
+  }
 }
