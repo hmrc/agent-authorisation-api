@@ -378,7 +378,7 @@ object AgentController {
   private def knownFactDoesNotMatch(service: Service) =
     service match {
       case ItsaMain | ItsaSupp => PostcodeDoesNotMatchResult
-      case Vat                 => VatRegDateDoesNotMatchResultResult
+      case Vat                 => VatRegDateDoesNotMatchResult
     }
 
   private def knownFactFormatInvalid(service: Service) =

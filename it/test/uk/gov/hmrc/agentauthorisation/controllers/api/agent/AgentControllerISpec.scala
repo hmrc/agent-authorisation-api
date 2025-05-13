@@ -24,7 +24,7 @@ import play.api.mvc.Results.InternalServerError
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults.{VatRegDateDoesNotMatchResultResult, _}
+import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Service.{HMRCMTDIT, HMRCMTDITSUPP}
@@ -667,7 +667,7 @@ class AgentControllerISpec extends BaseISpec {
         val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
 
         status(result) shouldBe 403
-        await(result) shouldBe VatRegDateDoesNotMatchResultResult
+        await(result) shouldBe VatRegDateDoesNotMatchResult
       }
 
       "return 403 NOT_AN_AGENT when the logged in user is not have an HMRC-AS-AGENT enrolment" in {

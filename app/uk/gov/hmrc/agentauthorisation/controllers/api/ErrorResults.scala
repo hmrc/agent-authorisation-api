@@ -101,7 +101,7 @@ object ErrorResults {
     toJson(ErrorBody("POSTCODE_DOES_NOT_MATCH", "The postcode provided does not match HMRC's record for this client."))
   )
 
-  val VatRegDateDoesNotMatchResultResult: Result = Forbidden(
+  val VatRegDateDoesNotMatchResult: Result = Forbidden(
     toJson(
       ErrorBody(
         "VAT_REG_DATE_DOES_NOT_MATCH",
