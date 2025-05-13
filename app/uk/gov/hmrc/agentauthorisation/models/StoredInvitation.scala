@@ -115,22 +115,6 @@ object PendingOrRespondedInvitation {
         ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
     }
 
-  val writesExternalWithoutAgentType: Writes[PendingOrRespondedInvitation] = new Writes[PendingOrRespondedInvitation] {
-    override def writes(o: PendingOrRespondedInvitation): JsValue =
-      Json.obj(
-        "_links"          -> o._links,
-        "created"         -> o.created,
-        "expiresOn"       -> o.expiresOn,
-        "arn"             -> o.arn.value,
-        "service"         -> o.service.map(_.externalServiceName),
-        "status"          -> o.status,
-        "clientActionUrl" -> o.clientActionUrl,
-        "updated"         -> o.updated
-      )
-  }
-
-  val seqWritesExternalWithoutAgentType: Writes[Seq[PendingOrRespondedInvitation]] =
-    Writes.seq[PendingOrRespondedInvitation](writesExternalWithoutAgentType)
 }
 
 case class PendingInvitation(
@@ -166,19 +150,6 @@ object PendingInvitation {
       ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
   }
 
-  val writesExternalWithoutAgentType: Writes[PendingInvitation] = new Writes[PendingInvitation] {
-
-    override def writes(o: PendingInvitation): JsValue =
-      Json.obj(
-        "_links"          -> Json.obj("self" -> Json.obj("href" -> o.href)),
-        "created"         -> o.created,
-        "expiresOn"       -> o.expiresOn,
-        "arn"             -> o.arn.value,
-        "service"         -> o.service.map(_.externalServiceName),
-        "status"          -> o.status,
-        "clientActionUrl" -> o.clientActionUrl
-      )
-  }
 }
 
 case class RespondedInvitation(
@@ -208,18 +179,6 @@ object RespondedInvitation {
         "service" -> o.service.map(_.externalServiceName),
         "status"  -> o.status
       ) ++ o.service.headOption.flatMap(_.agentType).fold(Json.obj())(at => Json.obj("agentType" -> at.agentTypeName))
-  }
-
-  val writesExternalWithoutAgentType: Writes[RespondedInvitation] = new Writes[RespondedInvitation] {
-    override def writes(o: RespondedInvitation): JsValue =
-      Json.obj(
-        "_links"  -> Json.obj("self" -> Json.obj("href" -> o.href)),
-        "created" -> o.created,
-        "updated" -> o.updated,
-        "arn"     -> o.arn.value,
-        "service" -> o.service.map(_.externalServiceName),
-        "status"  -> o.status
-      )
   }
 
 }

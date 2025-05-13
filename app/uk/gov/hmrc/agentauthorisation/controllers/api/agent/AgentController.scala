@@ -57,45 +57,6 @@ class AgentController @Inject() (
 
   import AgentController._
 
-  def cancelInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
-    Action.async { implicit request =>
-      withAuthorisedAsAgent { arn =>
-        implicit val loggedInArn: Arn = arn
-        forThisAgency(givenArn) {
-          invitationsConnector
-            .cancelInvitation(arn, invitationId)
-            .map {
-              case Some(204) =>
-                auditService.sendAgentInvitationCancelled(arn, invitationId.value, "Success")
-                NoContent
-              case Some(404) => InvitationNotFoundResult
-              case Some(403) => NoPermissionOnAgencyResult
-              case _ =>
-                auditService.sendAgentInvitationCancelled(
-                  arn,
-                  invitationId.value,
-                  "Fail",
-                  Some(s"INVALID_INVITATION_STATUS")
-                )
-                Logger(getClass).warn(
-                  s"Invitation Cancellation Failed: cannot transition the current status to Cancelled"
-                )
-                InvalidInvitationStatusResult
-            }
-            .recoverWith { case e =>
-              auditService.sendAgentInvitationCancelled(
-                arn,
-                invitationId.value,
-                "Fail",
-                Some(s"Request to Cancel Invitation ${invitationId.value} failed due to: ${e.getMessage}")
-              )
-              Logger(getClass).warn(s"Invitation Cancellation Failed: ${e.getMessage}")
-              Future.failed(e)
-            }
-        }
-      }
-    }
-
   def checkRelationshipApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAsAgent { arn =>
       implicit val loggedInAgent: Arn = arn
@@ -264,8 +225,7 @@ class AgentController @Inject() (
             case s if s.isEmpty => NoContent
             case s =>
               implicit val writer =
-                if (appConfig.itsaSupportingAgentEnabled) PendingOrRespondedInvitation.writesExternalWithAgentType
-                else PendingOrRespondedInvitation.writesExternalWithoutAgentType
+                PendingOrRespondedInvitation.writesExternalWithAgentType
               Ok(Json.toJson(s))
           }
       }

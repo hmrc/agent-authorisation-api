@@ -40,6 +40,7 @@ lazy val root = (project in file("."))
     scalacOptions ++= scalaCOptions
   )
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
+  .disablePlugins(JUnitXmlReportPlugin)
 
 lazy val it = project
   .enablePlugins(PlayScala)

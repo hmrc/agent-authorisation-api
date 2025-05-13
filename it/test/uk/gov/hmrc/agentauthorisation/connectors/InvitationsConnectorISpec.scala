@@ -18,7 +18,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models.Service.ItsaMain
-import uk.gov.hmrc.agentauthorisation.models.{KnownFactCheckFailed, KnownFactCheckPassed, Service, StoredInvitation}
+import uk.gov.hmrc.agentauthorisation.models.{KnownFactCheckFailed, KnownFactCheckPassed, Service, StandardInternalServerError, StoredInvitation}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.domain.Nino
@@ -125,36 +125,6 @@ class InvitationsConnectorISpec extends BaseISpec {
       val result = await(connector.checkVatRegDateForClient(validVrn, LocalDate.parse(validVatRegDate)))
 
       result shouldBe KnownFactCheckFailed("VAT_RECORD_NOT_FOUND")
-    }
-  }
-
-  "cancelInvitation" should {
-    "return 204 when cancellation is successful" in {
-      givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
-      val result = await(connector.cancelInvitation(arn, invitationIdITSA))
-
-      result shouldBe Some(204)
-    }
-
-    "return 404 when invitation is not found" in {
-      givenCancelAgentInvitationStub(arn, invitationIdITSA, 404)
-      val result = await(connector.cancelInvitation(arn, invitationIdITSA))
-
-      result shouldBe Some(404)
-    }
-
-    "return 500 when an invitation cannot be cancelled" in {
-      givenCancelAgentInvitationStubInvalid(arn, invitationIdITSA)
-      val result = await(connector.cancelInvitation(arn, invitationIdITSA))
-
-      result shouldBe Some(500)
-    }
-
-    "return None when some other response is returned" in {
-      givenCancelAgentInvitationStub(arn, invitationIdITSA, 403)
-      val result = await(connector.cancelInvitation(arn, invitationIdITSA))
-
-      result shouldBe Some(403)
     }
   }
 
