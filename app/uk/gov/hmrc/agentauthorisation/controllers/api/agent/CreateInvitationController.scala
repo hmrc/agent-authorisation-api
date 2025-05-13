@@ -53,11 +53,11 @@ class CreateInvitationController @Inject() (
               } yield result match {
                 case Right(invitationId) =>
                   NoContent
-                    .withHeaders(LOCATION -> routes.AgentController.getInvitationApi(arn, invitationId).url)
+                    .withHeaders(LOCATION -> routes.GetInvitationsController.getInvitationApi(arn, invitationId).url)
                 case Left(errorResponse @ DuplicateAuthorisationRequest(invitationId)) =>
                   errorResponse.toResult
                     .withHeaders(
-                      LOCATION -> routes.AgentController.getInvitationApi(arn, invitationId).url
+                      LOCATION -> routes.GetInvitationsController.getInvitationApi(arn, invitationId).url
                     )
                 case Left(errorResponse: ApiErrorResponse) =>
                   errorResponse.toResult
@@ -66,11 +66,4 @@ class CreateInvitationController @Inject() (
       }
     }
   }
-
-  // TODO: Move this into auth actions after all endpoints refactored
-  private def validateArnInRequest(requestedArn: Arn)(block: => Future[Result])(implicit arn: Arn): Future[Result] =
-    if (requestedArn != arn) {
-      Logger(getClass).warn(s"Requested Arn ${requestedArn.value} does not match to logged in Arn")
-      Future successful NoPermissionOnAgency.toResult
-    } else block
 }

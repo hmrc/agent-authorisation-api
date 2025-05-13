@@ -121,61 +121,6 @@ trait ACAStubs {
       getRequestedFor(urlPathMatching("/agent-client-authorisation/known-facts/organisations/.*/registration-date/.*"))
     )
 
-  def givenGetITSAInvitationStub(arn: Arn, status: String): Unit =
-    givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSA, status)
-
-  def givenGetITSASuppInvitationStub(arn: Arn, status: String): Unit =
-    givenGetAgentInvitationStub(arn, "personal", "ni", validNino.value, invitationIdITSA, serviceITSASupp, status)
-
-  def givenGetVATInvitationStub(arn: Arn, status: String): Unit =
-    givenGetAgentInvitationStub(arn, "business", "vrn", validVrn.value, invitationIdVAT, serviceVAT, status)
-
-  def givenGetAgentInvitationStub(
-    arn: Arn,
-    clientType: String,
-    clientIdType: String,
-    clientId: String,
-    invitationId: InvitationId,
-    service: String,
-    status: String
-  ): Unit =
-    stubFor(
-      get(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
-        .willReturn(
-          aResponse()
-            .withStatus(200)
-            .withBody(s"""
-                         |{
-                         |  "arn" : "${arn.value}",
-                         |  "service" : "$service",
-                         |  "clientType":"$clientType",
-                         |  "clientId" : "$clientId",
-                         |  "clientIdType" : "$clientIdType",
-                         |  "suppliedClientId" : "$clientId",
-                         |  "suppliedClientIdType" : "$clientIdType",
-                         |  "status" : "$status",
-                         |  "created" : "2017-10-31T23:22:50.971Z",
-                         |  "lastUpdated" : "2018-09-11T21:02:00.000Z",
-                         |  "expiryDate" : "2017-12-18",
-                         |  "clientActionUrl": "someInvitationUrl/invitations/$clientType/12345678/agent-1",
-                         |  "_links": {
-                         |    	"self" : {
-                         |			  "href" : "$wireMockBaseUrlAsString/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"
-                         |		  }
-                         |  }
-                         |}""".stripMargin)
-        )
-    )
-
-  def givenGetAgentInvitationStubReturns(arn: Arn, invitationId: InvitationId, status: Int) =
-    stubFor(
-      get(urlEqualTo(s"/agent-client-authorisation/agencies/${arn.value}/invitations/sent/${invitationId.value}"))
-        .willReturn(
-          aResponse()
-            .withStatus(status)
-        )
-    )
-
   // TODO Update Test when to modify for specific GET ALL for API
 
   def givenInvitationsServiceReturns(arn: Arn, invitations: Seq[String]): Unit =

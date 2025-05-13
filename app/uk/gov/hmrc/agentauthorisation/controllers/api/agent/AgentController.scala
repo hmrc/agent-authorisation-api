@@ -18,7 +18,6 @@ package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import com.google.inject.Provider
 import play.api.Logger
-import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.audit.AuditService
@@ -57,48 +56,6 @@ class AgentController @Inject() (
   val getRequestsShowLastDays = appConfig.showLastDays
 
   import AgentController._
-
-  def getInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
-    Action.async { implicit request =>
-      withAuthorisedAsAgent { arn =>
-        implicit val loggedInArn: Arn = arn
-        forThisAgency(givenArn) {
-          invitationService
-            .getInvitation(arn, invitationId)
-            .map {
-              case pendingInv @ Some(PendingInvitation(pendingInvitation)) =>
-                val id = pendingInv.get.href.toString.split("/").to(LazyList).last
-                val newInvitationUrl =
-                  s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
-
-                implicit val writer =
-                  if (appConfig.itsaSupportingAgentEnabled) PendingInvitation.writesExternalWithAgentType
-                  else PendingInvitation.writesExternalWithoutAgentType
-                Ok(toJson(pendingInvitation.copy(href = newInvitationUrl)).as[JsObject])
-
-              case Some(PendingInvitation(pendingInvitation)) =>
-                Logger(getClass).warn(s"Service ${pendingInvitation.service} Not Supported")
-                UnsupportedServiceResult
-              case respondedInv @ Some(RespondedInvitation(respondedInvitation)) =>
-                val id = respondedInv.get.href.split("/").to(LazyList).last
-                val newInvitationUrl =
-                  s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
-
-                implicit val writer =
-                  if (appConfig.itsaSupportingAgentEnabled) RespondedInvitation.writesExternalWithAgentType
-                  else RespondedInvitation.writesExternalWithoutAgentType
-                Ok(toJson(respondedInvitation.copy(href = newInvitationUrl)).as[JsObject])
-
-              case Some(RespondedInvitation(respondedInvitation)) =>
-                Logger(getClass).warn(s"Service ${respondedInvitation.service} Not Supported")
-                UnsupportedServiceResult
-              case _ =>
-                Logger(getClass).warn(s"Invitation ${invitationId.value} Not Found")
-                InvitationNotFoundResult
-            }
-        }
-      }
-    }
 
   def cancelInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
     Action.async { implicit request =>
@@ -268,7 +225,7 @@ class AgentController @Inject() (
                 case pendingInv @ PendingInvitation(_) =>
                   val id = pendingInv.href.split("/").to(LazyList).last
                   val newInvitationUrl =
-                    s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+                    s"${routes.GetInvitationsController.getInvitationApi(arn, InvitationId(id)).path()}"
                   PendingOrRespondedInvitation(
                     Links(newInvitationUrl),
                     pendingInv.created,
@@ -283,7 +240,7 @@ class AgentController @Inject() (
                 case respondedInv @ RespondedInvitation(_) =>
                   val id = respondedInv.href.split("/").to(LazyList).last
                   val newInvitationUrl =
-                    s"${routes.AgentController.getInvitationApi(arn, InvitationId(id)).path()}"
+                    s"${routes.GetInvitationsController.getInvitationApi(arn, InvitationId(id)).path()}"
                   PendingOrRespondedInvitation(
                     Links(newInvitationUrl),
                     respondedInv.created,

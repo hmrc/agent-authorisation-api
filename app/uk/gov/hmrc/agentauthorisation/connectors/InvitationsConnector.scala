@@ -83,18 +83,6 @@ class InvitationsConnector @Inject() (httpClient: HttpClientV2, val metrics: Met
         }
     }
 
-  def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
-    headerCarrier: HeaderCarrier
-  ): Future[Option[StoredInvitation]] =
-    monitor(s"ConsumedAPI-Get-Invitation-GET") {
-      val requestUrl = url"$acaUrl/agencies/${arn.value}/invitations/sent/${invitationId.value}"
-      httpClient
-        .get(requestUrl)
-        .execute[Option[StoredInvitation]]
-    }.recoverWith { case _ =>
-      Future successful None
-    }
-
   def cancelInvitation(arn: Arn, invitationId: InvitationId)(implicit
     headerCarrier: HeaderCarrier
   ): Future[Option[Int]] =
