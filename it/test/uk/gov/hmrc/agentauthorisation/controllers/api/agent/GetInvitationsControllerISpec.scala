@@ -17,11 +17,10 @@
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import play.api.Configuration
+import play.api.libs.json.JsObject
 import play.api.libs.json.Json._
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.http.SessionKeys
@@ -87,7 +86,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
         val result = getInvitationItsaApi(requestITSA)
 
         status(result) shouldBe 403
-        await(result) shouldBe NotAnAgentResult
+        Helpers.contentAsJson(result) shouldBe NotAnAgent.toJson
       }
 
       "return 403 for Not an Agent" in {
@@ -115,7 +114,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
         val result = getInvitationItsaApi(requestITSA.withSession(SessionKeys.authToken -> "Bearer XYZ"))
 
         status(result) shouldBe 403
-        await(result) shouldBe NotAnAgentResult
+        Helpers.contentAsJson(result) shouldBe NotAnAgent.toJson
       }
 
       "return 403 for Agent Not Subscribed" in {
@@ -143,32 +142,32 @@ class GetInvitationsControllerISpec extends BaseISpec {
         val result = getInvitationItsaApi(requestITSA.withSession(SessionKeys.authToken -> "Bearer XYZ"))
 
         status(result) shouldBe 403
-        await(result) shouldBe AgentNotSubscribedResult
+        Helpers.contentAsJson(result) shouldBe AgentNotSubscribed.toJson
       }
 
       "return 403 when auth arn does not match agent arn" in {
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn2.value))
 
         status(result) shouldBe 403
-        await(result) shouldBe NoPermissionOnAgencyResult
+        Helpers.contentAsJson(result) shouldBe NoPermissionOnAgency.toJson
       }
 
       "return 403 for invitation belonging to another Agent" in {
-        givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 403, "NO_PERMISSION_ON_AGENCY")
+        givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 403, Some("NO_PERMISSION_ON_AGENCY"))
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 403
-        await(result) shouldBe NoPermissionOnAgencyResult
+        Helpers.contentAsJson(result) shouldBe NoPermissionOnAgency.toJson
       }
 
       "return 404 for Invitation Not Found" in {
-        givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 404, "INVITATION_NOT_FOUND")
+        givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 404, Some("INVITATION_NOT_FOUND"))
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 404
-        await(result) shouldBe InvitationNotFoundResult
+        Helpers.contentAsJson(result) shouldBe InvitationNotFound.toJson
       }
     }
 
@@ -201,7 +200,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
         val result = getInvitationVatApi(requestVAT)
 
         status(result) shouldBe 403
-        await(result) shouldBe NotAnAgentResult
+        Helpers.contentAsJson(result) shouldBe NotAnAgent.toJson
       }
 
       "return 403 for Not an Agent" in {
@@ -229,7 +228,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
         val result = getInvitationVatApi(requestVAT.withSession(SessionKeys.authToken -> "Bearer XYZ"))
 
         status(result) shouldBe 403
-        await(result) shouldBe NotAnAgentResult
+        Helpers.contentAsJson(result) shouldBe NotAnAgent.toJson
       }
 
       "return 403 for Agent Not Subscribed" in {
@@ -257,7 +256,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
         val result = getInvitationVatApi(requestVAT.withSession(SessionKeys.authToken -> "Bearer XYZ"))
 
         status(result) shouldBe 403
-        await(result) shouldBe AgentNotSubscribedResult
+        Helpers.contentAsJson(result) shouldBe AgentNotSubscribed.toJson
       }
 
       "return 403 for No Permission On Agency" in {
@@ -266,25 +265,25 @@ class GetInvitationsControllerISpec extends BaseISpec {
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn2.value))
 
         status(result) shouldBe 403
-        await(result) shouldBe NoPermissionOnAgencyResult
+        Helpers.contentAsJson(result) shouldBe NoPermissionOnAgency.toJson
       }
 
       "return 403 for invitation belonging to another Agent" in {
-        givenGetAgentInvitationStubReturns(arn, invitationIdVAT, 403, "NO_PERMISSION_ON_AGENCY")
+        givenGetAgentInvitationStubReturns(arn, invitationIdVAT, 403, Some("NO_PERMISSION_ON_AGENCY"))
 
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
         status(result) shouldBe 403
-        await(result) shouldBe NoPermissionOnAgencyResult
+        Helpers.contentAsJson(result) shouldBe NoPermissionOnAgency.toJson
       }
 
       "return 404 for Invitation Not Found" in {
-        givenGetAgentInvitationStubReturns(arn, invitationIdVAT, 403, "INVITATION_NOT_FOUND")
+        givenGetAgentInvitationStubReturns(arn, invitationIdVAT, 403, Some("INVITATION_NOT_FOUND"))
 
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
         status(result) shouldBe 404
-        await(result) shouldBe InvitationNotFoundResult
+        Helpers.contentAsJson(result) shouldBe InvitationNotFound.toJson
       }
     }
   }

@@ -156,13 +156,18 @@ trait ACRStubs {
         )
     )
 
-  def givenGetAgentInvitationStubReturns(arn: Arn, invitationId: InvitationId, status: Int, code: String): StubMapping =
+  def givenGetAgentInvitationStubReturns(
+    arn: Arn,
+    invitationId: InvitationId,
+    status: Int,
+    optCode: Option[String]
+  ): StubMapping =
     stubFor(
       get(urlEqualTo(s"/agent-client-relationships/api/${arn.value}/invitation/${invitationId.value}"))
         .willReturn(
           aResponse()
             .withStatus(status)
-            .withBody(Json.obj("code" -> code).toString())
+            .withBody(optCode.fold(Json.obj())(code => Json.obj("code" -> code)).toString())
         )
     )
 

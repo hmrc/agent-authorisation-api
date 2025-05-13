@@ -108,7 +108,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
       )
     }
     "return an error as found in ACR" in {
-      givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 404, "INVITATION_NOT_FOUND")
+      givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 404, Some("INVITATION_NOT_FOUND"))
 
       val result = connector.getInvitation(arn, invitationIdITSA).futureValue
 
