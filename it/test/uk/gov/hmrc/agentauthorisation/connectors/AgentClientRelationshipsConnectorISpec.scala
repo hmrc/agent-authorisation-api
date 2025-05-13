@@ -22,6 +22,8 @@ import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{Instant, LocalDate}
+
 class AgentClientRelationshipsConnectorISpec extends BaseISpec {
 
   val connector: AgentClientRelationshipsConnector = app.injector.instanceOf[AgentClientRelationshipsConnector]
@@ -31,7 +33,6 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
   val testItsaInvite = CreateInvitationRequestToAcr(ItsaMain, "AB123456A", "DH14EJ", "personal")
 
   "createInvitation" should {
-
     "return a Invitation Id upon success for ITSA" in {
       createInvitationStub(
         arn,
@@ -87,4 +88,31 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
     }
   }
 
+  "getInvitation" should {
+    "return invitation details received from ACR" in {
+      givenGetITSAInvitationStub(arn, "Pending")
+
+      val result = connector.getInvitation(arn, invitationIdITSA).futureValue
+
+      result shouldBe Right(
+        InvitationDetails(
+          "12345678",
+          "agent-1",
+          Instant.parse("2017-10-31T23:22:50.971Z"),
+          ItsaMain,
+          "Pending",
+          LocalDate.parse("2017-12-18"),
+          "ABERULMHCKKW3",
+          Instant.parse("2018-09-11T21:02:50.123Z")
+        )
+      )
+    }
+    "return an error as found in ACR" in {
+      givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 404, "INVITATION_NOT_FOUND")
+
+      val result = connector.getInvitation(arn, invitationIdITSA).futureValue
+
+      result shouldBe Left(InvitationNotFound)
+    }
+  }
 }

@@ -128,36 +128,6 @@ class InvitationsConnectorISpec extends BaseISpec {
     }
   }
 
-  "getInvitation" should {
-    "return an ITSA invitation" in {
-      givenGetITSAInvitationStub(arn, "Pending")
-      val result = await(connector.getInvitation(arn, invitationIdITSA))
-
-      result.get shouldBe storedItsaInvitation(Service.ItsaMain)
-    }
-
-    "return an ITSA supporting invitation" in {
-      givenGetITSASuppInvitationStub(arn, "Pending")
-      val result = await(connector.getInvitation(arn, invitationIdITSA))
-
-      result.get shouldBe storedItsaInvitation(Service.ItsaSupp)
-    }
-
-    "return an VAT invitation" in {
-      givenGetVATInvitationStub(arn, "Pending")
-      val result = await(connector.getInvitation(arn, invitationIdVAT))
-
-      result.get shouldBe storedVatInvitation
-    }
-
-    "return no invitation" in {
-      givenInvitationNotFound(arn, invitationIdITSA)
-      val result = await(connector.getInvitation(arn, invitationIdITSA))
-
-      result shouldBe None
-    }
-  }
-
   "cancelInvitation" should {
     "return 204 when cancellation is successful" in {
       givenCancelAgentInvitationStub(arn, invitationIdITSA, 204)
