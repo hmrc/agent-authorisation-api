@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import play.api.http.Status.{CREATED, OK}
+import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, CreateInvitationRequestToAcr, InvitationDetails}
+import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, CreateInvitationRequestToAcr, InvitationDetails, StandardInternalServerError}
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -71,6 +71,25 @@ class AgentClientRelationshipsConnector @Inject() (
             Right(response.json.as[InvitationDetails])
           case response =>
             Left(response.json.as[ApiErrorResponse])
+        }
+    }
+
+  def cancelInvitation(invitationId: InvitationId)(implicit
+    headerCarrier: HeaderCarrier
+  ): Future[Either[ApiErrorResponse, Int]] =
+    monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
+      val requestUrl = url"$acrUrl/agent/cancel-invitation/${invitationId.value}"
+      httpClient
+        .put(requestUrl)
+        .execute[HttpResponse]
+        .map {
+          case r if r.status == NO_CONTENT => Right(NO_CONTENT)
+          case r =>
+            Left(
+              Json
+                .fromJson[ApiErrorResponse](r.json)
+                .getOrElse(StandardInternalServerError)
+            )
         }
     }
 

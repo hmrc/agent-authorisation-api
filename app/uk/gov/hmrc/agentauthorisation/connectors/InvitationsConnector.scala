@@ -21,7 +21,7 @@ import play.api.libs.json.JsObject
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Vrn}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
@@ -80,21 +80,6 @@ class InvitationsConnector @Inject() (httpClient: HttpClientV2, val metrics: Met
             case LOCKED     => KnownFactCheckFailed("MIGRATION_IN_PROGRESS")
             case other      => KnownFactCheckFailed(s"Failed due to status $other")
           }
-        }
-    }
-
-  def cancelInvitation(arn: Arn, invitationId: InvitationId)(implicit
-    headerCarrier: HeaderCarrier
-  ): Future[Option[Int]] =
-    monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
-      val requestUrl = url"$acaUrl/agencies/${arn.value}/invitations/sent/${invitationId.value}/cancel"
-      httpClient
-        .put(requestUrl)
-        .withBody("")
-        .execute[HttpResponse]
-        .map {
-          case r if r.body.contains("INVALID_INVITATION_STATUS") => Some(500)
-          case response                                          => Some(response.status)
         }
     }
 

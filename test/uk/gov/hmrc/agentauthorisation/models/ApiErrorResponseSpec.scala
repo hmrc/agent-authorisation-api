@@ -39,6 +39,8 @@ class ApiErrorResponseSpec extends BaseSpec {
       Json.obj("code" -> "VAT_REG_DATE_FORMAT_INVALID").as[ApiErrorResponse] shouldBe VatRegDateFormatInvalid
       Json.obj("code" -> "NOT_AN_AGENT").as[ApiErrorResponse] shouldBe NotAnAgent
       Json.obj("code" -> "INTERNAL_SERVER_ERROR").as[ApiErrorResponse] shouldBe StandardInternalServerError
+      Json.obj("code" -> "NO_PERMISSION_ON_AGENCY").as[ApiErrorResponse] shouldBe NoPermissionOnAgency
+      Json.obj("code" -> "INVITATION_NOT_FOUND").as[ApiErrorResponse] shouldBe InvitationNotFound
     }
 
     "fail to read from JSON when the code is not recognised" in {

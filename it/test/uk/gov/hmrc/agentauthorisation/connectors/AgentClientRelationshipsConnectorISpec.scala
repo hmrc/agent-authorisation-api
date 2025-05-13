@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
@@ -83,7 +82,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         validPostcode,
         "personal"
       )
-      val result = await(connector.createInvitation(arn, testItsaInvite))
+      val result = connector.createInvitation(arn, testItsaInvite).futureValue
       result shouldBe Left(ClientRegistrationNotFound)
     }
   }
@@ -115,4 +114,34 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
       result shouldBe Left(InvitationNotFound)
     }
   }
+  "cancelInvitation" should {
+    "return 204 when cancellation is successful" in {
+      givenCancelAgentInvitationStub(invitationIdITSA, 204)
+      val result = connector.cancelInvitation(invitationIdITSA).futureValue
+
+      result shouldBe Right(204)
+    }
+
+    "return 404 when invitation is not found" in {
+      givenCancelAgentInvitationStubInvalid(InvitationNotFound, invitationIdITSA)
+      val result = connector.cancelInvitation(invitationIdITSA).futureValue
+
+      result shouldBe Left(InvitationNotFound)
+    }
+
+    "return 500 when an invitation cannot be cancelled" in {
+      givenCancelAgentInvitationStubInvalid(StandardInternalServerError, invitationIdITSA)
+      val result = connector.cancelInvitation(invitationIdITSA).futureValue
+
+      result shouldBe Left(StandardInternalServerError)
+    }
+
+    "return 403 when ACR tells us ARN does not match" in {
+      givenCancelAgentInvitationStubInvalid(NoPermissionOnAgency, invitationIdITSA)
+      val result = connector.cancelInvitation(invitationIdITSA).futureValue
+
+      result shouldBe Left(NoPermissionOnAgency)
+    }
+  }
+
 }

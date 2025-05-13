@@ -210,4 +210,28 @@ trait ACRStubs {
     "service" -> Json.arr("MTD-VAT"),
     "status"  -> "Accepted"
   )
+  def givenCancelAgentInvitationStub(invitationId: InvitationId, status: Int) =
+    stubFor(
+      put(
+        urlEqualTo(s"/agent-client-relationships/agent/cancel-invitation/${invitationId.value}")
+      )
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+        )
+    )
+
+  def givenCancelAgentInvitationStubInvalid(error: ApiErrorResponse, invitationId: InvitationId) =
+    stubFor(
+      put(
+        urlEqualTo(s"/agent-client-relationships/agent/cancel-invitation/${invitationId.value}")
+      )
+        .willReturn(
+          jsonResponse(
+            error.toJson.toString(),
+            error.statusCode
+          )
+        )
+    )
+
 }
