@@ -16,30 +16,27 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import uk.gov.hmrc.agentauthorisation.connectors.{AgentClientRelationshipsConnector, InvitationsConnector}
+import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 @Singleton
 class InvitationService @Inject() (
-  invitationsConnector: InvitationsConnector,
   agentClientRelationshipsConnector: AgentClientRelationshipsConnector
 ) {
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
     headerCarrier: HeaderCarrier
-  ): Future[Either[ApiErrorResponse, InvitationDetails]] =
+  ): Future[Either[ApiErrorResponse, SingleInvitationDetails]] =
     agentClientRelationshipsConnector.getInvitation(arn, invitationId)
 
-  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Seq[StoredInvitation]] =
-    invitationsConnector.getAllInvitations(arn, createdOnOrAfter)
+  def getAllInvitations(arn: Arn)(implicit
+    hc: HeaderCarrier
+  ): Future[Either[ApiErrorResponse, Option[AllInvitationDetails]]] =
+    agentClientRelationshipsConnector.getAllInvitations(arn)
 
 }

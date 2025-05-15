@@ -20,7 +20,7 @@ import play.api.libs.json.Json.toJson
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, InvitationDetails}
+import uk.gov.hmrc.agentauthorisation.models.{AllInvitationDetails, ApiErrorResponse, SingleInvitationDetails}
 import uk.gov.hmrc.agentauthorisation.services.InvitationService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -33,11 +33,10 @@ import scala.concurrent.ExecutionContext
 class GetInvitationsController @Inject() (
   invitationService: InvitationService,
   val authConnector: AuthConnector,
-  cc: ControllerComponents
-)(implicit ec: ExecutionContext, appConfig: AppConfig)
+  cc: ControllerComponents,
+  appConfig: AppConfig
+)(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthActions {
-
-  val getRequestsShowLastDays = appConfig.showLastDays
 
   def getInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
     Action.async { implicit request =>
@@ -48,7 +47,7 @@ class GetInvitationsController @Inject() (
             .getInvitation(arn, invitationId)
             .map {
               case Right(invitationDetails) =>
-                Ok(toJson(invitationDetails)(InvitationDetails.writesForStatus(arn)))
+                Ok(toJson(invitationDetails)(SingleInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
               case Left(errorResponse: ApiErrorResponse) =>
                 errorResponse.toResult
             }
@@ -56,4 +55,21 @@ class GetInvitationsController @Inject() (
       }
     }
 
+  def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
+    withAuthorisedAsAgent { arn =>
+      implicit val loggedInArn: Arn = arn
+      validateArnInRequest(givenArn) {
+        invitationService
+          .getAllInvitations(arn)
+          .map {
+            case Right(None) =>
+              NoContent
+            case Right(Some(invitationDetails)) =>
+              Ok(toJson(invitationDetails)(AllInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
+            case Left(errorResponse: ApiErrorResponse) =>
+              errorResponse.toResult
+          }
+      }
+    }
+  }
 }

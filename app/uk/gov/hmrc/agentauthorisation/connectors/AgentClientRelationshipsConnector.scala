@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, CreateInvitationRequestToAcr, InvitationDetails, StandardInternalServerError}
+import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -60,7 +60,7 @@ class AgentClientRelationshipsConnector @Inject() (
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
     hc: HeaderCarrier
-  ): Future[Either[ApiErrorResponse, InvitationDetails]] =
+  ): Future[Either[ApiErrorResponse, SingleInvitationDetails]] =
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
       val requestUrl = url"$acrUrl/api/${arn.value}/invitation/${invitationId.value}"
       httpClient
@@ -68,7 +68,25 @@ class AgentClientRelationshipsConnector @Inject() (
         .execute[HttpResponse]
         .map {
           case response @ HttpResponse(OK, _, _) =>
-            Right(response.json.as[InvitationDetails])
+            Right(response.json.as[SingleInvitationDetails])
+          case response =>
+            Left(response.json.as[ApiErrorResponse])
+        }
+    }
+
+  def getAllInvitations(arn: Arn)(implicit
+    hc: HeaderCarrier
+  ): Future[Either[ApiErrorResponse, Option[AllInvitationDetails]]] =
+    monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
+      val requestUrl = url"$acrUrl/api/${arn.value}/invitations"
+      httpClient
+        .get(requestUrl)
+        .execute[HttpResponse]
+        .map {
+          case HttpResponse(NO_CONTENT, _, _) =>
+            Right(None)
+          case response @ HttpResponse(OK, _, _) =>
+            Right(Some(response.json.as[AllInvitationDetails]))
           case response =>
             Left(response.json.as[ApiErrorResponse])
         }
@@ -83,13 +101,11 @@ class AgentClientRelationshipsConnector @Inject() (
         .put(requestUrl)
         .execute[HttpResponse]
         .map {
-          case r if r.status == NO_CONTENT => Right(NO_CONTENT)
-          case r =>
-            Left(
-              Json
-                .fromJson[ApiErrorResponse](r.json)
-                .getOrElse(StandardInternalServerError)
-            )
+          case HttpResponse(NO_CONTENT, _, _) =>
+            Right(NO_CONTENT)
+          case response =>
+            Left(response.json.as[ApiErrorResponse])
+
         }
     }
 

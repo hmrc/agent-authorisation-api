@@ -39,8 +39,6 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration
   val desEnv = getConfString("des.environment")
   val desToken = getConfString("des.authorization-token")
 
-  val showLastDays = servicesConfig.getInt("get-requests-show-last-days")
-
   val apiSupportedVersions = config.underlying.getStringList("api.supported-versions")
 
   val apiType = servicesConfig.getString("api.access.type")

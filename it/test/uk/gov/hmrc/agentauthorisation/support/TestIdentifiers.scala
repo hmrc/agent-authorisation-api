@@ -42,6 +42,8 @@ trait TestIdentifiers {
   val dateOfBirth = "1980-07-07"
   val validVrn9755 = Vrn("101747641")
 
+  val servicePir = "PERSONAL-INCOME-RECORD"
+
   val invalidInvitationId = InvitationId("ZTSF4OW9CCRPT")
 
 }

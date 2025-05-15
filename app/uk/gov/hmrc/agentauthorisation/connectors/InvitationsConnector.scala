@@ -17,18 +17,16 @@
 package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.http.Status.{FORBIDDEN, LOCKED, NOT_FOUND, NO_CONTENT}
-import play.api.libs.json.JsObject
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Vrn}
+import uk.gov.hmrc.agentmtdidentifiers.model.Vrn
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,8 +38,6 @@ class InvitationsConnector @Inject() (httpClient: HttpClientV2, val metrics: Met
   val acaUrl = s"${appConfig.acaBaseUrl}/agent-client-authorisation"
 
   import uk.gov.hmrc.http.HttpReads.Implicits._
-
-  private val isoDateFormat = DateTimeFormatter.ISO_LOCAL_DATE
 
   def checkPostcodeForClient(nino: Nino, postcode: String)(implicit
     hc: HeaderCarrier,
@@ -83,29 +79,4 @@ class InvitationsConnector @Inject() (httpClient: HttpClientV2, val metrics: Met
         }
     }
 
-  def getAllInvitations(arn: Arn, createdOnOrAfter: LocalDate)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Seq[StoredInvitation]] =
-    monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
-      val requestUrl =
-        url"$acaUrl/agencies/${arn.value}/invitations/sent?service=HMRC-MTD-IT,HMRC-MTD-IT-SUPP,HMRC-MTD-VAT&createdOnOrAfter=${createdOnOrAfter
-          .format(isoDateFormat)}"
-      httpClient
-        .get(requestUrl)
-        .execute[JsObject]
-        .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
-    }
-
-  def getAllInvitationsForClient(arn: Arn, clientId: String, serviceName: String)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[Seq[StoredInvitation]] =
-    monitor("ConsumedAPI-PendingInvitationsExistForClient-GET") {
-      val requestUrl = url"$acaUrl/agencies/${arn.value}/invitations/sent?clientId=$clientId&service=$serviceName"
-      httpClient
-        .get(requestUrl)
-        .execute[JsObject]
-        .map(obj => (obj \ "_embedded" \ "invitations").as[Seq[StoredInvitation]])
-    }
 }
