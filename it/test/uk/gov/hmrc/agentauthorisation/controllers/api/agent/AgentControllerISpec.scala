@@ -17,10 +17,9 @@
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import play.api.Configuration
-import play.api.libs.json.Json._
 import play.api.libs.json.{JsValue, Json}
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models._
@@ -60,32 +59,6 @@ class AgentControllerISpec extends BaseISpec {
   val jsonBodyVATAgentType: JsValue = Json.parse(
     s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate", "agentType":"main"}"""
   )
-
-  def gettingPendingInvitations(service: Service) = Seq(
-    PendingOrRespondedInvitation(
-      Links(s"/agents/${arn.value}/invitations/ABERULMHCKKW3"),
-      "2017-10-31T23:22:50.971Z",
-      arn,
-      List(service),
-      "Pending",
-      Some("2017-12-18T00:00:00.000"),
-      Some("someInvitationUrl/invitations/personal/12345678/agent-1"),
-      None
-    ),
-    PendingOrRespondedInvitation(
-      Links(s"/agents/${arn.value}/invitations/CZTW1KY6RTAAT"),
-      "2017-10-31T23:22:50.971Z",
-      arn,
-      List(Service.Vat),
-      "Pending",
-      Some("2017-12-18T00:00:00.000"),
-      Some("someInvitationUrl/invitations/business/12345678/agent-1"),
-      None
-    )
-  )
-
-  implicit val writerPendingOrRespondedInvitation =
-    PendingOrRespondedInvitation.writesExternalWithAgentType
 
   "POST /agents/:arn/relationships" when {
 
@@ -288,39 +261,6 @@ class AgentControllerISpec extends BaseISpec {
         await(result) shouldBe VatClientInsolventResult
       }
 
-    }
-
-    "GET /agents/:arn/invitations/" when {
-
-      "requesting a sequence of ITSA and VAT invitations" should {
-
-        val getInvitations = controller.getInvitationsApi(arn)
-        val request = FakeRequest("GET", s"/agents/${arn.value}/invitations")
-          .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
-
-        "return 200 and a json body of a pending invitation filtering out PIR and TERS invitations" in {
-          givenInvitationsServiceReturns(arn, Seq(itsa(arn), vat(arn)))
-          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
-
-          status(result) shouldBe 200
-          Helpers.contentAsJson(result) shouldBe toJson(gettingPendingInvitations(Service.ItsaMain))
-        }
-
-        "return 200 and a json body of a responded invitation IRV and TERS invitations" in {
-          givenInvitationsServiceReturns(arn, Seq(irv(arn), ters(arn)))
-
-          intercept[RuntimeException] {
-            await(getInvitations(authorisedAsValidAgent(request, arn.value)))
-          }.getMessage shouldBe "Unexpected Service has been passed through: PERSONAL-INCOME-RECORD"
-        }
-
-        "return 204 if there are no invitations for the agent" in {
-          givenAllInvitationsEmptyStub(arn)
-          val result = getInvitations(authorisedAsValidAgent(request, arn.value))
-
-          status(result) shouldBe 204
-        }
-      }
     }
   }
 

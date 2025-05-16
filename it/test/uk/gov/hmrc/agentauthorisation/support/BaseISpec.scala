@@ -39,6 +39,7 @@ abstract class BaseISpec
   protected def appBuilder: GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .configure(
+        "metrics.enabled"                                       -> false,
         "auditing.enabled"                                      -> true,
         "auditing.consumer.baseUri.host"                        -> wireMockHost,
         "auditing.consumer.baseUri.port"                        -> wireMockPort,

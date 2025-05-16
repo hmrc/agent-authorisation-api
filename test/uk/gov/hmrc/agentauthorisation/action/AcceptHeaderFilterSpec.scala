@@ -43,11 +43,6 @@ class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
     .atLeastOnce()
     .returning("blah")
   (servicesConfig
-    .getInt(_: String))
-    .expects(*)
-    .atLeastOnce()
-    .returning(30)
-  (servicesConfig
     .getString(_: String))
     .expects(*)
     .atLeastOnce()

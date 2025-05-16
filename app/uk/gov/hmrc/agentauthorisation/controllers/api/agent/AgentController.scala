@@ -16,44 +16,34 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
-import com.google.inject.Provider
 import play.api.Logger
-import play.api.libs.json._
 import play.api.mvc._
-import uk.gov.hmrc.agentauthorisation.audit.AuditService
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.connectors.{InvitationsConnector, RelationshipsConnector}
 import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentauthorisation.services.InvitationService
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
+import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, Vrn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.domain.Nino
-import uk.gov.hmrc.http.{HeaderCarrier, InternalServerException}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneOffset}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AgentController @Inject() (
   invitationsConnector: InvitationsConnector,
-  invitationService: InvitationService,
   relationshipsConnector: RelationshipsConnector,
-  auditService: AuditService,
   val authConnector: AuthConnector,
-  ecp: Provider[ExecutionContext],
   cc: ControllerComponents,
   appConfig: AppConfig
-) extends BackendController(cc) with AuthActions {
-
-  implicit val ec: ExecutionContext = ecp.get
-
-  val getRequestsShowLastDays = appConfig.showLastDays
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) with AuthActions {
 
   import AgentController._
 
@@ -171,66 +161,6 @@ class AgentController @Inject() (
             RelationshipNotFoundResult
         }
     }
-
-  def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
-    withAuthorisedAsAgent { arn =>
-      implicit val loggedInArn: Arn = arn
-      forThisAgency(givenArn) {
-        val previousDate =
-          LocalDate.now(ZoneOffset.UTC).minusDays(getRequestsShowLastDays)
-        invitationService
-          .getAllInvitations(arn, previousDate)
-          .map { invitations =>
-            invitations
-              .map {
-                case pendingInv @ PendingInvitation(_) =>
-                  val id = pendingInv.href.split("/").to(LazyList).last
-                  val newInvitationUrl =
-                    s"${routes.GetInvitationsController.getInvitationApi(arn, InvitationId(id)).path()}"
-                  PendingOrRespondedInvitation(
-                    Links(newInvitationUrl),
-                    pendingInv.created,
-                    pendingInv.arn,
-                    List(pendingInv.service),
-                    pendingInv.status,
-                    Some(pendingInv.expiresOn),
-                    pendingInv.clientActionUrl,
-                    None
-                  )
-
-                case respondedInv @ RespondedInvitation(_) =>
-                  val id = respondedInv.href.split("/").to(LazyList).last
-                  val newInvitationUrl =
-                    s"${routes.GetInvitationsController.getInvitationApi(arn, InvitationId(id)).path()}"
-                  PendingOrRespondedInvitation(
-                    Links(newInvitationUrl),
-                    respondedInv.created,
-                    respondedInv.arn,
-                    List(respondedInv.service),
-                    respondedInv.status,
-                    None,
-                    None,
-                    Some(respondedInv.updated)
-                  )
-                case _ =>
-                  // TODO Investigate implicit conversions happening for StoredInvitation(...)
-                  // this should be handled by invitation unapply methods
-                  throw new InternalServerException(
-                    "Invalid invitation type for StoredInvitation(...) " +
-                      "case should be handled or return None by unapply methods within PendingInvitation or RespondedInvitation"
-                  )
-              }
-          }
-          .map {
-            case s if s.isEmpty => NoContent
-            case s =>
-              implicit val writer =
-                PendingOrRespondedInvitation.writesExternalWithAgentType
-              Ok(Json.toJson(s))
-          }
-      }
-    }
-  }
 
   object RelationshipItsaRequest {
     def unapply(arg: CheckRelationshipPayload): Option[RelationshipRequest] =

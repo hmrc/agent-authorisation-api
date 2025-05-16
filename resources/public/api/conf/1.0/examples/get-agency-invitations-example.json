@@ -10,7 +10,7 @@
   "service": ["MTD-IT"],
   "status": "Pending",
   "expiresOn": "2019-02-11T00:00:00:000",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1",
+  "clientActionUrl": "https://www.tax.service.gov.uk/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you/12345678/agent-1/income-tax",
     "agentType": "main"
 },
   {

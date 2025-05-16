@@ -17,12 +17,12 @@
 package uk.gov.hmrc.agentauthorisation.controllers.api.agent
 
 import play.api.Configuration
-import play.api.libs.json.JsObject
 import play.api.libs.json.Json._
+import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentauthorisation.support.BaseISpec
+import uk.gov.hmrc.agentauthorisation.support.{BaseISpec, TestInvitation}
 import uk.gov.hmrc.http.SessionKeys
 
 class GetInvitationsControllerISpec extends BaseISpec {
@@ -30,13 +30,67 @@ class GetInvitationsControllerISpec extends BaseISpec {
 
   lazy val configuration: Configuration = app.injector.instanceOf[Configuration]
 
-  val itsaSupportingAgentEnabled = configuration.get[Boolean]("itsa-supporting-agent.enabled")
+  def pendingItsaInvitation(service: Service): JsObject = Json.obj(
+    "_links"    -> Json.obj("self" -> Json.obj("href" -> "/agents/TARN0000001/invitations/ABERULMHCKKW3")),
+    "created"   -> "2017-10-31T23:22:50.971Z",
+    "expiresOn" -> "2017-12-18T00:00:00.000",
+    "arn"       -> "TARN0000001",
+    "service"   -> Json.arr("MTD-IT"),
+    "status"    -> "Pending",
+    "clientActionUrl" -> "http://localhost:9435/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you/12345678/agent-1/income-tax",
+    "agentType" -> service.agentType
+  )
 
-  implicit val writerRespondedInvitation =
-    RespondedInvitation.writesExternalWithAgentType
+  def respondedItsaInvitation(service: Service): JsObject = Json.obj(
+    "_links"    -> Json.obj("self" -> Json.obj("href" -> "/agents/TARN0000001/invitations/ABERULMHCKKW3")),
+    "created"   -> "2017-10-31T23:22:50.971Z",
+    "updated"   -> "2018-09-11T21:02:50.123Z",
+    "arn"       -> "TARN0000001",
+    "service"   -> Json.arr("MTD-IT"),
+    "status"    -> "Accepted",
+    "agentType" -> service.agentType
+  )
 
-  implicit val writerPendingInvitation =
-    PendingInvitation.writesExternalWithAgentType
+  val pendingVatInvitation: JsObject = Json.obj(
+    "_links"    -> Json.obj("self" -> Json.obj("href" -> "/agents/TARN0000001/invitations/CZTW1KY6RTAAT")),
+    "created"   -> "2017-10-31T23:22:50.971Z",
+    "expiresOn" -> "2017-12-18T00:00:00.000",
+    "arn"       -> "TARN0000001",
+    "service"   -> Json.arr("MTD-VAT"),
+    "status"    -> "Pending",
+    "clientActionUrl" -> "http://localhost:9435/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you/12345678/agent-1/vat"
+  )
+
+  val respondedVatInvitation: JsObject = Json.obj(
+    "_links"  -> Json.obj("self" -> Json.obj("href" -> "/agents/TARN0000001/invitations/CZTW1KY6RTAAT")),
+    "created" -> "2017-10-31T23:22:50.971Z",
+    "updated" -> "2018-09-11T21:02:50.123Z",
+    "arn"     -> "TARN0000001",
+    "service" -> Json.arr("MTD-VAT"),
+    "status"  -> "Accepted"
+  )
+
+  val multipleInvitationsJson: JsArray = Json
+    .arr(
+      Json.obj(
+        "_links"    -> Json.obj("self" -> Json.obj("href" -> "/agents/TARN0000001/invitations/ABERULMHCKKW3")),
+        "created"   -> "2017-10-31T23:22:50.971Z",
+        "expiresOn" -> "2017-12-18T00:00:00.000",
+        "arn"       -> "TARN0000001",
+        "service"   -> Json.arr("MTD-IT"),
+        "status"    -> "Pending",
+        "clientActionUrl" -> "http://localhost:9435/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you/12345678/agent-1/income-tax",
+        "agentType" -> "main"
+      ),
+      Json.obj(
+        "_links"  -> Json.obj("self" -> Json.obj("href" -> "/agents/TARN0000001/invitations/CZTW1KY6RTAAT")),
+        "created" -> "2017-10-31T23:22:50.971Z",
+        "updated" -> "2018-09-11T21:02:50.123Z",
+        "arn"     -> "TARN0000001",
+        "service" -> Json.arr("MTD-VAT"),
+        "status"  -> "Accepted"
+      )
+    )
 
   "GET /agents/:arn/invitations/:invitationId" when {
     "requesting an ITSA invitation" should {
@@ -45,39 +99,39 @@ class GetInvitationsControllerISpec extends BaseISpec {
         .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
 
       "return 200 and a json body of a pending invitation" in {
-        givenGetITSAInvitationStub(arn, "Pending")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdITSA, serviceITSA, "Pending"))
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(pendingItsaInvitation(Service.ItsaMain)).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe pendingItsaInvitation(Service.ItsaMain)
       }
 
       "return 200 and a json body of a pending supporting invitation" in {
-        givenGetITSASuppInvitationStub(arn, "Pending")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdITSA, serviceITSASupp, "Pending"))
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(pendingItsaInvitation(Service.ItsaSupp)).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe pendingItsaInvitation(Service.ItsaSupp)
       }
 
       "return 200 and a json body of a responded invitation" in {
-        givenGetITSAInvitationStub(arn, "Accepted")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdITSA, serviceITSA, "Accepted"))
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation(Service.ItsaMain)).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe respondedItsaInvitation(Service.ItsaMain)
       }
 
       "return 200 and a json body of a responded supporting invitation" in {
-        givenGetITSASuppInvitationStub(arn, "Accepted")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdITSA, serviceITSASupp, "Accepted"))
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
         status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(respondedItsaInvitation(Service.ItsaSupp)).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe respondedItsaInvitation(Service.ItsaSupp)
       }
 
       "return 403 for Not An Agent" in {
@@ -90,7 +144,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 403 for Not an Agent" in {
-        givenGetITSAInvitationStub(arn, "Pending")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdITSA, serviceITSA, "Pending"))
         givenAuthorisedFor(
           s"""
              |{
@@ -118,7 +172,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 403 for Agent Not Subscribed" in {
-        givenGetITSAInvitationStub(arn, "Pending")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdITSA, serviceITSA, "Pending"))
         givenAuthorisedFor(
           s"""
              |{
@@ -153,7 +207,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 403 for invitation belonging to another Agent" in {
-        givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 403, Some("NO_PERMISSION_ON_AGENCY"))
+        givenGetAgentInvitationStubError(arn, invitationIdITSA, 403, Some("NO_PERMISSION_ON_AGENCY"))
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
@@ -162,7 +216,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 404 for Invitation Not Found" in {
-        givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 404, Some("INVITATION_NOT_FOUND"))
+        givenGetAgentInvitationStubError(arn, invitationIdITSA, 404, Some("INVITATION_NOT_FOUND"))
 
         val result = getInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
 
@@ -177,21 +231,21 @@ class GetInvitationsControllerISpec extends BaseISpec {
         .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
 
       "return 200 and a json body of invitation" in {
-        givenGetVATInvitationStub(arn, "Pending")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdVAT, serviceVAT, "Pending"))
 
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
         status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(pendingVatInvitation).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe pendingVatInvitation
       }
 
       "return 200 and a json body of a responded invitation" in {
-        givenGetVATInvitationStub(arn, "Accepted")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdVAT, serviceVAT, "Accepted"))
 
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
         status(result) shouldBe 200
-        Helpers.contentAsJson(result) shouldBe toJson(respondedVatInvitation).as[JsObject]
+        Helpers.contentAsJson(result) shouldBe respondedVatInvitation
       }
 
       "return 403 for Not An Agent" in {
@@ -204,7 +258,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 403 for Not an Agent" in {
-        givenGetVATInvitationStub(arn, "Pending")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdVAT, serviceVAT, "Pending"))
         givenAuthorisedFor(
           s"""
              |{
@@ -232,7 +286,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 403 for Agent Not Subscribed" in {
-        givenGetVATInvitationStub(arn, "Pending")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdVAT, serviceVAT, "Pending"))
         givenAuthorisedFor(
           s"""
              |{
@@ -260,7 +314,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 403 for No Permission On Agency" in {
-        givenGetVATInvitationStub(arn, "Pending")
+        givenGetAgentInvitationStub(arn, TestInvitation(invitationIdVAT, serviceVAT, "Pending"))
 
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn2.value))
 
@@ -269,7 +323,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 403 for invitation belonging to another Agent" in {
-        givenGetAgentInvitationStubReturns(arn, invitationIdVAT, 403, Some("NO_PERMISSION_ON_AGENCY"))
+        givenGetAgentInvitationStubError(arn, invitationIdVAT, 403, Some("NO_PERMISSION_ON_AGENCY"))
 
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
@@ -278,7 +332,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 404 for Invitation Not Found" in {
-        givenGetAgentInvitationStubReturns(arn, invitationIdVAT, 403, Some("INVITATION_NOT_FOUND"))
+        givenGetAgentInvitationStubError(arn, invitationIdVAT, 403, Some("INVITATION_NOT_FOUND"))
 
         val result = getInvitationVatApi(authorisedAsValidAgent(requestVAT, arn.value))
 
@@ -287,4 +341,37 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
     }
   }
+
+  "GET /agents/:arn/invitations/" when {
+    "requesting all API supported invitations" should {
+      val getInvitations = controller.getInvitationsApi(arn)
+      val request = FakeRequest("GET", s"/agents/${arn.value}/invitations")
+        .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
+
+      "return 200 and a json body of a pending invitations" in {
+        givenGetAllAgentInvitationsStub(
+          arn,
+          Seq(
+            TestInvitation(invitationIdITSA, serviceITSA, "Pending"),
+            TestInvitation(invitationIdVAT, serviceVAT, "Accepted")
+          )
+        )
+
+        val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+        status(result) shouldBe 200
+        Helpers.contentAsJson(result) shouldBe multipleInvitationsJson
+      }
+
+      "return 204 if there are no invitations for the agent" in {
+        givenGetAllAgentInvitationsStubEmpty(arn)
+
+        val result = getInvitations(authorisedAsValidAgent(request, arn.value))
+
+        status(result) shouldBe 204
+        Helpers.contentAsString(result) shouldBe ""
+      }
+    }
+  }
+
 }

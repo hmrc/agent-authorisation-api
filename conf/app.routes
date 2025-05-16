@@ -1,4 +1,4 @@
-GET    /agents/:arn/invitations                 @uk.gov.hmrc.agentauthorisation.controllers.api.agent.AgentController.getInvitationsApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn)
+GET    /agents/:arn/invitations                 @uk.gov.hmrc.agentauthorisation.controllers.api.agent.GetInvitationsController.getInvitationsApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn)
 POST   /agents/:arn/invitations                 @uk.gov.hmrc.agentauthorisation.controllers.api.agent.CreateInvitationController.createInvitation(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn)
 GET    /agents/:arn/invitations/:invitationId   @uk.gov.hmrc.agentauthorisation.controllers.api.agent.GetInvitationsController.getInvitationApi(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn, invitationId: uk.gov.hmrc.agentmtdidentifiers.model.InvitationId)
 DELETE /agents/:arn/invitations/:invitationId   @uk.gov.hmrc.agentauthorisation.controllers.api.agent.CancelInvitationController.cancelInvitation(arn: uk.gov.hmrc.agentmtdidentifiers.model.Arn, invitationId: uk.gov.hmrc.agentmtdidentifiers.model.InvitationId)

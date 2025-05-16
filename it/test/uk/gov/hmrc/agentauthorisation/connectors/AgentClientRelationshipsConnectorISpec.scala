@@ -18,7 +18,7 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentauthorisation.support.BaseISpec
+import uk.gov.hmrc.agentauthorisation.support.{BaseISpec, TestInvitation}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{Instant, LocalDate}
@@ -89,31 +89,89 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
 
   "getInvitation" should {
     "return invitation details received from ACR" in {
-      givenGetITSAInvitationStub(arn, "Pending")
+      givenGetAgentInvitationStub(arn, TestInvitation(invitationIdITSA, serviceITSA, "Pending"))
 
       val result = connector.getInvitation(arn, invitationIdITSA).futureValue
 
       result shouldBe Right(
-        InvitationDetails(
-          "12345678",
-          "agent-1",
-          Instant.parse("2017-10-31T23:22:50.971Z"),
-          ItsaMain,
-          "Pending",
-          LocalDate.parse("2017-12-18"),
-          "ABERULMHCKKW3",
-          Instant.parse("2018-09-11T21:02:50.123Z")
+        SingleInvitationDetails(
+          AgentDetails("12345678", "agent-1"),
+          InvitationDetails(
+            Instant.parse("2017-10-31T23:22:50.971Z"),
+            ItsaMain,
+            "Pending",
+            LocalDate.parse("2017-12-18"),
+            "ABERULMHCKKW3",
+            Instant.parse("2018-09-11T21:02:50.123Z")
+          )
         )
       )
     }
     "return an error as found in ACR" in {
-      givenGetAgentInvitationStubReturns(arn, invitationIdITSA, 404, Some("INVITATION_NOT_FOUND"))
+      givenGetAgentInvitationStubError(arn, invitationIdITSA, 404, Some("INVITATION_NOT_FOUND"))
 
       val result = connector.getInvitation(arn, invitationIdITSA).futureValue
 
       result shouldBe Left(InvitationNotFound)
     }
   }
+
+  "getAllInvitations" should {
+    "return a sequence of stored invitations" in {
+      givenGetAllAgentInvitationsStub(
+        arn,
+        Seq(
+          TestInvitation(invitationIdITSA, serviceITSA, "Pending"),
+          TestInvitation(invitationIdVAT, serviceVAT, "Accepted")
+        )
+      )
+
+      val result = connector.getAllInvitations(arn).futureValue
+
+      result shouldBe Right(
+        Some(
+          AllInvitationDetails(
+            AgentDetails("12345678", "agent-1"),
+            Seq(
+              InvitationDetails(
+                Instant.parse("2017-10-31T23:22:50.971Z"),
+                ItsaMain,
+                "Pending",
+                LocalDate.parse("2017-12-18"),
+                "ABERULMHCKKW3",
+                Instant.parse("2018-09-11T21:02:50.123Z")
+              ),
+              InvitationDetails(
+                Instant.parse("2017-10-31T23:22:50.971Z"),
+                Vat,
+                "Accepted",
+                LocalDate.parse("2017-12-18"),
+                "CZTW1KY6RTAAT",
+                Instant.parse("2018-09-11T21:02:50.123Z")
+              )
+            )
+          )
+        )
+      )
+    }
+
+    "return a empty sequence of stored invitations" in {
+      givenGetAllAgentInvitationsStubEmpty(arn)
+
+      val result = connector.getAllInvitations(arn).futureValue
+
+      result shouldBe Right(None)
+    }
+
+    "return an error as found in ACR" in {
+      givenGetAgentAllInvitationsStubError(arn, 403, Some("AGENT_SUSPENDED"))
+
+      val result = connector.getAllInvitations(arn).futureValue
+
+      result shouldBe Left(NoPermissionOnAgency)
+    }
+  }
+
   "cancelInvitation" should {
     "return 204 when cancellation is successful" in {
       givenCancelAgentInvitationStub(invitationIdITSA, 204)
@@ -143,5 +201,4 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
       result shouldBe Left(NoPermissionOnAgency)
     }
   }
-
 }

@@ -329,7 +329,7 @@ Returns all authorisation requests for the last 30 days.
   "service": ["MTD-IT"],
   "status": "Pending",
   "expiresOn": "2019-02-04T00:00:00:000Z",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal/12345678/agent-1",
+  "clientActionUrl": "https://www.tax.service.gov.uk/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you/12345678/agent-1/income-tax",
   "agentType": "main"
 },
   {
@@ -501,7 +501,7 @@ Returns the authorisation request.
   "arn": "AARN9999999",
   "service": ["MTD-IT"]
   "status": "Pending",
-  "clientActionUrl": "https://www.tax.service.gov.uk/invitations/personal-taxes/manage-who-can-deal-with-HMRC-for-you/12345678/agent-1",
+  "clientActionUrl": "https://www.tax.service.gov.uk/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you/12345678/agent-1/income-tax",
   "agentType": "main"
 }
 ```
