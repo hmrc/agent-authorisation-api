@@ -369,6 +369,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
         val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
         status(result) shouldBe 204
+        Helpers.contentAsString(result) shouldBe ""
       }
     }
   }
