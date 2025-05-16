@@ -57,6 +57,7 @@ object ApiErrorResponse {
         case "DUPLICATE_AUTHORISATION_REQUEST" =>
           DuplicateAuthorisationRequest(InvitationId((json \ "invitationId").as[String]))
         case "INTERNAL_SERVER_ERROR"       => StandardInternalServerError
+        case "INVALID_INVITATION_STATUS"   => InvalidInvitationStatus
         case "INVALID_PAYLOAD"             => InvalidPayload
         case "NOT_AN_AGENT"                => NotAnAgent
         case "POSTCODE_DOES_NOT_MATCH"     => PostcodeDoesNotMatch
@@ -111,6 +112,13 @@ case class DuplicateAuthorisationRequest(invitationId: InvitationId)
       statusCode = 403,
       code = "DUPLICATE_AUTHORISATION_REQUEST",
       message = "The authorisation request is a duplicate of a previous request."
+    )
+
+case object InvalidInvitationStatus
+    extends ApiErrorResponse(
+      403,
+      "INVALID_INVITATION_STATUS",
+      "This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired."
     )
 
 case object InvalidPayload

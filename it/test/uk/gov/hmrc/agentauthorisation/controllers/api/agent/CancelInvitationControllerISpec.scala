@@ -37,6 +37,12 @@ class CancelInvitationControllerISpec extends BaseISpec {
         status(result) shouldBe 204
       }
 
+      "return 403 INVALID_INVITATION_STATUS when ACR responds with this" in {
+        givenCancelAgentInvitationStubInvalid(InvalidInvitationStatus, invitationIdITSA)
+        val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value)).futureValue
+        result shouldBe InvalidInvitationStatus.toResult
+      }
+
       "return 403 NOT_AN_AGENT when the logged in user does not have an affinity group of Agent" in {
         givenAuthorisedFor(
           s"""
@@ -102,6 +108,7 @@ class CancelInvitationControllerISpec extends BaseISpec {
         val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value)).futureValue
         result shouldBe InvitationNotFound.toResult
       }
+
     }
   }
 }
