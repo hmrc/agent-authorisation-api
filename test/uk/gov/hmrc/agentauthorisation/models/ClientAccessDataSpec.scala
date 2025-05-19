@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.models
 import uk.gov.hmrc.agentauthorisation.models.Service.ItsaMain
 import uk.gov.hmrc.agentauthorisation.support.BaseSpec
 
-class CreateInvitationRequestToAcrSpec extends BaseSpec {
+class ClientAccessDataSpec extends BaseSpec {
   val nino = "AB123456A"
   val validPostcode = "DH14EJ"
 
@@ -35,8 +35,8 @@ class CreateInvitationRequestToAcrSpec extends BaseSpec {
         agentType = Some("main")
       )
 
-      CreateInvitationRequestToAcr.unapply(payload) shouldBe Some(
-        CreateInvitationRequestToAcr(
+      ClientAccessData.unapply(payload) shouldBe Some(
+        ClientAccessData(
           service = ItsaMain,
           suppliedClientId = nino,
           knownFact = validPostcode,
@@ -55,7 +55,7 @@ class CreateInvitationRequestToAcrSpec extends BaseSpec {
         agentType = Some("xxx")
       )
 
-      CreateInvitationRequestToAcr.unapply(invalidPayload) shouldBe None
+      ClientAccessData.unapply(invalidPayload) shouldBe None
     }
 
   }

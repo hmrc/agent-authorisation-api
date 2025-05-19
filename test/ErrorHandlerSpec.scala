@@ -27,7 +27,7 @@ import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 import org.mockito.ArgumentMatchers._
 import play.api.Configuration
 import play.api.mvc.AnyContentAsEmpty
-import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
+import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.model.DataEvent
@@ -62,15 +62,15 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
     }
 
     "return ErrorNotFound on 404 Not Found" in new Setup(NOT_FOUND) {
-      contentAsJson(response) shouldBe contentAsJson(standardNotFound)
+      contentAsJson(response) shouldBe StandardNotFound.toJson
     }
 
     "return ErrorGenericBadRequest on 400 Bad Request" in new Setup(BAD_REQUEST) {
-      contentAsJson(response) shouldBe contentAsJson(standardBadRequest)
+      contentAsJson(response) shouldBe StandardBadRequest.toJson
     }
 
     "return ErrorUnauthorized on 401 Unauthorized" in new Setup(UNAUTHORIZED) {
-      contentAsJson(response) shouldBe contentAsJson(standardUnauthorised)
+      contentAsJson(response) shouldBe StandardUnauthorised.toJson
     }
 
     "return a statusCode of 405 with the provided message on 405 Method Not Allowed" in new Setup(METHOD_NOT_ALLOWED) {
@@ -82,7 +82,7 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
     "return ErrorInternalServerError" in new BaseSetup {
       val response = await(errorHandler.onServerError(fakeRequest, new RuntimeException("Internal Server Error")))
 
-      contentAsJson(response) shouldBe contentAsJson(standardInternalServerError)
+      contentAsJson(response) shouldBe StandardInternalServerError.toJson
     }
   }
 }

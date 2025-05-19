@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
+import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
-import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
@@ -30,12 +30,12 @@ class InvitationService @Inject() (
 ) {
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
-    headerCarrier: HeaderCarrier
+    rh: RequestHeader
   ): Future[Either[ApiErrorResponse, SingleInvitationDetails]] =
     agentClientRelationshipsConnector.getInvitation(arn, invitationId)
 
   def getAllInvitations(arn: Arn)(implicit
-    hc: HeaderCarrier
+    rh: RequestHeader
   ): Future[Either[ApiErrorResponse, AllInvitationDetails]] =
     agentClientRelationshipsConnector.getAllInvitations(arn)
 

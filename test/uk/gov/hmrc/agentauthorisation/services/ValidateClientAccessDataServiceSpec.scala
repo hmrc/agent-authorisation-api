@@ -17,19 +17,12 @@
 package uk.gov.hmrc.agentauthorisation.services
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseSpec
-import org.scalatestplus.mockito.MockitoSugar.mock
 
-class CreateInvitationServiceSpec extends BaseSpec {
+class ValidateClientAccessDataServiceSpec extends BaseSpec {
 
-  val lockService = new FakeLockService
-  val mockAcrConnector = mock[AgentClientRelationshipsConnector]
-  val testService = new CreateInvitationService(
-    lockService,
-    mockAcrConnector
-  )
+  val testService = new ValidateClientAccessDataService()
 
   "validatePayload" should {
     "return None when JsValue is missing" in {

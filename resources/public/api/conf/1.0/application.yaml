@@ -150,6 +150,9 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           examples:
+            invalidInvitationStatus:
+              value:
+                $ref: './examples/errors/forbidden_invalidInvitationStatus.json'
             notAnAgent:
               value:
                 $ref: './examples/errors/forbidden_notAgent.json'
@@ -219,9 +222,6 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           examples:
-            invalidInvitationStatus:
-              value:
-               $ref: './examples/errors/forbidden_invalidInvitationStatus.json'
             notAnAgent:
               value:
                $ref: './examples/errors/forbidden_notAgent.json'

@@ -18,21 +18,21 @@ package uk.gov.hmrc.agentauthorisation.services
 
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
-import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentmtdidentifiers.model.InvitationId
+import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, ClientAccessData}
+import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class CancelInvitationService @Inject() (
+class CheckRelationshipService @Inject() (
   acrConnector: AgentClientRelationshipsConnector
 ) {
 
-  def cancelInvitation(
-    invitationId: InvitationId
-  )(implicit rh: RequestHeader): Future[Either[ApiErrorResponse, Int]] =
-    acrConnector
-      .cancelInvitation(invitationId)
+  def checkRelationship(
+    arn: Arn,
+    clientAccessData: ClientAccessData
+  )(implicit rh: RequestHeader): Future[Either[ApiErrorResponse, Boolean]] =
+    acrConnector.checkRelationship(arn, clientAccessData)
 
 }

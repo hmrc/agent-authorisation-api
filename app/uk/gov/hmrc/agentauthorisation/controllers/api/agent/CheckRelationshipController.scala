@@ -20,7 +20,7 @@ import play.api.Logger
 import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentauthorisation.services.{CreateInvitationService, ValidateClientAccessDataService}
+import uk.gov.hmrc.agentauthorisation.services.{CheckRelationshipService, ValidateClientAccessDataService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -29,15 +29,15 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CreateInvitationController @Inject() (
-  createInvitationService: CreateInvitationService,
+class CheckRelationshipController @Inject() (
+  checkRelationshipService: CheckRelationshipService,
   validateClientAccessDataService: ValidateClientAccessDataService,
   val authConnector: AuthConnector,
   cc: ControllerComponents
 )(implicit val ec: ExecutionContext)
     extends BackendController(cc) with AuthActions {
 
-  def createInvitation(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
+  def checkRelationship(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAsAgent { arn =>
       implicit val loggedInArn: Arn = arn
       validateArnInRequest(givenArn) {
@@ -48,18 +48,14 @@ class CreateInvitationController @Inject() (
               Logger(getClass).warn(s"Payload failed validation: $errorResponse")
               Future successful errorResponse.toResult
             },
-            payload =>
+            clientAccessData =>
               for {
-                result <- createInvitationService.createInvitation(arn, payload)
+                result <- checkRelationshipService.checkRelationship(arn, clientAccessData)
               } yield result match {
-                case Right(invitationId) =>
+                case Right(false) =>
+                  RelationshipNotFound.toResult
+                case Right(true) =>
                   NoContent
-                    .withHeaders(LOCATION -> routes.GetInvitationsController.getInvitationApi(arn, invitationId).url)
-                case Left(errorResponse @ DuplicateAuthorisationRequest(invitationId)) =>
-                  errorResponse.toResult
-                    .withHeaders(
-                      LOCATION -> routes.GetInvitationsController.getInvitationApi(arn, invitationId).url
-                    )
                 case Left(errorResponse: ApiErrorResponse) =>
                   errorResponse.toResult
               }

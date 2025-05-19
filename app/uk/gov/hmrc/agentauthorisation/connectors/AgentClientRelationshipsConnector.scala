@@ -18,12 +18,15 @@ package uk.gov.hmrc.agentauthorisation.connectors
 
 import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 import play.api.libs.json.Json
+import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.util.HttpAPIMonitor
+import uk.gov.hmrc.agentauthorisation.util.RequestSupport._
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.{HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import javax.inject.{Inject, Singleton}
@@ -39,16 +42,14 @@ class AgentClientRelationshipsConnector @Inject() (
 
   val acrUrl = url"${appConfig.acrBaseUrl}/agent-client-relationships"
 
-  import uk.gov.hmrc.http.HttpReads.Implicits._
-
-  def createInvitation(arn: Arn, validCreateInvitationRequest: CreateInvitationRequestToAcr)(implicit
-    hc: HeaderCarrier
+  def createInvitation(arn: Arn, clientAccessData: ClientAccessData)(implicit
+    rh: RequestHeader
   ): Future[Either[ApiErrorResponse, InvitationId]] =
     monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
       val requestUrl = url"$acrUrl/api/${arn.value}/invitation"
       httpClient
         .post(requestUrl)
-        .withBody(Json.toJson(validCreateInvitationRequest))
+        .withBody(Json.toJson(clientAccessData))
         .execute[HttpResponse]
         .map {
           case response @ HttpResponse(CREATED, _, _) =>
@@ -59,7 +60,7 @@ class AgentClientRelationshipsConnector @Inject() (
     }
 
   def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
-    hc: HeaderCarrier
+    rh: RequestHeader
   ): Future[Either[ApiErrorResponse, SingleInvitationDetails]] =
     monitor(s"ConsumedAPI-Get-Invitation-GET") {
       val requestUrl = url"$acrUrl/api/${arn.value}/invitation/${invitationId.value}"
@@ -75,7 +76,7 @@ class AgentClientRelationshipsConnector @Inject() (
     }
 
   def getAllInvitations(arn: Arn)(implicit
-    hc: HeaderCarrier
+    rh: RequestHeader
   ): Future[Either[ApiErrorResponse, AllInvitationDetails]] =
     monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
       val requestUrl = url"$acrUrl/api/${arn.value}/invitations"
@@ -91,7 +92,7 @@ class AgentClientRelationshipsConnector @Inject() (
     }
 
   def cancelInvitation(invitationId: InvitationId)(implicit
-    headerCarrier: HeaderCarrier
+    rh: RequestHeader
   ): Future[Either[ApiErrorResponse, Int]] =
     monitor(s"ConsumedAPI-Cancel-Invitation-PUT") {
       val requestUrl = url"$acrUrl/agent/cancel-invitation/${invitationId.value}"
@@ -103,8 +104,22 @@ class AgentClientRelationshipsConnector @Inject() (
             Right(NO_CONTENT)
           case response =>
             Left(response.json.as[ApiErrorResponse])
-
         }
     }
 
+  def checkRelationship(arn: Arn, clientAccessData: ClientAccessData)(implicit
+    rh: RequestHeader
+  ): Future[Either[ApiErrorResponse, Boolean]] =
+    monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
+      httpClient
+        .post(url"$acrUrl/api/${arn.value}/relationship")
+        .withBody(Json.toJson(clientAccessData))
+        .execute[HttpResponse]
+        .map {
+          case response @ HttpResponse(NO_CONTENT, _, _) =>
+            Right(true)
+          case response =>
+            Left(response.json.as[ApiErrorResponse])
+        }
+    }
 }

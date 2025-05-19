@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
+import play.api.mvc.RequestHeader
+import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.{BaseISpec, TestInvitation}
-import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{Instant, LocalDate}
 
@@ -27,9 +28,9 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
 
   val connector: AgentClientRelationshipsConnector = app.injector.instanceOf[AgentClientRelationshipsConnector]
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  private implicit val request: RequestHeader = FakeRequest()
 
-  val testItsaInvite = CreateInvitationRequestToAcr(ItsaMain, "AB123456A", "DH14EJ", "personal")
+  val testClientAccessData = ClientAccessData(ItsaMain, "AB123456A", "DH14EJ", "personal")
 
   "createInvitation" should {
     "return a Invitation Id upon success for ITSA" in {
@@ -41,7 +42,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         validPostcode,
         "personal"
       )
-      val result = connector.createInvitation(arn, testItsaInvite).futureValue
+      val result = connector.createInvitation(arn, testClientAccessData).futureValue
       result shouldBe Right(invitationIdITSA)
     }
 
@@ -54,7 +55,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         validPostcode,
         "personal"
       )
-      val result = connector.createInvitation(arn, testItsaInvite.copy(service = ItsaSupp)).futureValue
+      val result = connector.createInvitation(arn, testClientAccessData.copy(service = ItsaSupp)).futureValue
       result shouldBe Right(invitationIdITSA)
     }
 
@@ -67,7 +68,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         validVatRegDate,
         "business"
       )
-      val agentInvitation = CreateInvitationRequestToAcr(Vat, validVrn.value, validVatRegDate, "business")
+      val agentInvitation = ClientAccessData(Vat, validVrn.value, validVatRegDate, "business")
       val result = connector.createInvitation(arn, agentInvitation).futureValue
       result shouldBe Right(invitationIdVAT)
     }
@@ -82,7 +83,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         validPostcode,
         "personal"
       )
-      val result = connector.createInvitation(arn, testItsaInvite).futureValue
+      val result = connector.createInvitation(arn, testClientAccessData).futureValue
       result shouldBe Left(ClientRegistrationNotFound)
     }
   }
@@ -197,6 +198,26 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
       val result = connector.cancelInvitation(invitationIdITSA).futureValue
 
       result shouldBe Left(NoPermissionOnAgency)
+    }
+  }
+
+  "checkRelationship" should {
+    val itsaClientAccessData = ClientAccessData(
+      service = ItsaMain,
+      suppliedClientId = validNino.value,
+      knownFact = validPostcode,
+      clientType = "personal"
+    )
+    "return true when a relationship is found" in {
+      givenCheckRelationshipStub(
+        arn = arn.value,
+        status = 204,
+        optCode = None,
+        clientAccessData = itsaClientAccessData
+      )
+      val result = connector.checkRelationship(arn, testClientAccessData).futureValue
+
+      result shouldBe Right(true)
     }
   }
 }

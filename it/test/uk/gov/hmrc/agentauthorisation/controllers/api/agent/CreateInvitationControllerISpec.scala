@@ -21,7 +21,6 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
@@ -234,9 +233,11 @@ class CreateInvitationControllerISpec extends BaseISpec {
         s"""{"service": ["MTD-VAT"], "clientType": "business", "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}"""
       )
       val result =
-        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
+        createInvitation(
+          authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value)
+        ).futureValue
       status(result) shouldBe 400
-      await(result) shouldBe ClientIdDoesNotMatchServiceResult
+      result shouldBe ClientIdDoesNotMatchService.toResult
     }
 
     "return 403 ALREADY_PROCESSING when lock cannot be acquired" in {
