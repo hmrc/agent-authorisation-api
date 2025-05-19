@@ -62,9 +62,9 @@ class GetInvitationsController @Inject() (
         invitationService
           .getAllInvitations(arn)
           .map {
-            case Right(None) =>
+            case Right(AllInvitationDetails(_, Nil)) =>
               NoContent
-            case Right(Some(invitationDetails)) =>
+            case Right(invitationDetails) =>
               Ok(toJson(invitationDetails)(AllInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
             case Left(errorResponse: ApiErrorResponse) =>
               errorResponse.toResult

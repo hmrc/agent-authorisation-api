@@ -36,7 +36,7 @@ class InvitationService @Inject() (
 
   def getAllInvitations(arn: Arn)(implicit
     hc: HeaderCarrier
-  ): Future[Either[ApiErrorResponse, Option[AllInvitationDetails]]] =
+  ): Future[Either[ApiErrorResponse, AllInvitationDetails]] =
     agentClientRelationshipsConnector.getAllInvitations(arn)
 
 }

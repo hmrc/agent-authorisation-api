@@ -76,17 +76,15 @@ class AgentClientRelationshipsConnector @Inject() (
 
   def getAllInvitations(arn: Arn)(implicit
     hc: HeaderCarrier
-  ): Future[Either[ApiErrorResponse, Option[AllInvitationDetails]]] =
+  ): Future[Either[ApiErrorResponse, AllInvitationDetails]] =
     monitor(s"ConsumedAPI-Get-AllInvitations-GET") {
       val requestUrl = url"$acrUrl/api/${arn.value}/invitations"
       httpClient
         .get(requestUrl)
         .execute[HttpResponse]
         .map {
-          case HttpResponse(NO_CONTENT, _, _) =>
-            Right(None)
           case response @ HttpResponse(OK, _, _) =>
-            Right(Some(response.json.as[AllInvitationDetails]))
+            Right(response.json.as[AllInvitationDetails])
           case response =>
             Left(response.json.as[ApiErrorResponse])
         }

@@ -129,26 +129,24 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
       val result = connector.getAllInvitations(arn).futureValue
 
       result shouldBe Right(
-        Some(
-          AllInvitationDetails(
-            AgentDetails("12345678", "agent-1"),
-            Seq(
-              InvitationDetails(
-                Instant.parse("2017-10-31T23:22:50.971Z"),
-                ItsaMain,
-                "Pending",
-                LocalDate.parse("2017-12-18"),
-                "ABERULMHCKKW3",
-                Instant.parse("2018-09-11T21:02:50.123Z")
-              ),
-              InvitationDetails(
-                Instant.parse("2017-10-31T23:22:50.971Z"),
-                Vat,
-                "Accepted",
-                LocalDate.parse("2017-12-18"),
-                "CZTW1KY6RTAAT",
-                Instant.parse("2018-09-11T21:02:50.123Z")
-              )
+        AllInvitationDetails(
+          AgentDetails("12345678", "agent-1"),
+          Seq(
+            InvitationDetails(
+              Instant.parse("2017-10-31T23:22:50.971Z"),
+              ItsaMain,
+              "Pending",
+              LocalDate.parse("2017-12-18"),
+              "ABERULMHCKKW3",
+              Instant.parse("2018-09-11T21:02:50.123Z")
+            ),
+            InvitationDetails(
+              Instant.parse("2017-10-31T23:22:50.971Z"),
+              Vat,
+              "Accepted",
+              LocalDate.parse("2017-12-18"),
+              "CZTW1KY6RTAAT",
+              Instant.parse("2018-09-11T21:02:50.123Z")
             )
           )
         )
@@ -156,11 +154,11 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
     }
 
     "return a empty sequence of stored invitations" in {
-      givenGetAllAgentInvitationsStubEmpty(arn)
+      givenGetAllAgentInvitationsStub(arn, Nil)
 
       val result = connector.getAllInvitations(arn).futureValue
 
-      result shouldBe Right(None)
+      result shouldBe Right(AllInvitationDetails(AgentDetails("12345678", "agent-1"), Nil))
     }
 
     "return an error as found in ACR" in {

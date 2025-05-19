@@ -187,18 +187,6 @@ trait ACRStubs {
         )
     )
 
-  def givenGetAllAgentInvitationsStubEmpty(arn: Arn): Unit =
-    stubFor(
-      get(urlPathEqualTo(s"/agent-client-relationships/api/${arn.value}/invitations"))
-        .willReturn(
-          aResponse()
-            .withStatus(204)
-            .withBody(
-              Json.obj().toString()
-            )
-        )
-    )
-
   def givenGetAgentAllInvitationsStubError(
     arn: Arn,
     status: Int,

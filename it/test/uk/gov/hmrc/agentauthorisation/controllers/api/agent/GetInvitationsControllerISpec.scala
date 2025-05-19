@@ -364,7 +364,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
       }
 
       "return 204 if there are no invitations for the agent" in {
-        givenGetAllAgentInvitationsStubEmpty(arn)
+        givenGetAllAgentInvitationsStub(arn, Nil)
 
         val result = getInvitations(authorisedAsValidAgent(request, arn.value))
 
