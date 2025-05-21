@@ -73,8 +73,15 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
   private val postcodeRegex =
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
 
+  private val personalClientType = "personal"
+  private val businessClientType = "business"
+
   private val supportedClientTypes: Map[Service, Seq[String]] =
-    Map(ItsaMain -> Seq("personal"), ItsaSupp -> Seq("personal"), Vat -> Seq("personal", "business"))
+    Map(
+      ItsaMain -> Seq(personalClientType),
+      ItsaSupp -> Seq(personalClientType),
+      Vat      -> Seq(personalClientType, businessClientType)
+    )
 
   private def isValidClientId(agentInvitation: ClientAccessData): Boolean =
     if (agentInvitation.service == Vat) {
