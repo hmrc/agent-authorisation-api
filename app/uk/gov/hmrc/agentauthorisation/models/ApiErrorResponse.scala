@@ -35,6 +35,8 @@ abstract class ApiErrorResponse(val statusCode: Int, val code: String, val messa
         Forbidden(this.toJson)
       case 404 =>
         NotFound(this.toJson)
+      case 406 =>
+        NotAcceptable(this.toJson)
       case _ =>
         InternalServerError(this.toJson)
     }
@@ -131,7 +133,7 @@ case class DuplicateAuthorisationRequest(invitationId: InvitationId)
 
 case object InvalidAcceptHeader
     extends ApiErrorResponse(
-      400,
+      406,
       "ACCEPT_HEADER_INVALID",
       "Invalid 'Accept' header."
     )
@@ -166,7 +168,7 @@ case object LockedRequest
 
 case object MissingAcceptHeader
     extends ApiErrorResponse(
-      400,
+      406,
       "ACCEPT_HEADER_INVALID",
       "Missing 'Accept' header."
     )
