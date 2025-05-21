@@ -42,6 +42,20 @@ class ValidateClientAccessDataServiceSpec extends BaseSpec {
         )
       ) shouldBe Left(UnsupportedClientType)
     }
+    "return PostcodeFormatInvalid when payload includes known fact that fails postcode regex" in {
+      testService.validatePayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-IT"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "ni",
+            "clientType"   -> "personal",
+            "knownFact"    -> "23BC",
+            "agentType"    -> "main"
+          )
+        )
+      ) shouldBe Left(PostcodeFormatInvalid)
+    }
 
   }
 }

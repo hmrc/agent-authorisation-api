@@ -16,23 +16,25 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.{JsSuccess, JsValue}
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentmtdidentifiers.model.Vrn
 import uk.gov.hmrc.domain.Nino
 
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.{Inject, Singleton}
+import scala.util.Try
 
 @Singleton
-class ValidateClientAccessDataService @Inject() () {
+class ValidateClientAccessDataService @Inject() () extends Logging {
 
   def validatePayload(payload: Option[JsValue]): Either[ApiErrorResponse, ClientAccessData] =
     payload match {
       case None =>
-        Logger(getClass).warn("The payload could not be parsed as Json")
+        logger.warn("The payload could not be parsed as Json")
         Left(InvalidPayload)
       case Some(jsValue) =>
         jsValue.validate[CreateInvitationPayload] match {
@@ -45,7 +47,7 @@ class ValidateClientAccessDataService @Inject() () {
               if !List("main", "supporting").contains(agentType) =>
             Left(UnsupportedAgentType)
           case other =>
-            Logger(getClass).debug(s"The payload is not valid: $other")
+            logger.debug(s"The payload is not valid: $other")
             Left(InvalidPayload)
         }
     }
@@ -55,11 +57,11 @@ class ValidateClientAccessDataService @Inject() () {
   ): Either[ApiErrorResponse, ClientAccessData] =
     if (!supportedClientTypes(value.service).contains(value.clientType)) {
       Left(UnsupportedClientType)
-    } else if (!validateClientId(value)) {
+    } else if (!isValidClientId(value)) {
       if (Nino.isValid(value.suppliedClientId) || Vrn.isValid(value.suppliedClientId)) {
         Left(ClientIdDoesNotMatchService)
       } else Left(ClientIdInvalidFormat)
-    } else if (validateKnownFactType(value.service, value.knownFact)) {
+    } else if (isKnownFactTypeValid(value.service, value.knownFact)) {
       Right(value)
     } else {
       value.service match {
@@ -74,31 +76,22 @@ class ValidateClientAccessDataService @Inject() () {
   private val supportedClientTypes: Map[Service, Seq[String]] =
     Map(ItsaMain -> Seq("personal"), ItsaSupp -> Seq("personal"), Vat -> Seq("personal", "business"))
 
-  private def validateClientId(agentInvitation: ClientAccessData): Boolean =
+  private def isValidClientId(agentInvitation: ClientAccessData): Boolean =
     if (agentInvitation.service == Vat) {
       Vrn.isValid(agentInvitation.suppliedClientId)
     } else {
       Nino.isValid(agentInvitation.suppliedClientId)
     }
 
-  def validateDate(value: String): Boolean =
-    if (parseDate(value)) true else false
+  def isValidDateString(dateString: String): Boolean = Try(
+    LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE)
+  ).isSuccess
 
-  private val dateTimeFormat = DateTimeFormatter.ISO_LOCAL_DATE
-
-  def parseDate(date: String): Boolean =
-    try {
-      dateTimeFormat.parse(date)
-      true
-    } catch {
-      case _: Throwable => false
-    }
-
-  private def validateKnownFactType(service: Service, knownFact: String): Boolean =
+  private def isKnownFactTypeValid(service: Service, knownFact: String): Boolean =
     service match {
       case ItsaMain | ItsaSupp =>
         knownFact.matches(postcodeRegex)
-      case Vat => validateDate(knownFact)
+      case Vat => isValidDateString(knownFact)
     }
 
 }

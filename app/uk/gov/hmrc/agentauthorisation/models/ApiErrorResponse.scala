@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.agentmtdidentifiers.model.InvitationId
+import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 
-abstract class ApiErrorResponse(val statusCode: Int, val code: String, val message: String) {
-  // Currently this class only serves the create invitation endpoint
+abstract class ApiErrorResponse(val statusCode: Int, val code: String, val message: String) extends Logging {
   def toResult: Result = {
-    Logger(getClass).warn(s"Create invitation error ${this.code}: ${this.message}")
+    logger.warn(s"Create invitation error ${this.code}: ${this.message}")
     this.statusCode match {
       case 400 =>
         BadRequest(this.toJson)
@@ -43,7 +43,7 @@ abstract class ApiErrorResponse(val statusCode: Int, val code: String, val messa
 }
 
 object ApiErrorResponse {
-  implicit val reads: Reads[ApiErrorResponse] =
+  def acrReads(service: Option[Service] = None): Reads[ApiErrorResponse] =
     Reads { json =>
       val response = (json \ "code").as[String] match {
         case "AGENT_SUSPENDED"                  => NoPermissionOnAgency
@@ -70,7 +70,14 @@ object ApiErrorResponse {
         case "UNAUTHORIZED"                => StandardUnauthorised
         case "NO_PERMISSION_ON_AGENCY"     => NoPermissionOnAgency
         case "INVITATION_NOT_FOUND"        => InvitationNotFound
-        case value                         => throw new IllegalArgumentException(s"Unexpected error code: $value")
+        case "KNOWN_FACT_DOES_NOT_MATCH" =>
+          service match {
+            case Some(ItsaMain) | Some(ItsaSupp) => PostcodeDoesNotMatch
+            case Some(Vat)                       => VatRegDateDoesNotMatch
+            case None                            => UnsupportedService
+          }
+        case "CLIENT_INSOLVENT" => VatClientInsolvent
+        case value              => throw new IllegalArgumentException(s"Unexpected error code: $value")
       }
       JsSuccess(response)
     }

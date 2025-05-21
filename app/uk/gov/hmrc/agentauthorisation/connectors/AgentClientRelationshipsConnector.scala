@@ -55,7 +55,7 @@ class AgentClientRelationshipsConnector @Inject() (
           case response @ HttpResponse(CREATED, _, _) =>
             Right(InvitationId((response.json \ "invitationId").as[String]))
           case response =>
-            Left(response.json.as[ApiErrorResponse])
+            Left(response.json.as[ApiErrorResponse](ApiErrorResponse.acrReads(Some(clientAccessData.service))))
         }
     }
 
@@ -71,7 +71,7 @@ class AgentClientRelationshipsConnector @Inject() (
           case response @ HttpResponse(OK, _, _) =>
             Right(response.json.as[SingleInvitationDetails])
           case response =>
-            Left(response.json.as[ApiErrorResponse])
+            Left(response.json.as[ApiErrorResponse](ApiErrorResponse.acrReads()))
         }
     }
 
@@ -87,7 +87,7 @@ class AgentClientRelationshipsConnector @Inject() (
           case response @ HttpResponse(OK, _, _) =>
             Right(response.json.as[AllInvitationDetails])
           case response =>
-            Left(response.json.as[ApiErrorResponse])
+            Left(response.json.as[ApiErrorResponse](ApiErrorResponse.acrReads()))
         }
     }
 
@@ -103,14 +103,14 @@ class AgentClientRelationshipsConnector @Inject() (
           case HttpResponse(NO_CONTENT, _, _) =>
             Right(NO_CONTENT)
           case response =>
-            Left(response.json.as[ApiErrorResponse])
+            Left(response.json.as[ApiErrorResponse](ApiErrorResponse.acrReads()))
         }
     }
 
   def checkRelationship(arn: Arn, clientAccessData: ClientAccessData)(implicit
     rh: RequestHeader
   ): Future[Either[ApiErrorResponse, Boolean]] =
-    monitor(s"ConsumedAPI-Agent-Create-Invitation-POST") {
+    monitor(s"ConsumedAPI-Agent-Check-Relationship-POST") {
       httpClient
         .post(url"$acrUrl/api/${arn.value}/relationship")
         .withBody(Json.toJson(clientAccessData))
@@ -119,7 +119,7 @@ class AgentClientRelationshipsConnector @Inject() (
           case response @ HttpResponse(NO_CONTENT, _, _) =>
             Right(true)
           case response =>
-            Left(response.json.as[ApiErrorResponse])
+            Left(response.json.as[ApiErrorResponse](ApiErrorResponse.acrReads(Some(clientAccessData.service))))
         }
     }
 }
