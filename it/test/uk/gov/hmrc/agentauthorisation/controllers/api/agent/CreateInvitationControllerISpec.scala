@@ -136,16 +136,18 @@ class CreateInvitationControllerISpec extends BaseISpec {
     "return 204 when invitation is successfully created for ITSA with a main agent" in {
       stubCreateItsaInAcr(error = None, main = true)
       val result =
-        createInvitation(authorisedAsValidAgent(request.withJsonBody(Json.toJson(itsaPayload)), arn.value))
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(Json.toJson(itsaPayload)), arn.value)).futureValue
       status(result) shouldBe 204
-      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      result.header.headers(LOCATION) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      result.body shouldBe ""
     }
 
     "return 204 when invitation is successfully created for VAT" in {
       stubCreateVatInAcr()
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value)).futureValue
       status(result) shouldBe 204
-      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/CZTW1KY6RTAAT")
+      result.header.headers(LOCATION) shouldBe Some("/agents/TARN0000001/invitations/CZTW1KY6RTAAT")
+      result.body shouldBe ""
     }
 
     "return 400 when invitation is requested for ITSA with invalid agent" in {

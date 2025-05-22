@@ -81,8 +81,9 @@ class CheckRelationshipControllerISpec extends BaseISpec {
           optCode = None,
           clientAccessData = itsaClientAccessData
         )
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value)).futureValue
         status(result) shouldBe 204
+        result.body shouldBe ""
       }
 
       "return 204 when the relationship is active for ITSA supporting" in {
@@ -93,8 +94,9 @@ class CheckRelationshipControllerISpec extends BaseISpec {
           clientAccessData = itsaClientAccessData.copy(service = ItsaSupp)
         )
         val result =
-          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
+          checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value)).futureValue
         status(result) shouldBe 204
+        result.body shouldBe ""
       }
 
       "return 204 when the relationship is active for VAT" in {
@@ -105,8 +107,9 @@ class CheckRelationshipControllerISpec extends BaseISpec {
           clientAccessData = vatClientAccessData
         )
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value)).futureValue
         status(result) shouldBe 204
+        result.body shouldBe ""
       }
 
       "return 404 when the relationship is not found for ITSA" in {
@@ -117,8 +120,9 @@ class CheckRelationshipControllerISpec extends BaseISpec {
           clientAccessData = itsaClientAccessData
         )
 
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value))
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value)).futureValue
         status(result) shouldBe 404
+        result shouldBe RelationshipNotFound.toResult
       }
 
       "return 404 when the relationship is not found for VAT" in {
@@ -128,8 +132,9 @@ class CheckRelationshipControllerISpec extends BaseISpec {
           optCode = Some("RELATIONSHIP_NOT_FOUND"),
           clientAccessData = vatClientAccessData
         )
-        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+        val result = checkRelationshipApi(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value)).futureValue
         status(result) shouldBe 404
+        result shouldBe RelationshipNotFound.toResult
       }
 
       "return 400 SERVICE_NOT_SUPPORTED when the service is not supported" in {

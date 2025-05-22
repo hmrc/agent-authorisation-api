@@ -33,8 +33,9 @@ class CancelInvitationControllerISpec extends BaseISpec {
 
       "return 204 for a successful cancellation" in {
         givenCancelAgentInvitationStub(invitationIdITSA, 204)
-        val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value))
+        val result = cancelInvitationItsaApi(authorisedAsValidAgent(requestITSA, arn.value)).futureValue
         status(result) shouldBe 204
+        result.body shouldBe ""
       }
 
       "return 403 INVALID_INVITATION_STATUS when ACR responds with this" in {
