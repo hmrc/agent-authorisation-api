@@ -119,18 +119,25 @@ class CreateInvitationControllerISpec extends BaseISpec {
     "return 204 when invitation is successfully created for ITSA without an agentType" in {
       stubCreateItsaInAcr(error = None, main = true)
       val result = createInvitation(
-        authorisedAsValidAgent(request.withJsonBody(Json.toJson(itsaPayload.copy(agentType = None))), arn.value)
-      )
+        authorisedAsValidAgent(
+          request.withJsonBody(Json.toJson(itsaPayload.copy(agentType = None))),
+          arn.value
+        )
+      ).futureValue
       status(result) shouldBe 204
-      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/ABERULMHCKKW3"
+      result.body.isKnownEmpty shouldBe true
     }
 
     "return 204 when invitation is successfully created for ITSA with a supporting agent" in {
       stubCreateItsaInAcr(error = None, main = false)
       val result =
-        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
+        createInvitation(
+          authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value)
+        ).futureValue
       status(result) shouldBe 204
-      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/ABERULMHCKKW3"
+      result.body.isKnownEmpty
     }
 
     "return 204 when invitation is successfully created for ITSA with a main agent" in {
@@ -138,16 +145,16 @@ class CreateInvitationControllerISpec extends BaseISpec {
       val result =
         createInvitation(authorisedAsValidAgent(request.withJsonBody(Json.toJson(itsaPayload)), arn.value)).futureValue
       status(result) shouldBe 204
-      result.header.headers(LOCATION) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
-      result.body shouldBe ""
+      result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/ABERULMHCKKW3"
+      result.body.isKnownEmpty shouldBe true
     }
 
     "return 204 when invitation is successfully created for VAT" in {
       stubCreateVatInAcr()
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value)).futureValue
       status(result) shouldBe 204
-      result.header.headers(LOCATION) shouldBe Some("/agents/TARN0000001/invitations/CZTW1KY6RTAAT")
-      result.body shouldBe ""
+      result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/CZTW1KY6RTAAT"
+      result.body.isKnownEmpty shouldBe true
     }
 
     "return 400 when invitation is requested for ITSA with invalid agent" in {
