@@ -21,7 +21,6 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
@@ -120,33 +119,42 @@ class CreateInvitationControllerISpec extends BaseISpec {
     "return 204 when invitation is successfully created for ITSA without an agentType" in {
       stubCreateItsaInAcr(error = None, main = true)
       val result = createInvitation(
-        authorisedAsValidAgent(request.withJsonBody(Json.toJson(itsaPayload.copy(agentType = None))), arn.value)
-      )
+        authorisedAsValidAgent(
+          request.withJsonBody(Json.toJson(itsaPayload.copy(agentType = None))),
+          arn.value
+        )
+      ).futureValue
       status(result) shouldBe 204
-      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/ABERULMHCKKW3"
+      result.body.isKnownEmpty shouldBe true
     }
 
     "return 204 when invitation is successfully created for ITSA with a supporting agent" in {
       stubCreateItsaInAcr(error = None, main = false)
       val result =
-        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value))
+        createInvitation(
+          authorisedAsValidAgent(request.withJsonBody(jsonBodyITSASupportingAgentType), arn.value)
+        ).futureValue
       status(result) shouldBe 204
-      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/ABERULMHCKKW3"
+      result.body.isKnownEmpty shouldBe true
     }
 
     "return 204 when invitation is successfully created for ITSA with a main agent" in {
       stubCreateItsaInAcr(error = None, main = true)
       val result =
-        createInvitation(authorisedAsValidAgent(request.withJsonBody(Json.toJson(itsaPayload)), arn.value))
+        createInvitation(authorisedAsValidAgent(request.withJsonBody(Json.toJson(itsaPayload)), arn.value)).futureValue
       status(result) shouldBe 204
-      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/ABERULMHCKKW3")
+      result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/ABERULMHCKKW3"
+      result.body.isKnownEmpty shouldBe true
     }
 
     "return 204 when invitation is successfully created for VAT" in {
       stubCreateVatInAcr()
-      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value))
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value)).futureValue
       status(result) shouldBe 204
-      header("Location", result) shouldBe Some("/agents/TARN0000001/invitations/CZTW1KY6RTAAT")
+      result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/CZTW1KY6RTAAT"
+      result.body.isKnownEmpty shouldBe true
     }
 
     "return 400 when invitation is requested for ITSA with invalid agent" in {
@@ -234,9 +242,11 @@ class CreateInvitationControllerISpec extends BaseISpec {
         s"""{"service": ["MTD-VAT"], "clientType": "business", "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}"""
       )
       val result =
-        createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value))
+        createInvitation(
+          authorisedAsValidAgent(request.withJsonBody(jsonBodyClientIdNotMatchService), arn.value)
+        ).futureValue
       status(result) shouldBe 400
-      await(result) shouldBe ClientIdDoesNotMatchServiceResult
+      result shouldBe ClientIdDoesNotMatchService.toResult
     }
 
     "return 403 ALREADY_PROCESSING when lock cannot be acquired" in {

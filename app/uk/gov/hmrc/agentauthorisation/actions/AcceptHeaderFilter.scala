@@ -21,7 +21,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames
 import play.api.mvc.{Filter, RequestHeader, Result}
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse.{errorAcceptHeaderInvalidCustomMessage, errorBadRequestCustomMessage}
+import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, InvalidAcceptHeader, MissingAcceptHeader, MissingOrUnsupportedContentType, MissingOrUnsupportedVersion}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -49,20 +49,20 @@ class AcceptHeaderFilter @Inject() (appConfig: AppConfig)(implicit materializer:
     val isSupportedContentType =
       optMatch.flatMap(getGroup("content-type")).fold(false)(c => c.equalsIgnoreCase("json"))
 
-    val errorMessage =
+    val errorMessage: Option[ApiErrorResponse] =
       if (excludedRequestUri) None
       else {
         (acceptHeader, acceptType, isSupportedVersion, isSupportedContentType) match {
-          case (None, _, _, _)  => Some(errorAcceptHeaderInvalidCustomMessage("Missing 'Accept' header."))
-          case (_, None, _, _)  => Some(errorAcceptHeaderInvalidCustomMessage("Invalid 'Accept' header."))
-          case (_, _, false, _) => Some(errorBadRequestCustomMessage("Missing or unsupported version number."))
-          case (_, _, _, false) => Some(errorBadRequestCustomMessage("Missing or unsupported content-type."))
+          case (None, _, _, _)  => Some(MissingAcceptHeader)
+          case (_, None, _, _)  => Some(InvalidAcceptHeader)
+          case (_, _, false, _) => Some(MissingOrUnsupportedVersion)
+          case (_, _, _, false) => Some(MissingOrUnsupportedContentType)
           case _                => None
         }
       }
 
     errorMessage match {
-      case Some(e) => Future.successful(e)
+      case Some(e) => Future.successful(e.toResult)
       case _       => f(rh)
     }
   }

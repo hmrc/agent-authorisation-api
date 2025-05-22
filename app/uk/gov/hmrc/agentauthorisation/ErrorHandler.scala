@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.agentauthorisation
 
-import javax.inject.{Inject, Singleton}
-import play.api.{Configuration, Logger}
 import play.api.http.Status._
 import play.api.mvc._
-import uk.gov.hmrc.agentauthorisation.controllers.api.errors.ErrorResponse._
+import play.api.{Configuration, Logger}
+import uk.gov.hmrc.agentauthorisation.models.{StandardBadRequest, StandardInternalServerError, StandardNotFound, StandardUnauthorised}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -37,9 +37,9 @@ class ErrorHandler @Inject() (auditConnector: AuditConnector, httpAuditEvent: Ht
     super.onClientError(request, statusCode, message).map { auditedError =>
       Logger(getClass).warn(s"Client Side Error: $message from request: $request statusCode: $statusCode")
       statusCode match {
-        case NOT_FOUND    => standardNotFound
-        case BAD_REQUEST  => standardBadRequest
-        case UNAUTHORIZED => standardUnauthorised
+        case NOT_FOUND    => StandardNotFound.toResult
+        case BAD_REQUEST  => StandardBadRequest.toResult
+        case UNAUTHORIZED => StandardUnauthorised.toResult
         case _            => auditedError
       }
     }
@@ -49,6 +49,6 @@ class ErrorHandler @Inject() (auditConnector: AuditConnector, httpAuditEvent: Ht
       .onServerError(request, exception)
       .map { _ =>
         Logger(getClass).warn(s"Server Side Error: $exception from request: $request")
-        standardInternalServerError
+        StandardInternalServerError.toResult
       }
 }

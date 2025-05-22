@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.agentmtdidentifiers.model.InvitationId
+import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 
-abstract class ApiErrorResponse(val statusCode: Int, val code: String, val message: String) {
-  // Currently this class only serves the create invitation endpoint
+abstract class ApiErrorResponse(val statusCode: Int, val code: String, val message: String) extends Logging {
   def toResult: Result = {
-    Logger(getClass).warn(s"Create invitation error ${this.code}: ${this.message}")
+    logger.warn(s"Create invitation error ${this.code}: ${this.message}")
     this.statusCode match {
       case 400 =>
         BadRequest(this.toJson)
@@ -35,6 +35,8 @@ abstract class ApiErrorResponse(val statusCode: Int, val code: String, val messa
         Forbidden(this.toJson)
       case 404 =>
         NotFound(this.toJson)
+      case 406 =>
+        NotAcceptable(this.toJson)
       case _ =>
         InternalServerError(this.toJson)
     }
@@ -43,7 +45,7 @@ abstract class ApiErrorResponse(val statusCode: Int, val code: String, val messa
 }
 
 object ApiErrorResponse {
-  implicit val reads: Reads[ApiErrorResponse] =
+  def acrReads(service: Option[Service] = None): Reads[ApiErrorResponse] =
     Reads { json =>
       val response = (json \ "code").as[String] match {
         case "AGENT_SUSPENDED"                  => NoPermissionOnAgency
@@ -62,6 +64,7 @@ object ApiErrorResponse {
         case "NOT_AN_AGENT"                => NotAnAgent
         case "POSTCODE_DOES_NOT_MATCH"     => PostcodeDoesNotMatch
         case "POSTCODE_FORMAT_INVALID"     => PostcodeFormatInvalid
+        case "RELATIONSHIP_NOT_FOUND"      => RelationshipNotFound
         case "SERVICE_NOT_SUPPORTED"       => UnsupportedService
         case "VAT_CLIENT_INSOLVENT"        => VatClientInsolvent
         case "VAT_REG_DATE_DOES_NOT_MATCH" => VatRegDateDoesNotMatch
@@ -69,7 +72,14 @@ object ApiErrorResponse {
         case "UNAUTHORIZED"                => StandardUnauthorised
         case "NO_PERMISSION_ON_AGENCY"     => NoPermissionOnAgency
         case "INVITATION_NOT_FOUND"        => InvitationNotFound
-        case value                         => throw new IllegalArgumentException(s"Unexpected error code: $value")
+        case "KNOWN_FACT_DOES_NOT_MATCH" =>
+          service match {
+            case Some(ItsaMain) | Some(ItsaSupp) => PostcodeDoesNotMatch
+            case Some(Vat)                       => VatRegDateDoesNotMatch
+            case None                            => UnsupportedService
+          }
+        case "CLIENT_INSOLVENT" => VatClientInsolvent
+        case value              => throw new IllegalArgumentException(s"Unexpected error code: $value")
       }
       JsSuccess(response)
     }
@@ -107,11 +117,25 @@ case object ClientIdInvalidFormat
       "Client identifier must be in the correct format. Check the API documentation to find the correct format."
     )
 
+case object ClientRegistrationNotFound
+    extends ApiErrorResponse(
+      403,
+      "CLIENT_REGISTRATION_NOT_FOUND",
+      "The details provided for this client do not match HMRC's records."
+    )
+
 case class DuplicateAuthorisationRequest(invitationId: InvitationId)
     extends ApiErrorResponse(
       statusCode = 403,
       code = "DUPLICATE_AUTHORISATION_REQUEST",
       message = "The authorisation request is a duplicate of a previous request."
+    )
+
+case object InvalidAcceptHeader
+    extends ApiErrorResponse(
+      406,
+      "ACCEPT_HEADER_INVALID",
+      "Invalid 'Accept' header."
     )
 
 case object InvalidInvitationStatus
@@ -128,11 +152,39 @@ case object InvalidPayload
       "The payload is invalid."
     )
 
+case object InvitationNotFound
+    extends ApiErrorResponse(
+      404,
+      "INVITATION_NOT_FOUND",
+      "The authorisation request cannot be found."
+    )
+
 case object LockedRequest
     extends ApiErrorResponse(
       403,
       "ALREADY_BEING_PROCESSED",
       "More than one request received to create the same invitation."
+    )
+
+case object MissingAcceptHeader
+    extends ApiErrorResponse(
+      406,
+      "ACCEPT_HEADER_INVALID",
+      "Missing 'Accept' header."
+    )
+
+case object MissingOrUnsupportedContentType
+    extends ApiErrorResponse(
+      400,
+      "BAD_REQUEST",
+      "Missing or unsupported content-type."
+    )
+
+case object MissingOrUnsupportedVersion
+    extends ApiErrorResponse(
+      400,
+      "BAD_REQUEST",
+      "Missing or unsupported version number."
     )
 
 case object NoPermissionOnAgency
@@ -143,11 +195,67 @@ case object NoPermissionOnAgency
         "business that created the authorisation request."
     )
 
+case object NotAnAgent
+    extends ApiErrorResponse(
+      403,
+      "NOT_AN_AGENT",
+      "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
+    )
+
+case object PostcodeDoesNotMatch
+    extends ApiErrorResponse(
+      403,
+      "POSTCODE_DOES_NOT_MATCH",
+      "The postcode provided does not match HMRC's record for this client."
+    )
+
 case object PostcodeFormatInvalid
     extends ApiErrorResponse(
       400,
       "POSTCODE_FORMAT_INVALID",
       "Postcode must be in the correct format. Check the API documentation to find the correct format."
+    )
+
+case object RelationshipNotFound
+    extends ApiErrorResponse(
+      404,
+      "RELATIONSHIP_NOT_FOUND",
+      "Relationship is inactive. Agent is not authorised to act for this client."
+    )
+
+case object StandardBadRequest
+    extends ApiErrorResponse(
+      400,
+      "BAD_REQUEST",
+      "Bad Request"
+    )
+
+case object StandardInternalServerError
+    extends ApiErrorResponse(
+      500,
+      "INTERNAL_SERVER_ERROR",
+      "Internal server error."
+    )
+
+case object StandardNotFound
+    extends ApiErrorResponse(
+      404,
+      "NOT_FOUND",
+      "Resource was not found."
+    )
+
+case object StandardUnauthorised
+    extends ApiErrorResponse(
+      401,
+      "UNAUTHORIZED",
+      "Bearer token is missing or not authorized."
+    )
+
+case object UnsupportedAgentType
+    extends ApiErrorResponse(
+      400,
+      "AGENT_TYPE_NOT_SUPPORTED",
+      "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
     )
 
 case object UnsupportedClientType
@@ -162,13 +270,6 @@ case object UnsupportedService
       400,
       "SERVICE_NOT_SUPPORTED",
       "The service requested is not supported. Check the API documentation to find which services are supported."
-    )
-
-case object StandardUnauthorised
-    extends ApiErrorResponse(
-      401,
-      "UNAUTHORIZED",
-      "Bearer token is missing or not authorized."
     )
 
 case object VatClientInsolvent
@@ -190,46 +291,4 @@ case object VatRegDateFormatInvalid
       400,
       "VAT_REG_DATE_FORMAT_INVALID",
       "VAT registration date must be in the correct format. Check the API documentation to find the correct format."
-    )
-
-case object ClientRegistrationNotFound
-    extends ApiErrorResponse(
-      403,
-      "CLIENT_REGISTRATION_NOT_FOUND",
-      "The details provided for this client do not match HMRC's records."
-    )
-
-case object PostcodeDoesNotMatch
-    extends ApiErrorResponse(
-      403,
-      "POSTCODE_DOES_NOT_MATCH",
-      "The postcode provided does not match HMRC's record for this client."
-    )
-
-case object UnsupportedAgentType
-    extends ApiErrorResponse(
-      400,
-      "AGENT_TYPE_NOT_SUPPORTED",
-      "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
-    )
-
-case object NotAnAgent
-    extends ApiErrorResponse(
-      403,
-      "NOT_AN_AGENT",
-      "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
-    )
-
-case object StandardInternalServerError
-    extends ApiErrorResponse(
-      500,
-      "INTERNAL_SERVER_ERROR",
-      "Internal server error."
-    )
-
-case object InvitationNotFound
-    extends ApiErrorResponse(
-      404,
-      "INVITATION_NOT_FOUND",
-      "The authorisation request cannot be found."
     )

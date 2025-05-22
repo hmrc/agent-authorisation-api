@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.agentauthorisation.auth
 
-import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.mvc.Results._
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import uk.gov.hmrc.agentauthorisation.controllers.api.ErrorResults._
+import uk.gov.hmrc.agentauthorisation.models.{AgentNotSubscribed, NotAnAgent}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
@@ -39,9 +38,9 @@ class AuthActionsISpec extends BaseISpec {
       FakeRequest().withHeaders("Authorization" -> "Bearer XYZ")
 
     def withAuthorisedAsAgent[A]: Result =
-      await(super.withAuthorisedAsAgent { arn =>
+      super.withAuthorisedAsAgent { arn =>
         Future.successful(Ok(arn.value))
-      })
+      }.futureValue
   }
 
   "withAuthorisedAsAgent" should {
@@ -72,7 +71,7 @@ class AuthActionsISpec extends BaseISpec {
       givenUnauthorisedWith("InsufficientEnrolments")
       val result = TestController.withAuthorisedAsAgent
       status(result) shouldBe 403
-      result shouldBe NotAnAgentResult
+      result shouldBe NotAnAgent.toResult
     }
 
     "return 403 Not An Agent when agent not enrolled for service" in {
@@ -87,7 +86,7 @@ class AuthActionsISpec extends BaseISpec {
            |]}""".stripMargin
       )
       val result = TestController.withAuthorisedAsAgent
-      result shouldBe NotAnAgentResult
+      result shouldBe NotAnAgent.toResult
     }
 
     "return 403 Agent Not Subscribed when expected agent's identifier missing" in {
@@ -102,7 +101,7 @@ class AuthActionsISpec extends BaseISpec {
            |]}""".stripMargin
       )
       val result = TestController.withAuthorisedAsAgent
-      result shouldBe AgentNotSubscribedResult
+      result shouldBe AgentNotSubscribed.toResult
     }
   }
 }

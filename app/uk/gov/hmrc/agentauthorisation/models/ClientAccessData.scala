@@ -19,18 +19,18 @@ package uk.gov.hmrc.agentauthorisation.models
 import play.api.libs.json._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 
-case class CreateInvitationRequestToAcr(
+case class ClientAccessData(
   service: Service,
   suppliedClientId: String,
   knownFact: String,
   clientType: String
 )
-object CreateInvitationRequestToAcr {
-  def unapply(arg: CreateInvitationPayload): Option[CreateInvitationRequestToAcr] =
+object ClientAccessData {
+  def unapply(arg: CreateInvitationPayload): Option[ClientAccessData] =
     arg match {
       case CreateInvitationPayload(List("MTD-VAT"), _, _, _, _, None) =>
         Some(
-          CreateInvitationRequestToAcr(
+          ClientAccessData(
             Vat,
             arg.clientId,
             arg.knownFact,
@@ -39,7 +39,7 @@ object CreateInvitationRequestToAcr {
         )
       case CreateInvitationPayload(List("MTD-IT"), _, _, _, _, Some("supporting")) =>
         Some(
-          CreateInvitationRequestToAcr(
+          ClientAccessData(
             ItsaSupp,
             arg.clientId,
             arg.knownFact,
@@ -49,7 +49,7 @@ object CreateInvitationRequestToAcr {
       case CreateInvitationPayload(List("MTD-IT"), _, _, _, _, Some("main")) |
           CreateInvitationPayload(List("MTD-IT"), _, _, _, _, None) =>
         Some(
-          CreateInvitationRequestToAcr(
+          ClientAccessData(
             ItsaMain,
             arg.clientId,
             arg.knownFact,
@@ -59,8 +59,8 @@ object CreateInvitationRequestToAcr {
       case _ => None
     }
 
-  implicit val writes: Writes[CreateInvitationRequestToAcr] = new Writes[CreateInvitationRequestToAcr] {
-    override def writes(o: CreateInvitationRequestToAcr): JsValue =
+  implicit val writes: Writes[ClientAccessData] = new Writes[ClientAccessData] {
+    override def writes(o: ClientAccessData): JsValue =
       Json.obj(
         "service"          -> o.service,
         "suppliedClientId" -> o.suppliedClientId.replaceAll(" ", ""),

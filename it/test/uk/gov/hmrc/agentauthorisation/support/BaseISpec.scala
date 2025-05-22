@@ -29,8 +29,8 @@ import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 abstract class BaseISpec
-    extends UnitSpec with GuiceOneServerPerSuite with WireMockSupport with AuthStubs with MongoApp with ACAStubs
-    with DataStreamStubs with ACRStubs with TestIdentifiers {
+    extends UnitSpec with GuiceOneServerPerSuite with WireMockSupport with AuthStubs with MongoApp with DataStreamStubs
+    with ACRStubs with TestIdentifiers {
 
   override implicit lazy val app: Application = appBuilder.build()
 

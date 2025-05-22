@@ -28,8 +28,6 @@ import uk.gov.hmrc.http.SessionKeys
 class GetInvitationsControllerISpec extends BaseISpec {
   lazy val controller: GetInvitationsController = app.injector.instanceOf[GetInvitationsController]
 
-  lazy val configuration: Configuration = app.injector.instanceOf[Configuration]
-
   def pendingItsaInvitation(service: Service): JsObject = Json.obj(
     "_links"    -> Json.obj("self" -> Json.obj("href" -> "/agents/TARN0000001/invitations/ABERULMHCKKW3")),
     "created"   -> "2017-10-31T23:22:50.971Z",

@@ -18,9 +18,8 @@ package uk.gov.hmrc.agentauthorisation.stubs
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import org.scalatest.concurrent.Eventually.eventually
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, Service}
+import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, ClientAccessData, Service}
 import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, TestInvitation, WireMockSupport}
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
@@ -95,19 +94,6 @@ trait ACRStubs {
           aResponse()
             .withStatus(status)
         )
-    )
-
-  def verifyStatusRelationshipItsaEventWasSent(arn: String, nino: Nino, service: String) = eventually {
-    verify(
-      1,
-      getRequestedFor((urlEqualTo(s"/agent-client-relationships/agent/$arn/service/$service/client/NI/${nino.value}")))
-    )
-  }
-
-  def verifyNoStatusRelationshipItsaEventWasSent(arn: String, nino: Nino, service: String): Unit =
-    verify(
-      0,
-      getRequestedFor((urlEqualTo(s"/agent-client-relationships/agent/$arn/service/$service/client/NI/${nino.value}")))
     )
 
   def getStatusRelationshipVat(arn: String, vrn: Vrn, status: Int): Unit =
@@ -224,5 +210,28 @@ trait ACRStubs {
           )
         )
     )
+
+  def givenCheckRelationshipStub(
+    arn: String,
+    status: Int,
+    optCode: Option[String] = None,
+    clientAccessData: ClientAccessData
+  ): Unit = {
+    val requestBody = Json.obj(
+      "service"          -> clientAccessData.service.internalServiceName,
+      "suppliedClientId" -> clientAccessData.suppliedClientId,
+      "knownFact"        -> clientAccessData.knownFact,
+      "clientType"       -> clientAccessData.clientType
+    )
+    stubFor(
+      post(urlEqualTo(s"/agent-client-relationships/api/$arn/relationship"))
+        .withRequestBody(equalToJson(requestBody.toString()))
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+            .withBody(optCode.fold(Json.obj())(code => Json.obj("code" -> code)).toString())
+        )
+    )
+  }
 
 }

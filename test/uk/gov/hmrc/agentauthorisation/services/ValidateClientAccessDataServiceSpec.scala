@@ -17,19 +17,12 @@
 package uk.gov.hmrc.agentauthorisation.services
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseSpec
-import org.scalatestplus.mockito.MockitoSugar.mock
 
-class CreateInvitationServiceSpec extends BaseSpec {
+class ValidateClientAccessDataServiceSpec extends BaseSpec {
 
-  val lockService = new FakeLockService
-  val mockAcrConnector = mock[AgentClientRelationshipsConnector]
-  val testService = new CreateInvitationService(
-    lockService,
-    mockAcrConnector
-  )
+  val testService = new ValidateClientAccessDataService()
 
   "validatePayload" should {
     "return None when JsValue is missing" in {
@@ -48,6 +41,20 @@ class CreateInvitationServiceSpec extends BaseSpec {
           )
         )
       ) shouldBe Left(UnsupportedClientType)
+    }
+    "return PostcodeFormatInvalid when payload includes known fact that fails postcode regex" in {
+      testService.validatePayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-IT"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "ni",
+            "clientType"   -> "personal",
+            "knownFact"    -> "23BC",
+            "agentType"    -> "main"
+          )
+        )
+      ) shouldBe Left(PostcodeFormatInvalid)
     }
 
   }
