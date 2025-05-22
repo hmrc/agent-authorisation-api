@@ -137,7 +137,7 @@ class CreateInvitationControllerISpec extends BaseISpec {
         ).futureValue
       status(result) shouldBe 204
       result.header.headers(LOCATION) shouldBe "/agents/TARN0000001/invitations/ABERULMHCKKW3"
-      result.body.isKnownEmpty
+      result.body.isKnownEmpty shouldBe true
     }
 
     "return 204 when invitation is successfully created for ITSA with a main agent" in {
