@@ -30,7 +30,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
 
   private implicit val request: RequestHeader = FakeRequest()
 
-  val testClientAccessData = ClientAccessData(ItsaMain, "AB123456A", "DH14EJ", "personal")
+  val testClientAccessData = ClientAccessData(ItsaMain, "AB123456A", "DH14EJ", Some("personal"))
 
   "createInvitation" should {
     "return a Invitation Id upon success for ITSA" in {
@@ -68,7 +68,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         validVatRegDate,
         "business"
       )
-      val agentInvitation = ClientAccessData(Vat, validVrn.value, validVatRegDate, "business")
+      val agentInvitation = ClientAccessData(Vat, validVrn.value, validVatRegDate, Some("business"))
       val result = connector.createInvitation(arn, agentInvitation).futureValue
       result shouldBe Right(invitationIdVAT)
     }
@@ -206,7 +206,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
       service = ItsaMain,
       suppliedClientId = validNino.value,
       knownFact = validPostcode,
-      clientType = "personal"
+      clientType = None
     )
     "return true when a relationship is found" in {
       givenCheckRelationshipStub(
@@ -215,7 +215,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
         optCode = None,
         clientAccessData = itsaClientAccessData
       )
-      val result = connector.checkRelationship(arn, testClientAccessData).futureValue
+      val result = connector.checkRelationship(arn, itsaClientAccessData).futureValue
 
       result shouldBe Right(true)
     }

@@ -42,7 +42,7 @@ class CreateInvitationController @Inject() (
       implicit val loggedInArn: Arn = arn
       validateArnInRequest(givenArn) {
         validateClientAccessDataService
-          .validatePayload(request.body.asJson)
+          .validateCreateInvitationPayload(request.body.asJson)
           .fold(
             errorResponse => {
               Logger(getClass).warn(s"Payload failed validation: $errorResponse")

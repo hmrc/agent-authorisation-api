@@ -30,41 +30,41 @@ class CheckRelationshipControllerISpec extends BaseISpec {
   lazy val controller: CheckRelationshipController = app.injector.instanceOf[CheckRelationshipController]
 
   val jsonBodyITSA: JsValue = Json.parse(
-    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}"""
+    s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}"""
   )
 
   val itsaClientAccessData = ClientAccessData(
     service = ItsaMain,
     suppliedClientId = validNino.value,
     knownFact = validPostcode,
-    clientType = "personal"
+    clientType = None
   )
 
   val jsonBodyITSASupportingAgentType: JsValue = Json.parse(
-    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"supporting"}"""
+    s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"supporting"}"""
   )
 
   val jsonBodyITSAMainAgentType: JsValue = Json.parse(
-    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"main"}"""
+    s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"main"}"""
   )
 
   val jsonBodyITSAInvalidAgentType: JsValue = Json.parse(
-    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"xxxx"}"""
+    s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"xxxx"}"""
   )
 
   val jsonBodyVAT: JsValue = Json.parse(
-    s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate"}"""
+    s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate"}"""
   )
 
   val vatClientAccessData = ClientAccessData(
     service = Vat,
     suppliedClientId = validVrn.value,
     knownFact = validVatRegDate,
-    clientType = "business"
+    clientType = None
   )
 
   val jsonBodyVATAgentType: JsValue = Json.parse(
-    s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate", "agentType":"main"}"""
+    s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "$validVatRegDate", "agentType":"main"}"""
   )
 
   "POST /agents/:arn/relationships" when {
@@ -174,7 +174,7 @@ class CheckRelationshipControllerISpec extends BaseISpec {
 
       "return 400 CLIENT_ID_FORMAT_INVALID when the clientId has an invalid format for VAT" in {
         val jsonBodyInvalidClientId = Json.parse(
-          s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "foo", "knownFact": "$validVatRegDate"}"""
+          s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "foo", "knownFact": "$validVatRegDate"}"""
         )
 
         val result =
@@ -188,7 +188,7 @@ class CheckRelationshipControllerISpec extends BaseISpec {
 
       "return 400 POSTCODE_FORMAT_INVALID when the postcode has an invalid format" in {
         val jsonBodyInvalidPostcode = Json.parse(
-          s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "foo"}"""
+          s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "foo"}"""
         )
 
         val result =
@@ -203,7 +203,7 @@ class CheckRelationshipControllerISpec extends BaseISpec {
 
       "return 400 VAT_REG_DATE_FORMAT_INVALID when the VAT registration date has an invalid format" in {
         val jsonBodyInvalidVatRegDate = Json.parse(
-          s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "foo"}"""
+          s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validVrn.value}", "knownFact": "foo"}"""
         )
 
         val result =
@@ -218,7 +218,7 @@ class CheckRelationshipControllerISpec extends BaseISpec {
 
       "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for ITSA" in {
         val jsonBodyClientIdNotMatchService = Json.parse(
-          s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validVrn.value}", "knownFact": "foo"}"""
+          s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validVrn.value}", "knownFact": "foo"}"""
         )
 
         val result =
@@ -233,7 +233,7 @@ class CheckRelationshipControllerISpec extends BaseISpec {
 
       "return 400 CLIENT_ID_DOES_NOT_MATCH_SERVICE when the clientId is wrong for the service for VAT" in {
         val jsonBodyClientIdNotMatchService = Json.parse(
-          s"""{"service": ["MTD-VAT"], "clientType":"business", "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}"""
+          s"""{"service": ["MTD-VAT"], "clientIdType": "vrn", "clientId": "${validNino.value}", "knownFact": "foo"}"""
         )
 
         val result =

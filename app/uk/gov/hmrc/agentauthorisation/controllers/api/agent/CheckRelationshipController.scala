@@ -42,7 +42,7 @@ class CheckRelationshipController @Inject() (
       implicit val loggedInArn: Arn = arn
       validateArnInRequest(givenArn) {
         validateClientAccessDataService
-          .validatePayload(request.body.asJson)
+          .validateCheckRelationshipPayload(request.body.asJson)
           .fold(
             errorResponse => {
               Logger(getClass).warn(s"Payload failed validation: $errorResponse")
