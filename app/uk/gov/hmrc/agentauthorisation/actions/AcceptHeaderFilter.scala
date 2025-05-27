@@ -21,7 +21,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames
 import play.api.mvc.{Filter, RequestHeader, Result}
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, InvalidAcceptHeader, MissingAcceptHeader, MissingOrUnsupportedContentType, MissingOrUnsupportedVersion}
+import uk.gov.hmrc.agentauthorisation.models._
 
 import scala.concurrent.Future
 import scala.util.Try

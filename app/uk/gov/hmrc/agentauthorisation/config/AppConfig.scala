@@ -20,32 +20,23 @@ import com.google.inject.{Inject, Singleton}
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
+import java.util
+
 @Singleton
 class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration) {
 
   val appName = "agent-authorisation-api"
 
-  def getConfString(key: String) =
+  def getConfString(key: String): String =
     servicesConfig.getConfString(key, throw new RuntimeException(s"config '$key' not found"))
 
-  def baseUrl(serviceName: String) = servicesConfig.baseUrl(serviceName)
+  def baseUrl(serviceName: String): String = servicesConfig.baseUrl(serviceName)
 
-  val authBaseUrl = baseUrl("auth")
-  val acaBaseUrl = baseUrl("agent-client-authorisation")
-  val acrBaseUrl = baseUrl("agent-client-relationships")
+  val acrBaseUrl: String = baseUrl("agent-client-relationships")
   val acrfExternalUrl: String = getConfString("agent-client-relationships-frontend.external-url")
 
-  val desBaseUrl = baseUrl("des")
-  val desEnv = getConfString("des.environment")
-  val desToken = getConfString("des.authorization-token")
+  val apiSupportedVersions: util.List[String] = config.underlying.getStringList("api.supported-versions")
 
-  val apiSupportedVersions = config.underlying.getStringList("api.supported-versions")
-
-  val apiType = servicesConfig.getString("api.access.type")
-
-  val platformAnalyticsBaseUrl = baseUrl("platform-analytics")
-  val gaTrackingId: String = servicesConfig.getString("google-analytics.token")
-
-  val itsaSupportingAgentEnabled: Boolean = servicesConfig.getBoolean("itsa-supporting-agent.enabled")
+  val apiType: String = servicesConfig.getString("api.access.type")
 
 }

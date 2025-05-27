@@ -111,7 +111,7 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
       Nino.isValid(agentInvitation.suppliedClientId)
     }
 
-  def isValidDateString(dateString: String): Boolean = Try(
+  private def isValidDateString(dateString: String): Boolean = Try(
     LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE)
   ).isSuccess
 

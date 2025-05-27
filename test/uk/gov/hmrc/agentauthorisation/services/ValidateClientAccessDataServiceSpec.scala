@@ -17,8 +17,8 @@
 package uk.gov.hmrc.agentauthorisation.services
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.models.Service.ItsaMain
+import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseSpec
 
 class ValidateClientAccessDataServiceSpec extends BaseSpec {

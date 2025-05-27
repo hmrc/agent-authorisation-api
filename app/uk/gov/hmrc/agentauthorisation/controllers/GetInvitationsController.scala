@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentauthorisation.controllers.api.agent
+package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.libs.json.Json.toJson
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models.{AllInvitationDetails, ApiErrorResponse, SingleInvitationDetails}
-import uk.gov.hmrc.agentauthorisation.services.InvitationService
+import uk.gov.hmrc.agentauthorisation.services.GetInvitationsService
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class GetInvitationsController @Inject() (
-  invitationService: InvitationService,
+  getInvitationsService: GetInvitationsService,
   val authConnector: AuthConnector,
   cc: ControllerComponents,
   appConfig: AppConfig
@@ -43,7 +43,7 @@ class GetInvitationsController @Inject() (
       withAuthorisedAsAgent { arn =>
         implicit val loggedInArn: Arn = arn
         validateArnInRequest(givenArn) {
-          invitationService
+          getInvitationsService
             .getInvitation(arn, invitationId)
             .map {
               case Right(invitationDetails) =>
@@ -59,7 +59,7 @@ class GetInvitationsController @Inject() (
     withAuthorisedAsAgent { arn =>
       implicit val loggedInArn: Arn = arn
       validateArnInRequest(givenArn) {
-        invitationService
+        getInvitationsService
           .getAllInvitations(arn)
           .map {
             case Right(AllInvitationDetails(_, Nil)) =>
