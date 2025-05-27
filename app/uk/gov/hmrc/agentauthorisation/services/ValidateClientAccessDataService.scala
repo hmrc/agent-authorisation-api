@@ -31,7 +31,7 @@ import scala.util.Try
 @Singleton
 class ValidateClientAccessDataService @Inject() () extends Logging {
 
-  def validatePayload(payload: Option[JsValue]): Either[ApiErrorResponse, ClientAccessData] =
+  def validateCreateInvitationPayload(payload: Option[JsValue]): Either[ApiErrorResponse, ClientAccessData] =
     payload match {
       case None =>
         logger.warn("The payload could not be parsed as Json")
@@ -52,10 +52,31 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
         }
     }
 
+  def validateCheckRelationshipPayload(payload: Option[JsValue]): Either[ApiErrorResponse, ClientAccessData] =
+    payload match {
+      case None =>
+        logger.warn("The payload could not be parsed as Json")
+        Left(InvalidPayload)
+      case Some(jsValue) =>
+        jsValue.validate[CheckRelationshipPayload] match {
+          case JsSuccess(ClientAccessData(value), _) =>
+            validateClientAccessData(value)
+          case JsSuccess(CheckRelationshipPayload(service, _, _, _, _, _), _)
+              if !List("MTD-IT", "MTD-VAT").contains(service.head) =>
+            Left(UnsupportedService)
+          case JsSuccess(CheckRelationshipPayload(_, _, _, _, _, Some(agentType)), _)
+              if !List("main", "supporting").contains(agentType) =>
+            Left(UnsupportedAgentType)
+          case other =>
+            logger.debug(s"The payload is not valid: $other")
+            Left(InvalidPayload)
+        }
+    }
+
   private def validateClientAccessData(
     value: ClientAccessData
   ): Either[ApiErrorResponse, ClientAccessData] =
-    if (!supportedClientTypes(value.service).contains(value.clientType)) {
+    if (value.clientType.nonEmpty && !supportedClientTypes(value.service).contains(value.clientType.get)) {
       Left(UnsupportedClientType)
     } else if (!isValidClientId(value)) {
       if (Nino.isValid(value.suppliedClientId) || Vrn.isValid(value.suppliedClientId)) {

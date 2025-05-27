@@ -23,9 +23,9 @@ class ClientAccessDataSpec extends BaseSpec {
   val nino = "AB123456A"
   val validPostcode = "DH14EJ"
 
-  "ValidCreateInvitationResponse" should {
+  "ClientAccessData" should {
 
-    "read from payload when the model is valid" in {
+    "read from payload when the create invitation payload model is valid" in {
       val payload = CreateInvitationPayload(
         service = List("MTD-IT"),
         clientType = "personal",
@@ -40,7 +40,47 @@ class ClientAccessDataSpec extends BaseSpec {
           service = ItsaMain,
           suppliedClientId = nino,
           knownFact = validPostcode,
-          clientType = "personal"
+          clientType = Some("personal")
+        )
+      )
+    }
+
+    "read from payload when the check relationship payload model has no client type" in {
+      val payloadWithoutClientType = CheckRelationshipPayload(
+        service = List("MTD-IT"),
+        clientType = None,
+        clientIdType = "ni",
+        clientId = nino,
+        knownFact = validPostcode,
+        agentType = Some("main")
+      )
+
+      ClientAccessData.unapply(payloadWithoutClientType) shouldBe Some(
+        ClientAccessData(
+          service = ItsaMain,
+          suppliedClientId = nino,
+          knownFact = validPostcode,
+          clientType = None
+        )
+      )
+    }
+
+    "read from payload when the check relationship payload model has client type" in {
+      val payloadWithClientType = CheckRelationshipPayload(
+        service = List("MTD-IT"),
+        clientType = Some("personal"),
+        clientIdType = "ni",
+        clientId = nino,
+        knownFact = validPostcode,
+        agentType = Some("main")
+      )
+
+      ClientAccessData.unapply(payloadWithClientType) shouldBe Some(
+        ClientAccessData(
+          service = ItsaMain,
+          suppliedClientId = nino,
+          knownFact = validPostcode,
+          clientType = Some("personal")
         )
       )
     }

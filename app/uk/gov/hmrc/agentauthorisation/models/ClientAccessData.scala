@@ -23,7 +23,7 @@ case class ClientAccessData(
   service: Service,
   suppliedClientId: String,
   knownFact: String,
-  clientType: String
+  clientType: Option[String]
 )
 object ClientAccessData {
   def unapply(arg: CreateInvitationPayload): Option[ClientAccessData] =
@@ -34,7 +34,7 @@ object ClientAccessData {
             Vat,
             arg.clientId,
             arg.knownFact,
-            arg.clientType
+            Some(arg.clientType)
           )
         )
       case CreateInvitationPayload(List("MTD-IT"), _, _, _, _, Some("supporting")) =>
@@ -43,11 +43,44 @@ object ClientAccessData {
             ItsaSupp,
             arg.clientId,
             arg.knownFact,
-            arg.clientType
+            Some(arg.clientType)
           )
         )
       case CreateInvitationPayload(List("MTD-IT"), _, _, _, _, Some("main")) |
           CreateInvitationPayload(List("MTD-IT"), _, _, _, _, None) =>
+        Some(
+          ClientAccessData(
+            ItsaMain,
+            arg.clientId,
+            arg.knownFact,
+            Some(arg.clientType)
+          )
+        )
+      case _ => None
+    }
+
+  def unapply(arg: CheckRelationshipPayload): Option[ClientAccessData] =
+    arg match {
+      case CheckRelationshipPayload(List("MTD-VAT"), _, _, _, _, None) =>
+        Some(
+          ClientAccessData(
+            Vat,
+            arg.clientId,
+            arg.knownFact,
+            arg.clientType
+          )
+        )
+      case CheckRelationshipPayload(List("MTD-IT"), _, _, _, _, Some("supporting")) =>
+        Some(
+          ClientAccessData(
+            ItsaSupp,
+            arg.clientId,
+            arg.knownFact,
+            arg.clientType
+          )
+        )
+      case CheckRelationshipPayload(List("MTD-IT"), _, _, _, _, Some("main")) |
+          CheckRelationshipPayload(List("MTD-IT"), _, _, _, _, None) =>
         Some(
           ClientAccessData(
             ItsaMain,

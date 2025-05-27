@@ -18,18 +18,19 @@ package uk.gov.hmrc.agentauthorisation.services
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentauthorisation.models._
+import uk.gov.hmrc.agentauthorisation.models.Service.ItsaMain
 import uk.gov.hmrc.agentauthorisation.support.BaseSpec
 
 class ValidateClientAccessDataServiceSpec extends BaseSpec {
 
   val testService = new ValidateClientAccessDataService()
 
-  "validatePayload" should {
+  "validateCreateInvitationPayload" should {
     "return None when JsValue is missing" in {
-      testService.validatePayload(None) shouldBe Left(InvalidPayload)
+      testService.validateCreateInvitationPayload(None) shouldBe Left(InvalidPayload)
     }
-    "return UnsupportedClientType when payload includes unsupported client type" in {
-      testService.validatePayload(
+    "return UnsupportedClientType when create invitation payload includes unsupported client type" in {
+      testService.validateCreateInvitationPayload(
         Some(
           Json.obj(
             "service"      -> Json.arr("MTD-IT"),
@@ -43,7 +44,7 @@ class ValidateClientAccessDataServiceSpec extends BaseSpec {
       ) shouldBe Left(UnsupportedClientType)
     }
     "return PostcodeFormatInvalid when payload includes known fact that fails postcode regex" in {
-      testService.validatePayload(
+      testService.validateCreateInvitationPayload(
         Some(
           Json.obj(
             "service"      -> Json.arr("MTD-IT"),
@@ -52,6 +53,59 @@ class ValidateClientAccessDataServiceSpec extends BaseSpec {
             "clientType"   -> "personal",
             "knownFact"    -> "23BC",
             "agentType"    -> "main"
+          )
+        )
+      ) shouldBe Left(PostcodeFormatInvalid)
+    }
+
+  }
+
+  "validateCheckRelationshipPayload" should {
+    "return None when JsValue is missing" in {
+      testService.validateCheckRelationshipPayload(None) shouldBe Left(InvalidPayload)
+    }
+    "return UnsupportedClientType when check relationship payload includes unsupported client type" in {
+      testService.validateCheckRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-IT"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "ni",
+            "clientType"   -> "business",
+            "knownFact"    -> "BN111XG",
+            "agentType"    -> "main"
+          )
+        )
+      ) shouldBe Left(UnsupportedClientType)
+    }
+    "return success when client type is missing from check relationship payload" in {
+      testService.validateCheckRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-IT"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "ni",
+            "knownFact"    -> "BN111XG",
+            "agentType"    -> "main"
+          )
+        )
+      ) shouldBe Right(
+        ClientAccessData(
+          service = ItsaMain,
+          suppliedClientId = "NL019207B",
+          knownFact = "BN111XG",
+          clientType = None
+        )
+      )
+    }
+    "return PostcodeFormatInvalid when payload includes known fact that fails postcode regex" in {
+      testService.validateCheckRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-IT"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "ni",
+            "knownFact"    -> "23BC"
           )
         )
       ) shouldBe Left(PostcodeFormatInvalid)

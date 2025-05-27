@@ -30,18 +30,18 @@ class CheckRelationshipControllerISpec extends BaseISpec {
   lazy val controller: CheckRelationshipController = app.injector.instanceOf[CheckRelationshipController]
 
   val jsonBodyITSA: JsValue = Json.parse(
-    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}"""
+    s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode"}"""
   )
 
   val itsaClientAccessData = ClientAccessData(
     service = ItsaMain,
     suppliedClientId = validNino.value,
     knownFact = validPostcode,
-    clientType = "personal"
+    clientType = None
   )
 
   val jsonBodyITSASupportingAgentType: JsValue = Json.parse(
-    s"""{"service": ["MTD-IT"], "clientType":"personal", "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"supporting"}"""
+    s"""{"service": ["MTD-IT"], "clientIdType": "ni", "clientId": "${validNino.value}", "knownFact": "$validPostcode", "agentType":"supporting"}"""
   )
 
   val jsonBodyITSAMainAgentType: JsValue = Json.parse(
@@ -60,7 +60,7 @@ class CheckRelationshipControllerISpec extends BaseISpec {
     service = Vat,
     suppliedClientId = validVrn.value,
     knownFact = validVatRegDate,
-    clientType = "business"
+    clientType = Some("business")
   )
 
   val jsonBodyVATAgentType: JsValue = Json.parse(
