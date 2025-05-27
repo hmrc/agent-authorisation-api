@@ -21,7 +21,6 @@ import play.api.libs.json._
 
 case class CheckRelationshipPayload(
   service: List[String],
-  clientType: Option[String],
   clientIdType: String,
   clientId: String,
   knownFact: String,
@@ -32,20 +31,17 @@ object CheckRelationshipPayload {
 
   implicit val reads: Reads[CheckRelationshipPayload] =
     ((JsPath \ "service").read[List[String]] and
-      (JsPath \ "clientType").readNullable[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String] and
-      (JsPath \ "agentType").readNullable[String])(
-      (service, clientType, clientIdType, clientId, knownFact, agentType) =>
-        CheckRelationshipPayload(service, clientType, clientIdType, clientId, knownFact, agentType)
+      (JsPath \ "agentType").readNullable[String])((service, clientIdType, clientId, knownFact, agentType) =>
+      CheckRelationshipPayload(service, clientIdType, clientId, knownFact, agentType)
     )
 
   implicit val writes: Writes[CheckRelationshipPayload] = new Writes[CheckRelationshipPayload] {
     override def writes(o: CheckRelationshipPayload): JsValue =
       Json.obj(
         "service"      -> o.service,
-        "clientType"   -> o.clientType,
         "clientIdType" -> o.clientIdType,
         "clientId"     -> o.clientId.replaceAll(" ", ""),
         "knownFact"    -> o.knownFact

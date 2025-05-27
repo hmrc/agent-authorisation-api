@@ -45,42 +45,21 @@ class ClientAccessDataSpec extends BaseSpec {
       )
     }
 
-    "read from payload when the check relationship payload model has no client type" in {
-      val payloadWithoutClientType = CheckRelationshipPayload(
+    "read from payload when the check relationship payload model is valid" in {
+      val payload = CheckRelationshipPayload(
         service = List("MTD-IT"),
-        clientType = None,
         clientIdType = "ni",
         clientId = nino,
         knownFact = validPostcode,
         agentType = Some("main")
       )
 
-      ClientAccessData.unapply(payloadWithoutClientType) shouldBe Some(
+      ClientAccessData.unapply(payload) shouldBe Some(
         ClientAccessData(
           service = ItsaMain,
           suppliedClientId = nino,
           knownFact = validPostcode,
           clientType = None
-        )
-      )
-    }
-
-    "read from payload when the check relationship payload model has client type" in {
-      val payloadWithClientType = CheckRelationshipPayload(
-        service = List("MTD-IT"),
-        clientType = Some("personal"),
-        clientIdType = "ni",
-        clientId = nino,
-        knownFact = validPostcode,
-        agentType = Some("main")
-      )
-
-      ClientAccessData.unapply(payloadWithClientType) shouldBe Some(
-        ClientAccessData(
-          service = ItsaMain,
-          suppliedClientId = nino,
-          knownFact = validPostcode,
-          clientType = Some("personal")
         )
       )
     }

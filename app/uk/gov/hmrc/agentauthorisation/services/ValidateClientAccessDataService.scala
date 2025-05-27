@@ -61,10 +61,10 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
         jsValue.validate[CheckRelationshipPayload] match {
           case JsSuccess(ClientAccessData(value), _) =>
             validateClientAccessData(value)
-          case JsSuccess(CheckRelationshipPayload(service, _, _, _, _, _), _)
+          case JsSuccess(CheckRelationshipPayload(service, _, _, _, _), _)
               if !List("MTD-IT", "MTD-VAT").contains(service.head) =>
             Left(UnsupportedService)
-          case JsSuccess(CheckRelationshipPayload(_, _, _, _, _, Some(agentType)), _)
+          case JsSuccess(CheckRelationshipPayload(_, _, _, _, Some(agentType)), _)
               if !List("main", "supporting").contains(agentType) =>
             Left(UnsupportedAgentType)
           case other =>

@@ -64,21 +64,7 @@ class ValidateClientAccessDataServiceSpec extends BaseSpec {
     "return None when JsValue is missing" in {
       testService.validateCheckRelationshipPayload(None) shouldBe Left(InvalidPayload)
     }
-    "return UnsupportedClientType when check relationship payload includes unsupported client type" in {
-      testService.validateCheckRelationshipPayload(
-        Some(
-          Json.obj(
-            "service"      -> Json.arr("MTD-IT"),
-            "clientId"     -> "NL019207B",
-            "clientIdType" -> "ni",
-            "clientType"   -> "business",
-            "knownFact"    -> "BN111XG",
-            "agentType"    -> "main"
-          )
-        )
-      ) shouldBe Left(UnsupportedClientType)
-    }
-    "return success when client type is missing from check relationship payload" in {
+    "return success check relationship payload is valid" in {
       testService.validateCheckRelationshipPayload(
         Some(
           Json.obj(

@@ -61,32 +61,32 @@ object ClientAccessData {
 
   def unapply(arg: CheckRelationshipPayload): Option[ClientAccessData] =
     arg match {
-      case CheckRelationshipPayload(List("MTD-VAT"), _, _, _, _, None) =>
+      case CheckRelationshipPayload(List("MTD-VAT"), _, _, _, None) =>
         Some(
           ClientAccessData(
             Vat,
             arg.clientId,
             arg.knownFact,
-            arg.clientType
+            clientType = None
           )
         )
-      case CheckRelationshipPayload(List("MTD-IT"), _, _, _, _, Some("supporting")) =>
+      case CheckRelationshipPayload(List("MTD-IT"), _, _, _, Some("supporting")) =>
         Some(
           ClientAccessData(
             ItsaSupp,
             arg.clientId,
             arg.knownFact,
-            arg.clientType
+            clientType = None
           )
         )
-      case CheckRelationshipPayload(List("MTD-IT"), _, _, _, _, Some("main")) |
-          CheckRelationshipPayload(List("MTD-IT"), _, _, _, _, None) =>
+      case CheckRelationshipPayload(List("MTD-IT"), _, _, _, Some("main")) |
+          CheckRelationshipPayload(List("MTD-IT"), _, _, _, None) =>
         Some(
           ClientAccessData(
             ItsaMain,
             arg.clientId,
             arg.knownFact,
-            arg.clientType
+            clientType = None
           )
         )
       case _ => None
