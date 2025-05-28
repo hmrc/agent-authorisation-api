@@ -24,7 +24,7 @@ The aim is for the API to mirror the current process that happens through the Ag
 * An agent uses a third-party application or software to request a new authorisation
 * An agent identifier - the Agent Reference Number (ARN) - is passed to the API
 * The agent enters the service they are requesting access to, for example, sending Income Tax updates through software (MTD-IT) or sending VAT Returns through software (MTD-VAT)
-* For MTD-IT relationships the agent enters the type of agent as either main or supporting (Sandbox environment only until March 2025)
+* For MTD-IT relationships the agent enters the type of agent as either main or supporting
 * The agent enters the identifier for the client they are requesting authorisation from, for example:
     * National Insurance number (NINO)
     * VAT registration number (VRN)
@@ -49,26 +49,33 @@ We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documenta
 Errors specific to each API are shown in the Endpoints section, under Response. 
 See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
 
----
+### Endpoints
 
-### /agents/{arn}/invitations
+[POST    /agents/{arn}/invitations](#create-invitation)\
+[GET     /agents/{arn}/invitations](#get-invitations)\
+[GET     /agents/{arn}/invitations/{invitationId}](#get-invitation-by-id)\
+[DELETE  /agents/{arn}/invitations/{invitationId}](#cancel-invitation)\
+[POST    /agents/{arn}/relationships](#get-relationship-status)
+
+---
+<a name="create-invitation"></a>
+### POST /agents/{arn}/invitations
+
+Create a new authorisation request. The request will expire after 21 days.
 
 * **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
     * Type: string
     
     * Required: true
 
-#### **POST** *(secured)*:
-
-###### Headers
+**Headers**
 
 | Name         | Type | Description | Required |                              Examples |
 |:-------------|:----:|:------------|:--------:|--------------------------------------:|
 | Accept       | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ``` |
 | Content-Type | string | application/json| true|                      application/json |
 
-#### application/json (application/json) 
-Create a new authorisation request. The request will expire after 21 days.
+**Example request payloads**
 
 ```
 {
@@ -82,6 +89,16 @@ Create a new authorisation request. The request will expire after 21 days.
 ```
 ```
 {
+"service": ["MTD-IT"],
+"clientType":"personal",
+"clientIdType": "ni",
+"clientId": "AA999999A",
+"knownFact": "AA11 1AA",
+"agentType": "main"
+}
+```
+```
+{
   "service": ["MTD-VAT"],
   "clientType":"business",
   "clientIdType": "vrn",
@@ -90,22 +107,16 @@ Create a new authorisation request. The request will expire after 21 days.
 }
 ```
 
-##### *application/json*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-
 ### Response code: 204
 The authorisation request was created successfully.
 
-###### Headers
+**Headers**
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
 | Location | string | Location of the authorisation request that was created which will expire after 21 days. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
 
 ### Response code: 400
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -145,6 +156,12 @@ The authorisation request was created successfully.
 ```
 ```
 {
+"code": "AGENT_TYPE_NOT_SUPPORTED",
+"message": "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
+}
+```
+```
+{
   "code": "BAD_REQUEST",
   "message": "Missing or unsupported version number"
 }
@@ -154,12 +171,7 @@ The authorisation request was created successfully.
   "code": "BAD_REQUEST",
   "message": "Missing or unsupported content-type."
 }
-```
-```
-{
-"code": "AGENT_TYPE_NOT_SUPPORTED",
-"message": "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
-}
+
 ```
 ```
 {
@@ -168,14 +180,7 @@ The authorisation request was created successfully.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 401
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -184,17 +189,7 @@ The authorisation request was created successfully.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  |   true   |  |
-| Location | string | Location of the authorisation request |  true*   | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
-
-* Location header is only required for "DUPLICATE_AUTHORISATION_REQUEST" and "ALREADY_AUTHORISED"
-
 ### Response code: 403
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -246,19 +241,18 @@ The authorisation request was created successfully.
 ```
 ```
 {
-    "code": "VAT_CLIENT_INSOLVENT",
-    "message": "The VAT registration number belongs to a customer that is insolvent."
+  "code": "VAT_CLIENT_INSOLVENT",
+  "message": "The VAT registration number belongs to a customer that is insolvent."
+}
+```
+```
+{
+    "code": "ALREADY_BEING_PROCESSED"
+    "message": "More than one request received to create the same invitation."
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 406
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -272,15 +266,7 @@ The authorisation request was created successfully.
   "message": "Invalid 'Accept' header"
 }
 ```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 500
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -288,15 +274,12 @@ The authorisation request was created successfully.
   "message": "Internal server error."
 }
 ```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ---
 
-### /agents/{arn}/invitations
+<a name="get-invitations"></a>
+### GET /agents/{arn}/invitations
+
+Get all authorisation requests for the last 30 days.
 
 * **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
   * Type: string
@@ -304,18 +287,13 @@ The authorisation request was created successfully.
   * Required: true
 
 
-#### **GET** *(secured)*:
-
-###### Headers
+**Headers**
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
 | Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
-
-#### application/json (application/json) 
-Returns all authorisation requests for the last 30 days.
 
 ```
 [{
@@ -353,8 +331,6 @@ The agent has no authorisation requests for the last 30 days.
 
 ### Response code: 400
 
-#### errorResponse (application/json) 
-
 ```
 {
   "code": "BAD_REQUEST",
@@ -364,30 +340,11 @@ The agent has no authorisation requests for the last 30 days.
 ```
 {
   "code": "BAD_REQUEST",
-  "message": "Missing or unsupported content-type."
-}
-```
-```
-{
-"code": "AGENT_TYPE_NOT_SUPPORTED",
-"message": "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
-}
-```
-```
-{
-  "code": "BAD_REQUEST",
   "message": "Bad Request"
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 401
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -396,14 +353,7 @@ The agent has no authorisation requests for the last 30 days.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 403
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -424,14 +374,7 @@ The agent has no authorisation requests for the last 30 days.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 406
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -446,14 +389,8 @@ The agent has no authorisation requests for the last 30 days.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 500
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -461,33 +398,30 @@ The agent has no authorisation requests for the last 30 days.
   "message": "Internal server error."
 }
 ```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ---
 
-### /agents/{arn}/invitations/{invitationId}
+<a name="get-invitation-by-id"></a>
+### GET /agents/{arn}/invitations/{invitationId}
+
+Get an authorisation request.
+
+* **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
+  * Type: string
+
+  * Required: true
 
 * **invitationId**: A unique authorisation request ID
     * Type: string
     
     * Required: true
 
-#### **GET** *(secured)*:
-
-###### Headers
+**Headers**
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
 | Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
 
 ### Response code: 200
-
-#### application/json (application/json) 
-Returns the authorisation request.
 
 ```
 {
@@ -523,8 +457,6 @@ Returns the authorisation request.
 
 ### Response code: 400
 
-#### errorResponse (application/json) 
-
 ```
 {
   "code": "BAD_REQUEST",
@@ -534,24 +466,12 @@ Returns the authorisation request.
 ```
 {
   "code": "BAD_REQUEST",
-  "message": "Missing or unsupported content-type."
-}
-```
-```
-{
-  "code": "BAD_REQUEST",
   "message": "Bad Request"
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 401
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -560,14 +480,9 @@ Returns the authorisation request.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 403
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -587,15 +502,7 @@ Returns the authorisation request.
   "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
 }
 ```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 404
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -604,14 +511,8 @@ Returns the authorisation request.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 406
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -626,14 +527,7 @@ Returns the authorisation request.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 500
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -642,15 +536,23 @@ Returns the authorisation request.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ---
-#### **DELETE** *(secured)*:
+<a name="cancel-invitation"></a>
+#### DELETE /agents/{arn}/invitations/{invitationId}
 
-###### Headers
+Cancel a pending invitation.
+
+* **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
+  * Type: string
+
+  * Required: true
+
+* **invitationId**: A unique authorisation request ID
+  * Type: string
+
+  * Required: true
+
+**Headers**
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
@@ -661,7 +563,6 @@ The authorisation request has been cancelled successfully.
 
 ### Response code: 400
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -672,24 +573,12 @@ The authorisation request has been cancelled successfully.
 ```
 {
   "code": "BAD_REQUEST",
-  "message": "Missing or unsupported content-type."
-}
-```
-```
-{
-  "code": "BAD_REQUEST",
   "message": "Bad Request"
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 401
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -698,14 +587,7 @@ The authorisation request has been cancelled successfully.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 403
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -732,14 +614,9 @@ The authorisation request has been cancelled successfully.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 404
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -748,14 +625,7 @@ The authorisation request has been cancelled successfully.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 406
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -770,14 +640,9 @@ The authorisation request has been cancelled successfully.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 500
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -786,23 +651,20 @@ The authorisation request has been cancelled successfully.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ---
 
-### /agents/{arn}/relationships
+<a name="get-relationship-status"></a>
+### POST /agents/{arn}/relationships
+
+Get the status of a relationship.
 
 * **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
-    * Type: string
-    
-    * Required: true
+  * Type: string
 
-#### **POST** *(secured)*:
+  * Required: true
 
-###### Headers
+**Headers**
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
@@ -810,15 +672,24 @@ The authorisation request has been cancelled successfully.
 | Content-Type| string | application/json| true| application/json|
 
 
-#### application/json (application/json) 
-Check Relationship based on the details received.
+**Example request payloads**
 
 ```
 {
   "service": ["MTD-IT"],
   "clientIdType": "ni",
   "clientId": "AA999999A",
-  "knownFact": "AA11 1AA"
+  "knownFact": "AA11 1AA",
+  "agentType": "main"
+}
+```
+```
+{
+"service": ["MTD-IT"],
+"clientIdType": "ni",
+"clientId": "AA999999A",
+"knownFact": "AA11 1AA",
+"agentType": "supporting"
 }
 ```
 ```
@@ -836,7 +707,6 @@ Relationship is active. Agent is authorised to act for the client.
 
 ### Response code: 400
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -886,15 +756,12 @@ Relationship is active. Agent is authorised to act for the client.
   "message": "Bad Request"
 }
 ```
+ 
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 401
 
-#### errorResponse (application/json) 
+
 
 ```
 {
@@ -903,14 +770,8 @@ Relationship is active. Agent is authorised to act for the client.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 403
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -954,21 +815,7 @@ Relationship is active. Agent is authorised to act for the client.
     "message": "The VAT registration number belongs to a customer that is insolvent."
 }
 ```
-```
-{
-    "code": "ALREADY_BEING_PROCESSED"
-    "message": "More than one request received to create the same invitation."
-}
-```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 404
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -976,15 +823,7 @@ Relationship is active. Agent is authorised to act for the client.
   "message": "Relationship is inactive. Agent is not authorised to act for this client."
 }
 ```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
-
 ### Response code: 406
-
-#### errorResponse (application/json) 
 
 ```
 {
@@ -999,14 +838,9 @@ Relationship is active. Agent is authorised to act for the client.
 }
 ```
 
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ### Response code: 500
 
-#### errorResponse (application/json) 
 
 ```
 {
@@ -1014,11 +848,6 @@ Relationship is active. Agent is authorised to act for the client.
   "message": "Internal server error."
 }
 ```
-
-##### *errorResponse*:
-| Name | Type | Description | Required | Pattern |
-|:-----|:----:|:------------|:--------:|--------:|
-| code |  string |  | true |  |
 
 ---
 

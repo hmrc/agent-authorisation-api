@@ -222,6 +222,15 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           examples:
+            clientRegistrationNotFound:
+              value:
+                $ref: './examples/errors/forbidden_clientRegNotFound.json'
+            postcodeNoMatch:
+              value:
+                $ref: './examples/errors/forbidden_postcodeNoMatch.json'
+            vatRegistrationDateNoMatch:
+              value:
+                $ref: './examples/errors/forbidden_vatRegDateNoMatch.json'
             notAnAgent:
               value:
                $ref: './examples/errors/forbidden_notAgent.json'
@@ -234,7 +243,7 @@ components:
             vatClientInsolvent:
               value:
                 $ref: './examples/errors/forbidden_vatClientInsolvent.json'
-    badRequestResponses:
+    badRequestCancelInvitation:
       description: Bad Request
       content:
         application/json:
@@ -244,12 +253,6 @@ components:
             unsupportedVersion:
               value:
                $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
-            unsupportedContentType:
-              value:
-               $ref: './examples/errors/badReq_unsupportedContentType.json'
-            unsupportedAgentType:
-              value:
-                $ref: './examples/errors/badReq_unsupportedAgentType.json'
             badRequest:
               value:
                $ref: './examples/errors/badReq.json'
@@ -318,6 +321,9 @@ components:
             unsupportedContentType:
               value:
                 $ref: './examples/errors/badReq_unsupportedContentType.json'
+            unsupportedAgentType:
+              value:
+                $ref: './examples/errors/badReq_unsupportedAgentType.json'
             badRequest:
               value:
                 $ref: './examples/errors/badReq.json'
@@ -331,12 +337,6 @@ components:
             unsupportedVersion:
               value:
                $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
-            unsupportedContentType:
-              value:
-               $ref: './examples/errors/badReq_unsupportedContentType.json'
-            unsupportedAgentType:
-              value:
-                $ref: './examples/errors/badReq_unsupportedAgentType.json'
             badRequest:
               value:
                $ref: './examples/errors/badReq.json'
@@ -405,6 +405,51 @@ components:
         knownFact:
           allOf:
             - $ref: '#/components/schemas/KnownFactRegistrationDate'
+    CheckRelationshipVATRequest:
+      title: Check Status of Relationship Request for MTD-VAT
+      required:
+        - service
+        - clientIdType
+        - clientId
+        - knownFact
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/VATService'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeVRN'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdVAT'
+        knownFact:
+          allOf:
+            - $ref: '#/components/schemas/KnownFactRegistrationDate'
+    CheckRelationshipITSARequest:
+      title: Check Status of Relationship Request for MTD-IT
+      required:
+        - service
+        - clientIdType
+        - clientId
+        - knownFact
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/ITSAService'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeNI'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdNINO'
+        knownFact:
+          allOf:
+            - $ref: '#/components/schemas/KnownFactPostcode'
+        agentType:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
 
     ClientIdTypeNI:
       title: ni
@@ -427,7 +472,7 @@ components:
     KnownFactRegistrationDate:
       title: VAT registration date
       type: string
-      format: date
+      pattern: yyyy-mm-dd
     AgentType:
       title: Agent type
       nullable: true
@@ -438,8 +483,8 @@ components:
       ]
       description: Only MTD-IT supports this field. Defaults to "main" if omitted.
 
-    AgentsInvitationsresponse:
-      title: AgentsInvitationsresponse
+    AgentsInvitationsResponse:
+      title: AgentsInvitationsResponse
       required:
         - _links
         - service
@@ -604,7 +649,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AgentsInvitationsresponse'
+                  $ref: '#/components/schemas/AgentsInvitationsResponse'
                 description: Returns all authorisation requests for the last 30 days.
               examples:
                 pending and responded:
@@ -615,7 +660,7 @@ paths:
         '403':
           $ref: '#/components/responses/forbiddenGetInvitations'
         '400':
-          $ref: '#/components/responses/badRequestResponses'
+          $ref: '#/components/responses/badRequestGetInvitations'
         '406':
           $ref: '#/components/responses/notAcceptable'
         '401':
@@ -642,7 +687,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentsInvitationsresponse'
+                $ref: '#/components/schemas/AgentsInvitationsResponse'
               examples:
                 pending:
                   value:
@@ -655,7 +700,7 @@ paths:
         '404':
           $ref: '#/components/responses/notFoundInvitation'
         '400':
-          $ref: '#/components/responses/badRequestResponses'
+          $ref: '#/components/responses/badRequestGetInvitations'
         '406':
           $ref: '#/components/responses/notAcceptable'
         '401':
@@ -684,7 +729,7 @@ paths:
         '404':
           $ref: '#/components/responses/notFoundInvitation'
         '400':
-          $ref: '#/components/responses/badRequestResponses'
+          $ref: '#/components/responses/badRequestCancelInvitation'
         '406':
           $ref: '#/components/responses/notAcceptable'
         '401':
@@ -710,8 +755,8 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: '#/components/schemas/AgentsInvitationsVATRequest'
-                - $ref: '#/components/schemas/AgentsInvitationsITSARequest'
+                - $ref: '#/components/schemas/CheckRelationshipVATRequest'
+                - $ref: '#/components/schemas/CheckRelationshipITSARequest'
             examples:
               example-ITSA:
                 value:
