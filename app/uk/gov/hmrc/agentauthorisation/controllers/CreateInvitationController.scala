@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentauthorisation.controllers.api.agent
+package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.Logger
 import play.api.mvc._
 import uk.gov.hmrc.agentauthorisation.auth.AuthActions
+import uk.gov.hmrc.agentauthorisation.controllers.routes
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{CreateInvitationService, ValidateClientAccessDataService}
 import uk.gov.hmrc.agentmtdidentifiers.model.Arn

@@ -31,7 +31,7 @@ import scala.concurrent.Future
 
 class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
 
-  val servicesConfig = mock[ServicesConfig]
+  val servicesConfig: ServicesConfig = mock[ServicesConfig]
   (servicesConfig
     .baseUrl(_: String))
     .expects(*)
@@ -47,7 +47,6 @@ class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
     .expects(*)
     .atLeastOnce()
     .returning("some config string")
-  (servicesConfig.getBoolean(_: String)).expects("itsa-supporting-agent.enabled").returns(true)
 
   val config = Configuration.apply("api.supported-versions" -> List(1.0))
 
@@ -62,12 +61,12 @@ class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
     val testHeaderVersion: String => Seq[(String, String)] =
       (testVersion: String) => Seq("Accept" -> s"application/vnd.hmrc.$testVersion+json")
 
-    def fakeHeaders(headers: Seq[(String, String)]) = testRequest(FakeRequest().withHeaders(headers: _*))
+    def fakeHeaders(headers: Seq[(String, String)]): RequestHeader = testRequest(FakeRequest().withHeaders(headers: _*))
 
-    def fakeHeaders(call: Call, headers: Seq[(String, String)]) =
+    def fakeHeaders(call: Call, headers: Seq[(String, String)]): RequestHeader =
       testRequest(FakeRequest(call).withHeaders(headers: _*))
 
-    def toResult(result: Result) = (_: RequestHeader) => Future.successful(result)
+    def toResult(result: Result): RequestHeader => Future[Result] = (_: RequestHeader) => Future.successful(result)
   }
 
   import TestAcceptHeaderFilter._

@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentauthorisation.controllers.api.agent
+package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
-import uk.gov.hmrc.agentmtdidentifiers.model.Service.{HMRCMTDIT, HMRCMTDITSUPP}
 
 class CheckRelationshipControllerISpec extends BaseISpec {
 

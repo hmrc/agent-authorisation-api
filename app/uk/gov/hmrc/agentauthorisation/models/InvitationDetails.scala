@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.json._
-import uk.gov.hmrc.agentauthorisation.controllers.api.agent.routes
+import uk.gov.hmrc.agentauthorisation.controllers.routes
 import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
 
 import java.time.format.DateTimeFormatter

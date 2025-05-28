@@ -25,7 +25,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class InvitationService @Inject() (
+class GetInvitationsService @Inject() (
   agentClientRelationshipsConnector: AgentClientRelationshipsConnector
 ) {
 

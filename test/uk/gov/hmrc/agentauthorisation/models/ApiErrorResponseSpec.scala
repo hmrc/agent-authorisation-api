@@ -17,8 +17,8 @@
 package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentauthorisation.support.BaseSpec
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
+import uk.gov.hmrc.agentauthorisation.support.BaseSpec
 
 class ApiErrorResponseSpec extends BaseSpec {
 

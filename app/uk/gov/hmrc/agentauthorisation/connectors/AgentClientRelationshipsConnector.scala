@@ -116,7 +116,7 @@ class AgentClientRelationshipsConnector @Inject() (
         .withBody(Json.toJson(clientAccessData))
         .execute[HttpResponse]
         .map {
-          case response @ HttpResponse(NO_CONTENT, _, _) =>
+          case HttpResponse(NO_CONTENT, _, _) =>
             Right(true)
           case response =>
             Left(response.json.as[ApiErrorResponse](ApiErrorResponse.acrReads(Some(clientAccessData.service))))

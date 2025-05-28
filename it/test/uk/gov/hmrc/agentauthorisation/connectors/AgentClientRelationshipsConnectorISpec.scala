@@ -30,7 +30,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
 
   private implicit val request: RequestHeader = FakeRequest()
 
-  val testClientAccessData = ClientAccessData(ItsaMain, "AB123456A", "DH14EJ", Some("personal"))
+  val testClientAccessData: ClientAccessData = ClientAccessData(ItsaMain, "AB123456A", "DH14EJ", Some("personal"))
 
   "createInvitation" should {
     "return a Invitation Id upon success for ITSA" in {

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentauthorisation.controllers.api.agent
+package uk.gov.hmrc.agentauthorisation.controllers
 
-import play.api.Configuration
 import play.api.libs.json.Json._
 import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.test.Helpers._
