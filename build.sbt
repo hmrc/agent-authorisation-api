@@ -34,7 +34,6 @@ lazy val root = (project in file("."))
     routesImport -= "controllers.Assets.Asset",
     scoverageSettings,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
-    majorVersion := 0,
     Compile / scalafmtOnCompile := true,
     Test / scalafmtOnCompile := true,
     scalacOptions ++= scalaCOptions
