@@ -49,6 +49,11 @@ We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documenta
 Errors specific to each API are shown in the Endpoints section, under Response. 
 See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#errors) for more on errors.
 
+### Automated testing
+This service is tested by the following automated test repositories:
+- [agent-authorisation-api-acceptance-tests](https://github.com/hmrc/agent-authorisation-api-acceptance-tests)
+- [agent-authorisation-api-performance-tests](https://github.com/hmrc/agent-authorisation-api-performance-tests/)
+
 ### Endpoints
 
 [POST    /agents/{arn}/invitations](#create-invitation)\
