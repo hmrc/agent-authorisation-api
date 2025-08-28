@@ -2,7 +2,7 @@ import play.sbt.PlayImport.ws
 import sbt.*
 
 object AppDependencies {
-  private val mongoVer = "2.6.0"
+  private val mongoVer = "2.7.0"
   private val bootstrapVersion: String = "9.16.0"
 
   lazy val compileDeps: Seq[ModuleID] = Seq(
