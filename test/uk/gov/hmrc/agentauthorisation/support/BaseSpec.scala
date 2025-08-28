@@ -23,7 +23,7 @@ import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request.{RemoteConnection, RequestTarget}
 import play.api.mvc.{Headers, RequestHeader}
 import play.api.test.FakeRequest
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentauthorisation.models.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.net.URI

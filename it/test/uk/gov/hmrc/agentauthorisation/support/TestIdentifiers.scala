@@ -15,7 +15,7 @@
  */
 
 package uk.gov.hmrc.agentauthorisation.support
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, MtdItId, Vrn}
+import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId, MtdItId, Vrn}
 import uk.gov.hmrc.domain.Nino
 
 trait TestIdentifiers {

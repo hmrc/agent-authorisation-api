@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
-import uk.gov.hmrc.agentmtdidentifiers.model.InvitationId
+import uk.gov.hmrc.agentauthorisation.models.InvitationId
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 
 abstract class ApiErrorResponse(val statusCode: Int, val code: String, val message: String) extends Logging {

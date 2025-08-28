@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.binders
 
 import uk.gov.hmrc.agentauthorisation.support.UnitSpec
-import uk.gov.hmrc.agentmtdidentifiers.model.InvitationId
+import uk.gov.hmrc.agentauthorisation.models.InvitationId
 
 class BindersSpec extends UnitSpec {
 

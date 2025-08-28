@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.services
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
+import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

@@ -21,7 +21,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.libs.json.Json
 import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, ClientAccessData, Service}
 import uk.gov.hmrc.agentauthorisation.support.{TestIdentifiers, TestInvitation, WireMockSupport}
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId, Vrn}
+import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
 
 trait ACRStubs {

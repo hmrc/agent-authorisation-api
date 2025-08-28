@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.binders
 
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.agentmtdidentifiers.model.{Arn, InvitationId}
+import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
 
 object UrlBinders {
 
@@ -25,7 +25,7 @@ object UrlBinders {
     getInvitationIdBinder
   implicit object ArnBinder extends SimpleObjectBinder[Arn](Arn.apply, _.value)
 
-  def getInvitationIdBinder(implicit stringBinder: PathBindable[String]) =
+  def getInvitationIdBinder(implicit stringBinder: PathBindable[String]): PathBindable[InvitationId] =
     new PathBindable[InvitationId] {
 
       override def bind(key: String, value: String): Either[String, InvitationId] = {

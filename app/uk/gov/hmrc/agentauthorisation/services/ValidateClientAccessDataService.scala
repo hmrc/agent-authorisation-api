@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.libs.json.{JsSuccess, JsValue}
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentmtdidentifiers.model.Vrn
+import uk.gov.hmrc.agentauthorisation.models.Vrn
 import uk.gov.hmrc.domain.Nino
 
 import java.time.LocalDate

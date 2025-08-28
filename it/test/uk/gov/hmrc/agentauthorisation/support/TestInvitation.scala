@@ -16,6 +16,6 @@
 
 package uk.gov.hmrc.agentauthorisation.support
 
-import uk.gov.hmrc.agentmtdidentifiers.model.InvitationId
+import uk.gov.hmrc.agentauthorisation.models.InvitationId
 
 case class TestInvitation(invitationId: InvitationId, service: String, status: String)

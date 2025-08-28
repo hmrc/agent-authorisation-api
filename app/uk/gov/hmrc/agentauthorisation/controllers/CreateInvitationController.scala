@@ -22,7 +22,7 @@ import uk.gov.hmrc.agentauthorisation.auth.AuthActions
 import uk.gov.hmrc.agentauthorisation.controllers.routes
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{CreateInvitationService, ValidateClientAccessDataService}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentauthorisation.models.Arn
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

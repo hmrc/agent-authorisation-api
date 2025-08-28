@@ -25,21 +25,21 @@ components:
     arnParameter:
       name: arn
       in: path
-      description: The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-mtd-identifiers/blob/main/src/main/scala/uk/gov/hmrc/agentmtdidentifiers/model/Arn.scala)
+      description: The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-authorisation-api/tree/main/app/uk/gov/hmrc/agentauthorisation/models/Arn.scala)
       required: true
       style: simple
       schema:
         type: string
         example: AARN9999999
     invitationIdParameter:
-        name: invitationId
-        in: path
-        description: A unique authorisation request ID
-        required: true
-        style: simple
-        schema:
-          type: string
-          example: CS5AK7O8FPC43
+      name: invitationId
+      in: path
+      description: A unique authorisation request ID
+      required: true
+      style: simple
+      schema:
+        type: string
+        example: CS5AK7O8FPC43
     acceptHeader:
       name: Accept
       in: header
@@ -51,7 +51,7 @@ components:
       schema:
         type: string
         enum: [
-            "application/vnd.hmrc.1.0+json"
+          "application/vnd.hmrc.1.0+json"
         ]
     contentTypeHeader:
       name: Content-Type
@@ -180,19 +180,19 @@ components:
                 $ref: './examples/errors/forbidden_vatRegDateNoMatch.json'
             duplicateAuthorisationRequest:
               value:
-               $ref: './examples/errors/forbidden_duplicateAuthReq.json'
+                $ref: './examples/errors/forbidden_duplicateAuthReq.json'
             alreadyAuthorised:
               value:
-               $ref: './examples/errors/forbidden_alreadyAuthorised.json'
+                $ref: './examples/errors/forbidden_alreadyAuthorised.json'
             notAnAgent:
               value:
-               $ref: './examples/errors/forbidden_notAgent.json'
+                $ref: './examples/errors/forbidden_notAgent.json'
             agentNotSubscribed:
               value:
-               $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+                $ref: './examples/errors/forbidden_agentNotSubscribed.json'
             noPermissionOnAgency:
               value:
-               $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
             vatClientInsolvent:
               value:
                 $ref: './examples/errors/forbidden_vatClientInsolvent.json'
@@ -208,13 +208,13 @@ components:
           examples:
             notAnAgent:
               value:
-               $ref: './examples/errors/forbidden_notAgent.json'
+                $ref: './examples/errors/forbidden_notAgent.json'
             agentNotSubscribed:
               value:
-               $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+                $ref: './examples/errors/forbidden_agentNotSubscribed.json'
             noPermissionOnAgency:
               value:
-               $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
     forbiddenGetRelationshipStatus:
       description: Forbidden
       content:
@@ -233,13 +233,13 @@ components:
                 $ref: './examples/errors/forbidden_vatRegDateNoMatch.json'
             notAnAgent:
               value:
-               $ref: './examples/errors/forbidden_notAgent.json'
+                $ref: './examples/errors/forbidden_notAgent.json'
             agentNotSubscribed:
               value:
-               $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+                $ref: './examples/errors/forbidden_agentNotSubscribed.json'
             noPermissionOnAgency:
               value:
-               $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
             vatClientInsolvent:
               value:
                 $ref: './examples/errors/forbidden_vatClientInsolvent.json'
@@ -252,10 +252,10 @@ components:
           examples:
             unsupportedVersion:
               value:
-               $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
+                $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
             badRequest:
               value:
-               $ref: './examples/errors/badReq.json'
+                $ref: './examples/errors/badReq.json'
     badRequestCreateInvitation:
       description: Bad Request
       content:
@@ -336,10 +336,10 @@ components:
           examples:
             unsupportedVersion:
               value:
-               $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
+                $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
             badRequest:
               value:
-               $ref: './examples/errors/badReq.json'
+                $ref: './examples/errors/badReq.json'
   schemas:
     Error:
       type: object
@@ -530,7 +530,7 @@ components:
             "Deauthorised",
             "Expired",
             "Partialauth"
-            ]
+          ]
           description: The current status of the invitation
         clientActionUrl:
           type: string
@@ -578,17 +578,17 @@ paths:
   /agents/{arn}/invitations:
     post:
       tags:
-      - Agents
+        - Agents
       summary: Create a new authorisation
       description: Create a new authorisation request. The request will expire after 21 days.
       operationId: Createanewauthorisation
       security:
         - userRestricted:
-          - write:sent-invitations
+            - write:sent-invitations
       parameters:
-      - $ref: '#/components/parameters/arnParameter'
-      - $ref: '#/components/parameters/acceptHeader'
-      - $ref: '#/components/parameters/contentTypeHeader'
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
       requestBody:
         content:
           application/json:
@@ -632,15 +632,15 @@ paths:
       deprecated: false
     get:
       tags:
-      - Agents
+        - Agents
       summary: Get all authorisation requests for the last 30 days
       operationId: Getallauthorisationrequestsforthelast30days
       security:
         - userRestricted:
-          - read:sent-invitations
+            - read:sent-invitations
       parameters:
-      - $ref: '#/components/parameters/arnParameter'
-      - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
       responses:
         '200':
           description: A list of authorisation requests
@@ -654,7 +654,7 @@ paths:
               examples:
                 pending and responded:
                   value:
-                   $ref: './examples/get-agency-invitations-example.json'
+                    $ref: './examples/get-agency-invitations-example.json'
         '204':
           description: The agent has no authorisation requests in the last 30 days
         '403':
@@ -671,16 +671,16 @@ paths:
   /agents/{arn}/invitations/{invitationId}:
     get:
       tags:
-      - Agents
+        - Agents
       summary: Get an invitation by id
       operationId: Getaninvitationbyid
       security:
         - userRestricted:
-          - read:sent-invitations
+            - read:sent-invitations
       parameters:
-      - $ref: '#/components/parameters/arnParameter'
-      - $ref: '#/components/parameters/invitationIdParameter'
-      - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/invitationIdParameter'
+        - $ref: '#/components/parameters/acceptHeader'
       responses:
         '200':
           description: The authorisation request
@@ -710,17 +710,17 @@ paths:
       deprecated: false
     delete:
       tags:
-      - Agents
+        - Agents
       summary: Cancel an invitation by id
       operationId: Cancelaninvitationbyid
       security:
         - userRestricted:
-          - write:cancel-invitations
+            - write:cancel-invitations
       parameters:
-      - $ref: '#/components/parameters/arnParameter'
-      - $ref: '#/components/parameters/invitationIdParameter'
-      - $ref: '#/components/parameters/acceptHeader'
-      - $ref: '#/components/parameters/contentTypeHeader'
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/invitationIdParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
       responses:
         '204':
           description: The authorisation request has been cancelled
@@ -740,16 +740,16 @@ paths:
   /agents/{arn}/relationships:
     post:
       tags:
-      - Agents
+        - Agents
       summary: Get Status of a Relationship
       operationId: GetStatusofaRelationship
       security:
         - userRestricted:
-          - read:check-relationship
+            - read:check-relationship
       parameters:
-      - $ref: '#/components/parameters/arnParameter'
-      - $ref: '#/components/parameters/acceptHeader'
-      - $ref: '#/components/parameters/contentTypeHeader'
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
       requestBody:
         content:
           application/json:
@@ -789,5 +789,5 @@ paths:
       deprecated: false
 
 tags:
-- name: Agents
-  description: ''
+  - name: Agents
+    description: ''
