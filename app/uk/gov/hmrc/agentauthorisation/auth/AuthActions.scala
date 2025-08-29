@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.auth
 import play.api.Logger
 import play.api.mvc.{Request, Result}
 import uk.gov.hmrc.agentauthorisation.models._
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentauthorisation.models.Arn
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._

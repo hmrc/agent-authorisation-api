@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.services
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
 import uk.gov.hmrc.agentauthorisation.models.{ApiErrorResponse, ClientAccessData}
-import uk.gov.hmrc.agentmtdidentifiers.model.Arn
+import uk.gov.hmrc.agentauthorisation.models.Arn
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
