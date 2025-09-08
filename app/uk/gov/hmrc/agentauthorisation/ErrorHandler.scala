@@ -44,11 +44,14 @@ class ErrorHandler @Inject() (auditConnector: AuditConnector, httpAuditEvent: Ht
       }
     }
 
+  private def piiSafeRequest(request: RequestHeader): String =
+    s"method=${request.method} path=${request.path} reqId=${request.headers.get("X-Request-ID").getOrElse("-")}"
+
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =
     super
       .onServerError(request, exception)
       .map { _ =>
-        Logger(getClass).warn(s"Server Side Error: $exception from request: $request")
+        Logger(getClass).warn(s"Server Side Error: $exception from request: ${piiSafeRequest(request)}")
         StandardInternalServerError.toResult
       }
 }
