@@ -93,6 +93,12 @@ class ApiErrorResponseSpec extends BaseSpec {
       )
     }
 
+    "fail to GenericApiErrorResponse with default settings  when json is empty" in {
+      intercept[IllegalArgumentException](
+        Json.obj().as[ApiErrorResponse](ApiErrorResponse.acrReads())
+      )
+    }
+
     "write to JSON" in {
       NotAnAgent.toJson shouldBe Json.obj("code" -> "NOT_AN_AGENT", "message" -> NotAnAgent.message)
     }
