@@ -20,7 +20,6 @@ import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
-import uk.gov.hmrc.agentauthorisation.models.InvitationId
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 
 abstract class ApiErrorResponse(val statusCode: Int, val code: String, val message: String) extends Logging {
@@ -47,39 +46,43 @@ abstract class ApiErrorResponse(val statusCode: Int, val code: String, val messa
 object ApiErrorResponse {
   def acrReads(service: Option[Service] = None): Reads[ApiErrorResponse] =
     Reads { json =>
-      val response = (json \ "code").as[String] match {
-        case "AGENT_SUSPENDED"                  => NoPermissionOnAgency
-        case "AGENT_NOT_SUBSCRIBED"             => AgentNotSubscribed
-        case "ALREADY_AUTHORISED"               => AlreadyAuthorised
-        case "ALREADY_BEING_PROCESSED"          => LockedRequest
-        case "CLIENT_ID_DOES_NOT_MATCH_SERVICE" => ClientIdDoesNotMatchService
-        case "CLIENT_ID_FORMAT_INVALID"         => ClientIdInvalidFormat
-        case "CLIENT_REGISTRATION_NOT_FOUND"    => ClientRegistrationNotFound
-        case "CLIENT_TYPE_NOT_SUPPORTED"        => UnsupportedClientType
-        case "DUPLICATE_AUTHORISATION_REQUEST" =>
-          DuplicateAuthorisationRequest(InvitationId((json \ "invitationId").as[String]))
-        case "INTERNAL_SERVER_ERROR"       => StandardInternalServerError
-        case "INVALID_INVITATION_STATUS"   => InvalidInvitationStatus
-        case "INVALID_PAYLOAD"             => InvalidPayload
-        case "NOT_AN_AGENT"                => NotAnAgent
-        case "POSTCODE_DOES_NOT_MATCH"     => PostcodeDoesNotMatch
-        case "POSTCODE_FORMAT_INVALID"     => PostcodeFormatInvalid
-        case "RELATIONSHIP_NOT_FOUND"      => RelationshipNotFound
-        case "SERVICE_NOT_SUPPORTED"       => UnsupportedService
-        case "VAT_CLIENT_INSOLVENT"        => VatClientInsolvent
-        case "VAT_REG_DATE_DOES_NOT_MATCH" => VatRegDateDoesNotMatch
-        case "VAT_REG_DATE_FORMAT_INVALID" => VatRegDateFormatInvalid
-        case "UNAUTHORIZED"                => StandardUnauthorised
-        case "NO_PERMISSION_ON_AGENCY"     => NoPermissionOnAgency
-        case "INVITATION_NOT_FOUND"        => InvitationNotFound
-        case "KNOWN_FACT_DOES_NOT_MATCH" =>
-          service match {
-            case Some(ItsaMain) | Some(ItsaSupp) => PostcodeDoesNotMatch
-            case Some(Vat)                       => VatRegDateDoesNotMatch
-            case None                            => UnsupportedService
+      val response = (json \ "code").asOpt[String] match {
+        case Some(code) =>
+          code match {
+            case "AGENT_SUSPENDED"                  => NoPermissionOnAgency
+            case "AGENT_NOT_SUBSCRIBED"             => AgentNotSubscribed
+            case "ALREADY_AUTHORISED"               => AlreadyAuthorised
+            case "ALREADY_BEING_PROCESSED"          => LockedRequest
+            case "CLIENT_ID_DOES_NOT_MATCH_SERVICE" => ClientIdDoesNotMatchService
+            case "CLIENT_ID_FORMAT_INVALID"         => ClientIdInvalidFormat
+            case "CLIENT_REGISTRATION_NOT_FOUND"    => ClientRegistrationNotFound
+            case "CLIENT_TYPE_NOT_SUPPORTED"        => UnsupportedClientType
+            case "DUPLICATE_AUTHORISATION_REQUEST" =>
+              DuplicateAuthorisationRequest(InvitationId((json \ "invitationId").as[String]))
+            case "INTERNAL_SERVER_ERROR"       => StandardInternalServerError
+            case "INVALID_INVITATION_STATUS"   => InvalidInvitationStatus
+            case "INVALID_PAYLOAD"             => InvalidPayload
+            case "NOT_AN_AGENT"                => NotAnAgent
+            case "POSTCODE_DOES_NOT_MATCH"     => PostcodeDoesNotMatch
+            case "POSTCODE_FORMAT_INVALID"     => PostcodeFormatInvalid
+            case "RELATIONSHIP_NOT_FOUND"      => RelationshipNotFound
+            case "SERVICE_NOT_SUPPORTED"       => UnsupportedService
+            case "VAT_CLIENT_INSOLVENT"        => VatClientInsolvent
+            case "VAT_REG_DATE_DOES_NOT_MATCH" => VatRegDateDoesNotMatch
+            case "VAT_REG_DATE_FORMAT_INVALID" => VatRegDateFormatInvalid
+            case "UNAUTHORIZED"                => StandardUnauthorised
+            case "NO_PERMISSION_ON_AGENCY"     => NoPermissionOnAgency
+            case "INVITATION_NOT_FOUND"        => InvitationNotFound
+            case "KNOWN_FACT_DOES_NOT_MATCH" =>
+              service match {
+                case Some(ItsaMain) | Some(ItsaSupp) => PostcodeDoesNotMatch
+                case Some(Vat)                       => VatRegDateDoesNotMatch
+                case None                            => UnsupportedService
+              }
+            case "CLIENT_INSOLVENT" => VatClientInsolvent
+            case value              => throw new IllegalArgumentException(s"Unexpected error code: $value")
           }
-        case "CLIENT_INSOLVENT" => VatClientInsolvent
-        case value              => throw new IllegalArgumentException(s"Unexpected error code: $value")
+        case None => throw new IllegalArgumentException(s"Missing error code")
       }
       JsSuccess(response)
     }
