@@ -115,11 +115,13 @@ Create a new authorisation request. The request will expire after 21 days.
 ### Response code: 204
 The authorisation request was created successfully.
 
+<a name="location-header"></a>
+
 **Headers**
 
-| Name | Type | Description | Required | Examples |
-|:-----|:----:|:------------|:--------:|---------:|
-| Location | string | Location of the authorisation request that was created which will expire after 21 days. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
+| Name                                   | Type | Description | Required | Examples |
+|:---------------------------------------|:----:|:------------|:--------:|---------:|
+|  Location                              | string | Location of the authorisation request that was created which will expire after 21 days. | true | ``` /agents/AARN9999999/invitations/CS5AK7O8FPC43 ```  |
 
 ### Response code: 400
 
@@ -238,6 +240,7 @@ The authorisation request was created successfully.
   "message": "An authorisation request for this service has already been created and is awaiting the client’s response."
 }
 ```
+Note: A [Location header](#location-header) will also be returned with the above Error response.
 ```
 {
   "code": "ALREADY_AUTHORISED",
