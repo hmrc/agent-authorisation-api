@@ -164,6 +164,12 @@ components:
                 $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
     forbiddenCreateInvitation:
       description: Forbidden
+      headers:
+        Location:
+          description: Location of the authorisation request. (Only returned with duplicateAuthorisationRequest)
+          schema:
+            type: string
+            example: /agents/AARN9999999/invitations/CS5AK7O8FPC43
       content:
         application/json:
           schema:
