@@ -121,4 +121,3 @@ class DeleteRelationshipServiceSpec extends BaseSpec with MockFactory {
     }
   }
 }
-

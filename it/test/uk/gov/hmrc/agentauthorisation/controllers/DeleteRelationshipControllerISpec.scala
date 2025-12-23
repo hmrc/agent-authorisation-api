@@ -46,7 +46,7 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
       givenRemoveAuthorisationStub(
         arn = arn,
         clientId = validNino.value,
-        service = "MTD-IT",
+        service = "HMRC-MTD-IT",
         status = NO_CONTENT
       )
 
@@ -65,7 +65,7 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
       givenRemoveAuthorisationStub(
         arn = arn,
         clientId = validVrn.value,
-        service = "MTD-VAT",
+        service = "HMRC-MTD-VAT",
         status = NO_CONTENT
       )
 
@@ -84,7 +84,7 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
       givenRemoveAuthorisationStub(
         arn = arn,
         clientId = validNino.value,
-        service = "MTD-IT",
+        service = "HMRC-MTD-IT",
         status = NOT_FOUND,
         optCode = Some("RELATIONSHIP_NOT_FOUND")
       )
