@@ -73,6 +73,23 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
         }
     }
 
+  def validateDeleteRelationshipPayload(
+    payload: Option[JsValue]
+  ): Either[ApiErrorResponse, DeleteRelationshipPayload] =
+    payload match {
+      case None =>
+        logger.warn("The payload could not be parsed as Json")
+        Left(InvalidPayload)
+      case Some(jsValue) =>
+        jsValue.validate[DeleteRelationshipPayload] match {
+          case JsSuccess(deletePayload, _) =>
+            validateDeleteRelationshipFields(deletePayload)
+          case other =>
+            logger.debug(s"The payload is not valid: $other")
+            Left(InvalidPayload)
+        }
+    }
+
   private def validateClientAccessData(
     value: ClientAccessData
   ): Either[ApiErrorResponse, ClientAccessData] =
@@ -120,6 +137,48 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
       case ItsaMain | ItsaSupp =>
         knownFact.matches(postcodeRegex)
       case Vat => isValidDateString(knownFact)
+    }
+
+  private def validateDeleteRelationshipFields(
+    payload: DeleteRelationshipPayload
+  ): Either[ApiErrorResponse, DeleteRelationshipPayload] =
+    payload.service match {
+      case service :: Nil =>
+        val clientId = payload.clientId
+        if (!List("MTD-IT", "MTD-VAT").contains(service)) {
+          Left(UnsupportedService)
+        } else if (!isSupportedClientTypeForService(service, payload.clientType)) {
+          Left(UnsupportedClientType)
+        } else if (!clientIdTypeMatchesService(service, payload.clientIdType)) {
+          Left(ClientIdDoesNotMatchService)
+        } else if (!clientIdMatchesServiceFormat(service, clientId)) {
+          Left(ClientIdInvalidFormat)
+        } else {
+          Right(payload)
+        }
+      case _ =>
+        Left(UnsupportedService)
+    }
+
+  private def isSupportedClientTypeForService(service: String, clientType: String): Boolean =
+    service match {
+      case "MTD-IT"  => clientType == personalClientType
+      case "MTD-VAT" => clientType == personalClientType || clientType == businessClientType
+      case _         => false
+    }
+
+  private def clientIdTypeMatchesService(service: String, clientIdType: String): Boolean =
+    service match {
+      case "MTD-IT"  => clientIdType == "ni"
+      case "MTD-VAT" => clientIdType == "vrn"
+      case _         => false
+    }
+
+  private def clientIdMatchesServiceFormat(service: String, clientId: String): Boolean =
+    service match {
+      case "MTD-IT"  => Nino.isValid(clientId)
+      case "MTD-VAT" => Vrn.isValid(clientId)
+      case _         => false
     }
 
 }

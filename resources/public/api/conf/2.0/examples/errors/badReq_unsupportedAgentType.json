@@ -1,0 +1,4 @@
+{
+  "code": "AGENT_TYPE_NOT_SUPPORTED",
+  "message": "The agent type requested is not supported. Check the API documentation to find which agent types are supported."
+}
