@@ -1,0 +1,70 @@
+{
+  "type": "object",
+  "description": "Checks for an active Relationship between agent and client",
+  "required": [
+    "service",
+    "clientIdType",
+    "clientId",
+    "knownFact"
+  ],
+  "oneOf": [
+    {
+      "type": "object",
+      "description": "Report income or expenses through software",
+      "properties": {
+        "service": {
+          "const": ["MTD-IT"]
+        },
+        "clientIdType": {
+          "const": "ni"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ]?\\d{2}?\\d{2}?\\d{2}?[A-D]{1}$",
+          "description" : "National Insurance Number"
+        },
+        "knownFact": {
+          "type": "string",
+          "pattern": "^([A-Za-z][A-Za-z]\\d\\d|[A-Za-z][A-Za-z]\\d|[A-Za-z]\\d|[A-Za-z]\\d\\d|[A-Za-z]\\d[A-Za-z]|[A-Za-z]{2}\\d[A-Za-z]) {0,1}\\d[A-Za-z]{2}$",
+          "description" : "Postcode"
+        },
+        "agentType": {
+          "type": "string",
+          "description": "The type of agent defaults to main if this field is not provided for MTD-IT",
+          "oneOf": [
+          {
+            "enum": [ "main" ],
+            "description": "The agent is the main agent for the client for MTD-IT"
+          },
+          {
+            "enum": [ "supporting" ],
+            "description": "The agent is a supporting agent for the client for MTD-IT"
+          }
+        ]
+      }
+    }
+    },
+    {
+      "type": "object",
+      "description": "Report their VAT returns through software",
+      "properties": {
+        "service": {
+          "const": ["MTD-VAT"]
+        },
+        "clientIdType": {
+          "const": "vrn"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^[0-9]{1,9}$",
+          "description" : "VAT Registration Number"
+        },
+        "knownFact": {
+          "type": "string",
+          "format": "date",
+          "description" : "VAT Registration Date"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "This agent needs to create an agent services account before they can use this service."
+}

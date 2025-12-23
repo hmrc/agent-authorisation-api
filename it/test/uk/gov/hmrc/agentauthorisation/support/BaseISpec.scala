@@ -52,7 +52,7 @@ abstract class BaseISpec
         "microservice.services.platform-analytics.port"         -> wireMockPort,
         "microservice.services.des.host"                        -> wireMockHost,
         "microservice.services.des.port"                        -> wireMockPort,
-        "api.supported-versions"                                -> Seq("1.0"),
+        "api.supported-versions"                                -> Seq("1.0", "2.0"),
         "itsa-supporting-agent.enabled"                         -> isEnabledItsaSupportingAgent,
         "mongodb.uri"                                           -> mongoUri
       )

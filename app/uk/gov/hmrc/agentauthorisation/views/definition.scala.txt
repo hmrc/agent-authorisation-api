@@ -12,6 +12,11 @@
       "status": "BETA",
       "endpointsEnabled": true,
       "access": @Json.toJson(access)
+    }, {
+      "version": "2.0",
+      "status": "BETA",
+      "endpointsEnabled": true,
+      "access": @Json.toJson(access)
     }]
   }
 }

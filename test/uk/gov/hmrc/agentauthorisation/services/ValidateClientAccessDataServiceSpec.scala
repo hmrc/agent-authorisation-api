@@ -98,4 +98,99 @@ class ValidateClientAccessDataServiceSpec extends BaseSpec {
     }
 
   }
+
+  "validateDeleteRelationshipPayload" should {
+    "return InvalidPayload when JsValue is missing" in {
+      testService.validateDeleteRelationshipPayload(None) shouldBe Left(InvalidPayload)
+    }
+
+    "return UnsupportedService when service is not supported" in {
+      testService.validateDeleteRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-EOPS"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "ni",
+            "clientType"   -> "personal"
+          )
+        )
+      ) shouldBe Left(UnsupportedService)
+    }
+
+    "return UnsupportedClientType when client type is not supported for service" in {
+      testService.validateDeleteRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-IT"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "ni",
+            "clientType"   -> "business"
+          )
+        )
+      ) shouldBe Left(UnsupportedClientType)
+    }
+
+    "return ClientIdDoesNotMatchService when clientIdType does not match service" in {
+      testService.validateDeleteRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-IT"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "vrn",
+            "clientType"   -> "personal"
+          )
+        )
+      ) shouldBe Left(ClientIdDoesNotMatchService)
+    }
+
+    "return ClientIdInvalidFormat when clientId does not match pattern for service" in {
+      testService.validateDeleteRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-VAT"),
+            "clientId"     -> "NOT_A_VRN",
+            "clientIdType" -> "vrn",
+            "clientType"   -> "business"
+          )
+        )
+      ) shouldBe Left(ClientIdInvalidFormat)
+    }
+
+    "return UnsupportedAgentType when agentType is invalid for ITSA" in {
+      testService.validateDeleteRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-IT"),
+            "clientId"     -> "NL019207B",
+            "clientIdType" -> "ni",
+            "clientType"   -> "personal",
+            "agentType"    -> "invalid"
+          )
+        )
+      ) shouldBe Left(UnsupportedAgentType)
+    }
+
+    "return payload when delete relationship payload is valid" in {
+      val result = testService.validateDeleteRelationshipPayload(
+        Some(
+          Json.obj(
+            "service"      -> Json.arr("MTD-VAT"),
+            "clientId"     -> "101747696",
+            "clientIdType" -> "vrn",
+            "clientType"   -> "business"
+          )
+        )
+      )
+
+      result shouldBe Right(
+        DeleteRelationshipPayload(
+          service = List("MTD-VAT"),
+          clientType = "business",
+          clientIdType = "vrn",
+          clientId = "101747696",
+          agentType = None
+        )
+      )
+    }
+  }
 }

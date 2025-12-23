@@ -2,7 +2,7 @@ openapi: 3.0.3
 
 info:
   title: Agent Authorisation
-  version: '1.0'
+  version: '2.0'
   description: >-
 
     # Overview
@@ -50,8 +50,9 @@ components:
       required: true
       schema:
         type: string
-        enum:
-          - "application/vnd.hmrc.1.0+json"
+        enum: [
+          "application/vnd.hmrc.2.0+json"
+        ]
     contentTypeHeader:
       name: Content-Type
       in: header
@@ -410,6 +411,52 @@ components:
         knownFact:
           allOf:
             - $ref: '#/components/schemas/KnownFactRegistrationDate'
+    DeleteRelationshipITSARequest:
+      title: Delete Relationship Request for MTD-IT
+      required:
+        - service
+        - clientType
+        - clientIdType
+        - clientId
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/ITSAService'
+        clientType:
+          allOf:
+            - $ref: '#/components/schemas/ClientTypePersonal'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeNI'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdNINO'
+        agentType:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
+    DeleteRelationshipVATRequest:
+      title: Delete Relationship Request for MTD-VAT
+      required:
+        - service
+        - clientType
+        - clientIdType
+        - clientId
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/VATService'
+        clientType:
+          oneOf:
+            - $ref: '#/components/schemas/ClientTypePersonal'
+            - $ref: '#/components/schemas/ClientTypeBusiness'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeVRN'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdVAT'
     CheckRelationshipVATRequest:
       title: Check Status of Relationship Request for MTD-VAT
       required:
@@ -789,6 +836,71 @@ paths:
           $ref: '#/components/responses/notAcceptable'
         '401':
           $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      deprecated: false
+    delete:
+      tags:
+        - Agents
+      summary: Delete an existing relationship
+      operationId: DeleteRelationship
+      security:
+        - userRestricted:
+            - write:sent-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/DeleteRelationshipITSARequest'
+                - $ref: '#/components/schemas/DeleteRelationshipVATRequest'
+            examples:
+              example-ITSA:
+                value:
+                  service: ["MTD-IT"]
+                  clientType: "personal"
+                  clientIdType: "ni"
+                  clientId: "AA999999A"
+              example-VAT:
+                value:
+                  service: ["MTD-VAT"]
+                  clientType: "business"
+                  clientIdType: "vrn"
+                  clientId: "101747696"
+        required: true
+      responses:
+        '204':
+          description: The relationship has been removed.
+        '400':
+          $ref: '#/components/responses/badRequestGetRelationshipStatus'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                noRelationship:
+                  value:
+                    code: NO_RELATIONSHIP
+                    message: The specified relationship does not exist.
+                notAnAgent:
+                  value:
+                    $ref: './examples/errors/forbidden_notAgent.json'
+                agentNotSubscribed:
+                  value:
+                    $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+                noPermissionOnAgency:
+                  value:
+                    $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+        '406':
+          $ref: '#/components/responses/notAcceptable'
         '500':
           $ref: '#/components/responses/internalServerError'
       deprecated: false

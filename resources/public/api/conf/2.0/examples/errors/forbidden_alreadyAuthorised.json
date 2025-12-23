@@ -1,0 +1,4 @@
+{
+  "code": "ALREADY_AUTHORISED",
+  "message": "The client has already authorised the agent for this service. The agent does not need ask the client for this authorisation again."
+}

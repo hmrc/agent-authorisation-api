@@ -1,0 +1,7 @@
+{
+  "service": ["MTD-IT"],
+  "clientType":"personal",
+  "clientIdType": "ni",
+  "clientId": "AA999999A",
+  "knownFact": "AA11 1AA"
+}

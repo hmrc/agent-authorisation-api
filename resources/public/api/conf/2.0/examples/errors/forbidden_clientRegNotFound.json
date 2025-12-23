@@ -1,0 +1,4 @@
+{
+  "code": "CLIENT_REGISTRATION_NOT_FOUND",
+  "message": "The details provided for this client do not match HMRC's records."
+}

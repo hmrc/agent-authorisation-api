@@ -26,7 +26,8 @@ class ApiPlatformISpec extends BaseISpec {
 
   implicit val ws: WSClient = app.injector.instanceOf[WSClient]
 
-  implicit val hc: HeaderCarrier = HeaderCarrier(otherHeaders = Seq("Accept" -> s"application/vnd.hmrc.1.0+json"))
+  implicit val hc: HeaderCarrier =
+    HeaderCarrier(otherHeaders = Seq("Accept" -> "application/vnd.hmrc.2.0+json"))
 
   "/public/api/definition" should {
     "return the definition JSON" in {
@@ -48,10 +49,6 @@ class ApiPlatformISpec extends BaseISpec {
 
     forAllApiVersions(yamlByVersion) { case (version, yaml) =>
       info(s"Checking API YAML documentation for version[$version] of the API")
-
-      withClue("YAML does not contain a valid YAML 1.0 version header") {
-        yaml should include("""version: '1.0'""")
-      }
 
       withClue("YAML does not contain the title 'Agent Authorisation'") {
         yaml should include("title: Agent Authorisation")
