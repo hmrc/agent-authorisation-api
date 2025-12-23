@@ -69,7 +69,7 @@ class CheckRelationshipControllerISpec extends BaseISpec {
     "getting the status of an ITSA relationship" should {
       val checkRelationshipApi = controller.checkRelationship(arn)
       val request = FakeRequest("POST", s"/agents/$arn/relationships")
-        .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
+        .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
 
       "return 204 when the relationship is active for ITSA" in {
         givenCheckRelationshipStub(

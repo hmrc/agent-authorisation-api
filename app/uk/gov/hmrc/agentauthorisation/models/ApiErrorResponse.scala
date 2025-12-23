@@ -226,6 +226,13 @@ case object RelationshipNotFound
       "Relationship is inactive. Agent is not authorised to act for this client."
     )
 
+case object NoRelationship
+    extends ApiErrorResponse(
+      403,
+      "NO_RELATIONSHIP",
+      "The specified relationship does not exist."
+    )
+
 case object StandardBadRequest
     extends ApiErrorResponse(
       400,

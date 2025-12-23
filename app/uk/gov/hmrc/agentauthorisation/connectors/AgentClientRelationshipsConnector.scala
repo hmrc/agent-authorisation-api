@@ -114,4 +114,31 @@ class AgentClientRelationshipsConnector @Inject() (
         case response =>
           Left(response.json.as[ApiErrorResponse](ApiErrorResponse.acrReads(Some(clientAccessData.service))))
       }
+
+  def removeAuthorisation(arn: Arn, clientId: String, service: String)(implicit
+    rh: RequestHeader
+  ): Future[Either[ApiErrorResponse, Unit]] = {
+    val requestUrl = url"$acrUrl/agent/${arn.value}/remove-authorisation"
+    val body = Json.obj(
+      "clientId" -> clientId,
+      "service"  -> service
+    )
+
+    httpClient
+      .post(requestUrl)
+      .withBody(body)
+      .execute[HttpResponse]
+      .map {
+        case HttpResponse(NO_CONTENT, _, _) =>
+          Right(())
+        case response =>
+          val json = response.json
+          (json \ "code").asOpt[String] match {
+            case Some("RELATIONSHIP_NOT_FOUND") =>
+              Left(NoRelationship)
+            case _ =>
+              Left(json.as[ApiErrorResponse](ApiErrorResponse.acrReads()))
+          }
+      }
+  }
 }

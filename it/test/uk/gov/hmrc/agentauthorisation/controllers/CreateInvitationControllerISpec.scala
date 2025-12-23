@@ -113,7 +113,7 @@ class CreateInvitationControllerISpec extends BaseISpec {
   "POST /agents/:arn/invitations" should {
 
     val request = FakeRequest("POST", s"/agents/${arn.value}/invitations")
-      .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
+      .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
     val createInvitation = controller.createInvitation(arn)
 
     "return 204 when invitation is successfully created for ITSA without an agentType" in {

@@ -1,0 +1,4 @@
+{
+  "code": "CLIENT_ID_FORMAT_INVALID",
+  "message": "Client identifier must be in the correct format. Check the API documentation to find the correct format."
+}
