@@ -29,7 +29,7 @@ class CancelInvitationControllerISpec extends BaseISpec {
 
       val cancelInvitationItsaApi = controller.cancelInvitation(arn, invitationIdITSA)
       val requestITSA = FakeRequest("DELETE", s"/agent/cancel-invitation/${invitationIdITSA.value}")
-        .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
+        .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
 
       "return 204 for a successful cancellation" in {
         givenCancelAgentInvitationStub(invitationIdITSA, 204)

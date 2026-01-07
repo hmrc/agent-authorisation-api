@@ -50,9 +50,8 @@ components:
       required: true
       schema:
         type: string
-        enum: [
-          "application/vnd.hmrc.1.0+json"
-        ]
+        enum:
+          - "application/vnd.hmrc.1.0+json"
     contentTypeHeader:
       name: Content-Type
       in: header

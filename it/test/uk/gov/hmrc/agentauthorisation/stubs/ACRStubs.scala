@@ -234,4 +234,27 @@ trait ACRStubs {
     )
   }
 
+  def givenRemoveAuthorisationStub(
+    arn: Arn,
+    clientId: String,
+    service: String,
+    status: Int,
+    optCode: Option[String] = None
+  ): StubMapping = {
+    val requestBody = Json.obj(
+      "clientId" -> clientId,
+      "service"  -> service
+    )
+
+    stubFor(
+      post(urlEqualTo(s"/agent-client-relationships/agent/${arn.value}/remove-authorisation"))
+        .withRequestBody(equalToJson(requestBody.toString()))
+        .willReturn(
+          aResponse()
+            .withStatus(status)
+            .withBody(optCode.fold(Json.obj())(code => Json.obj("code" -> code)).toString())
+        )
+    )
+  }
+
 }

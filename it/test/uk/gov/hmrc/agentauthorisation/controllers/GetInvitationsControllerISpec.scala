@@ -93,7 +93,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
     "requesting an ITSA invitation" should {
       val getInvitationItsaApi = controller.getInvitationApi(arn, invitationIdITSA)
       val requestITSA = FakeRequest("GET", s"/agents/${arn.value}/invitations/${invitationIdITSA.value}")
-        .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
+        .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
 
       "return 200 and a json body of a pending invitation" in {
         givenGetAgentInvitationStub(arn, TestInvitation(invitationIdITSA, serviceITSA, "Pending"))
@@ -225,7 +225,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
     "requesting an VAT invitation" should {
       val getInvitationVatApi = controller.getInvitationApi(arn, invitationIdVAT)
       val requestVAT = FakeRequest("GET", s"/agents/${arn.value}/invitations/${invitationIdVAT.value}")
-        .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
+        .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
 
       "return 200 and a json body of invitation" in {
         givenGetAgentInvitationStub(arn, TestInvitation(invitationIdVAT, serviceVAT, "Pending"))
@@ -343,7 +343,7 @@ class GetInvitationsControllerISpec extends BaseISpec {
     "requesting all API supported invitations" should {
       val getInvitations = controller.getInvitationsApi(arn)
       val request = FakeRequest("GET", s"/agents/${arn.value}/invitations")
-        .withHeaders("Accept" -> s"application/vnd.hmrc.1.0+json", "Authorization" -> "Bearer XYZ")
+        .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
 
       "return 200 and a json body of a pending invitations" in {
         givenGetAllAgentInvitationsStub(

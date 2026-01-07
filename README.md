@@ -1,4 +1,4 @@
-# Agent Authorisation API documentation version 1.0
+# Agent Authorisation API documentation version 2.0
 
 ### Overview
 This API allows tax agents to request authorisation to act on a client's behalf for a specific Making Tax Digital (MTD) tax service and have the option to cancel the authorisation request.
@@ -60,7 +60,8 @@ This service is tested by the following automated test repositories:
 [GET     /agents/{arn}/invitations](#get-invitations)\
 [GET     /agents/{arn}/invitations/{invitationId}](#get-invitation-by-id)\
 [DELETE  /agents/{arn}/invitations/{invitationId}](#cancel-invitation)\
-[POST    /agents/{arn}/relationships](#get-relationship-status)
+[POST    /agents/{arn}/relationships](#get-relationship-status)\
+[DELETE  /agents/{arn}/relationships](#delete-relationship)
 
 ---
 <a name="create-invitation"></a>
@@ -77,7 +78,7 @@ Create a new authorisation request. The request will expire after 21 days.
 
 | Name         | Type | Description | Required |                              Examples |
 |:-------------|:----:|:------------|:--------:|--------------------------------------:|
-| Accept       | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ``` |
+| Accept       | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.2.0+json ``` |
 | Content-Type | string | application/json| true|                      application/json |
 
 **Example request payloads**
@@ -299,7 +300,7 @@ Get all authorisation requests for the last 30 days.
 
 | Name | Type | Description | Required | Examples |
 |:-----|:----:|:------------|:--------:|---------:|
-| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.1.0+json ```  |
+| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.2.0+json ```  |
 
 ### Response code: 200
 
@@ -859,6 +860,153 @@ Relationship is active. Agent is authorised to act for the client.
 
 ---
 
+<a name="delete-relationship"></a>
+### DELETE /agents/{arn}/relationships
+
+Remove an existing Making Tax Digital relationship between an agent and a client.
+
+* **arn**: The Making Tax Digital (MTD) platform Agent Reference Number.
+  * Type: string
+  * Required: true
+
+**Headers**
+
+| Name | Type | Description | Required | Examples |
+|:-----|:----:|:------------|:--------:|---------:|
+| Accept | string | Specifies the response format and the [version](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) of the API to be used. | true | ``` application/vnd.hmrc.2.0+json ```  |
+| Content-Type| string | application/json| true| application/json|
+
+**Request payload**
+
+```
+{
+  "service": ["MTD-IT"],
+  "clientType": "personal",
+  "clientIdType": "ni",
+  "clientId": "AA999999A"
+}
+```
+```
+{
+  "service": ["MTD-VAT"],
+  "clientType": "business",
+  "clientIdType": "vrn",
+  "clientId": "101747696"
+}
+```
+
+### Response code: 204
+The relationship has been removed successfully.
+
+### Response code: 400
+
+```
+{
+  "code": "SERVICE_NOT_SUPPORTED",
+  "message": "The service requested is not supported. Check the API documentation to find which services are supported."
+}
+```
+```
+{
+  "code": "CLIENT_TYPE_NOT_SUPPORTED",
+  "message": "The client type requested is not supported. Check the API documentation to find which client types are supported."
+}
+```
+```
+{
+  "code": "CLIENT_ID_FORMAT_INVALID",
+  "message": "Client identifier must be in the correct format. Check the API documentation to find the correct format."
+}
+```
+```
+{
+  "code": "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
+  "message": "The type of client Identifier provided cannot be used with the requested service. Check the API documentation for details of the correct client identifiers to use."
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported version number"
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Missing or unsupported content-type."
+}
+```
+```
+{
+  "code": "BAD_REQUEST",
+  "message": "Bad Request"
+}
+```
+
+### Response code: 401
+
+```
+{
+  "code": "UNAUTHORIZED",
+  "message": "Bearer token is missing or not authorized."
+}
+```
+
+### Response code: 403
+
+```
+{
+  "code": "NO_RELATIONSHIP",
+  "message": "The specified relationship does not exist."
+}
+```
+```
+{
+  "code": "NOT_AN_AGENT",
+  "message": "This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service."
+}
+```
+```
+{
+  "code": "AGENT_NOT_SUBSCRIBED",
+  "message": "This agent needs to create an agent services account before they can use this service."
+}
+```
+```
+{
+  "code": "NO_PERMISSION_ON_AGENCY",
+  "message": "The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request."
+}
+```
+
+### Response code: 406
+
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Missing 'Accept' header."
+}
+```
+```
+{
+  "code": "ACCEPT_HEADER_INVALID",
+  "message": "Invalid 'Accept' header"
+}
+```
+
+
+### Response code: 500
+
+
+```
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "Internal server error."
+}
+```
+
+---
+
 ### Testing the YAML Documentation Locally
 
 Changes made to ```application.yaml``` may be previewed on localhost:
@@ -866,6 +1014,4 @@ Changes made to ```application.yaml``` may be previewed on localhost:
 1. Start ```agent-authorisation-api``` using ```sbt run```
 2. Clone [api-documentation-frontend](https://github.com/hmrc/api-documentation-frontend), cd into the folder and start the service using the command ```./run_local_with_dependencies.sh```
 3. In the browser go to [http://localhost:9680/api-documentation/docs/openapi/preview](http://localhost:9680/api-documentation/docs/openapi/preview)
-4. Enter the location of the YAML file into the Preview OpenAPI box: ```http://localhost:9433/api/conf/1.0/application.yaml``` 
-
-
+4. Enter the location of the YAML file into the Preview OpenAPI box: ```http://localhost:9433/api/conf/2.0/application.yaml``` 

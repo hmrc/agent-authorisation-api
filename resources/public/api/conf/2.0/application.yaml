@@ -1,0 +1,910 @@
+openapi: 3.0.3
+
+info:
+  title: Agent Authorisation
+  version: '2.0'
+  description: >-
+
+    # Overview
+
+    You can find more information about this API in the [agent-authorisation-api](https://github.com/hmrc/agent-authorisation-api/blob/main/README.md) GitHub repository.
+
+    # Changelog
+
+    You can find the changelog in the [agent-authorisation-api](https://github.com/hmrc/agent-authorisation-api/blob/main/CHANGE_LOG.md) GitHub repository.
+
+
+servers:
+  - url: https://test-api.service.hmrc.gov.uk/
+    description: Sandbox
+  - url: https://api.service.hmrc.gov.uk/
+    description: Production
+
+components:
+  parameters:
+    arnParameter:
+      name: arn
+      in: path
+      description: The Making Tax Digital (MTD) platform Agent Reference Number. For format and validation of Agent Reference Number [See here](https://github.com/hmrc/agent-authorisation-api/tree/main/app/uk/gov/hmrc/agentauthorisation/models/Arn.scala)
+      required: true
+      style: simple
+      schema:
+        type: string
+        example: AARN9999999
+    invitationIdParameter:
+      name: invitationId
+      in: path
+      description: A unique authorisation request ID
+      required: true
+      style: simple
+      schema:
+        type: string
+        example: CS5AK7O8FPC43
+    acceptHeader:
+      name: Accept
+      in: header
+      description: >-
+        Specifies the response format and the
+        [version](/api-documentation/docs/reference-guide#versioning) of the API
+        to be used.
+      required: true
+      schema:
+        type: string
+        enum: [
+          "application/vnd.hmrc.2.0+json"
+        ]
+    contentTypeHeader:
+      name: Content-Type
+      in: header
+      description: The media type of the request body.
+      schema:
+        type: string
+        enum:
+          - application/json
+      required: true
+    authHeader:
+      name: Authorization
+      in: header
+      description: Bearer [SERVER-TOKEN]
+      schema:
+        type: string
+      required: true
+      style: simple
+  securitySchemes:
+    userRestricted:
+      type: oauth2
+      description: |
+        HMRC supports OAuth 2.0 for authenticating user restricted API requests using an OAuth 2.0 Bearer Token in the AUTHORIZATION header.
+        See https://developer.service.hmrc.gov.uk/api-documentation/docs/authorisation/user-restricted-endpoints for details.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api.service.hmrc.gov.uk/oauth/authorize
+          tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
+          refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
+          scopes:
+            read:sent-invitations: Grants read access
+            read:check-relationship: Grants read access
+            write:sent-invitations: Grants write access
+            write:cancel-invitations: Grants write access
+  responses:
+    notFoundInvitation:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invitationNotFound:
+              value:
+                code: INVITATION_NOT_FOUND
+                message: The authorisation request cannot be found.
+    notFoundRelationship:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            relationshipNotFound:
+              value:
+                code: RELATIONSHIP_NOT_FOUND
+                message: Relationship is inactive. Agent is not authorised to act for this client.
+    unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unauthorizedRequest:
+              value:
+                code: UNAUTHORIZED
+                message: Bearer token is missing or not authorized.
+    notAcceptable:
+      description: Not Acceptable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            acceptHeaderMissing:
+              value:
+                $ref: './examples/errors/notAcceptable_headerMissing.json'
+            acceptHeaderInvalid:
+              value:
+                $ref: './examples/errors/notAcceptable_headerInvalid.json'
+    internalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            internalServerErrorExample:
+              value:
+                $ref: './examples/errors/internalServerError.json'
+    forbiddenDelete:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidInvitationStatus:
+              value:
+                $ref: './examples/errors/forbidden_invalidInvitationStatus.json'
+            notAnAgent:
+              value:
+                $ref: './examples/errors/forbidden_notAgent.json'
+            agentNotSubscribed:
+              value:
+                $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+            noPermissionOnAgency:
+              value:
+                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+    forbiddenCreateInvitation:
+      description: Forbidden
+      headers:
+        Location:
+          description: Location of the authorisation request. (Only returned with duplicateAuthorisationRequest)
+          schema:
+            type: string
+            example: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            clientRegistrationNotFound:
+              value:
+                $ref: './examples/errors/forbidden_clientRegNotFound.json'
+            postcodeNoMatch:
+              value:
+                $ref: './examples/errors/forbidden_postcodeNoMatch.json'
+            vatRegistrationDateNoMatch:
+              value:
+                $ref: './examples/errors/forbidden_vatRegDateNoMatch.json'
+            duplicateAuthorisationRequest:
+              value:
+                $ref: './examples/errors/forbidden_duplicateAuthReq.json'
+            alreadyAuthorised:
+              value:
+                $ref: './examples/errors/forbidden_alreadyAuthorised.json'
+            notAnAgent:
+              value:
+                $ref: './examples/errors/forbidden_notAgent.json'
+            agentNotSubscribed:
+              value:
+                $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+            noPermissionOnAgency:
+              value:
+                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+            vatClientInsolvent:
+              value:
+                $ref: './examples/errors/forbidden_vatClientInsolvent.json'
+            alreadyProcessing:
+              value:
+                $ref: './examples/errors/forbidden_alreadyProcessing.json'
+    forbiddenGetInvitations:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notAnAgent:
+              value:
+                $ref: './examples/errors/forbidden_notAgent.json'
+            agentNotSubscribed:
+              value:
+                $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+            noPermissionOnAgency:
+              value:
+                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+    forbiddenGetRelationshipStatus:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            clientRegistrationNotFound:
+              value:
+                $ref: './examples/errors/forbidden_clientRegNotFound.json'
+            postcodeNoMatch:
+              value:
+                $ref: './examples/errors/forbidden_postcodeNoMatch.json'
+            vatRegistrationDateNoMatch:
+              value:
+                $ref: './examples/errors/forbidden_vatRegDateNoMatch.json'
+            notAnAgent:
+              value:
+                $ref: './examples/errors/forbidden_notAgent.json'
+            agentNotSubscribed:
+              value:
+                $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+            noPermissionOnAgency:
+              value:
+                $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+            vatClientInsolvent:
+              value:
+                $ref: './examples/errors/forbidden_vatClientInsolvent.json'
+    badRequestCancelInvitation:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unsupportedVersion:
+              value:
+                $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
+            badRequest:
+              value:
+                $ref: './examples/errors/badReq.json'
+    badRequestCreateInvitation:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            serviceNotSupported:
+              value:
+                $ref: './examples/errors/badReq_serviceNotSupported.json'
+            invalidClientType:
+              value:
+                $ref: './examples/errors/badReq_clientTypeNotSupported.json'
+            invalidClientId:
+              value:
+                $ref: './examples/errors/badReq_clientIdFormatInvalid.json'
+            clientIdDoesNotMatchService:
+              value:
+                $ref: './examples/errors/badReq_clientIdServiceMatchError.json'
+            invalidPostcode:
+              value:
+                $ref: './examples/errors/badReq_postcodeFormatInvalid.json'
+            invalidVatRegistrationDate:
+              value:
+                $ref: './examples/errors/badReq_vatRegDateFormatInvalid.json'
+            unsupportedVersion:
+              value:
+                $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
+            unsupportedContentType:
+              value:
+                $ref: './examples/errors/badReq_unsupportedContentType.json'
+            unsupportedAgentType:
+              value:
+                $ref: './examples/errors/badReq_unsupportedAgentType.json'
+            badRequest:
+              value:
+                $ref: './examples/errors/badReq.json'
+    badRequestGetRelationshipStatus:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            serviceNotSupported:
+              value:
+                $ref: './examples/errors/badReq_serviceNotSupported.json'
+            invalidClientId:
+              value:
+                $ref: './examples/errors/badReq_clientIdFormatInvalid.json'
+            clientIdDoesNotMatchService:
+              value:
+                $ref: './examples/errors/badReq_clientIdServiceMatchError.json'
+            invalidPostcode:
+              value:
+                $ref: './examples/errors/badReq_postcodeFormatInvalid.json'
+            invalidVatRegistrationDate:
+              value:
+                $ref: './examples/errors/badReq_vatRegDateFormatInvalid.json'
+            unsupportedVersion:
+              value:
+                $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
+            unsupportedContentType:
+              value:
+                $ref: './examples/errors/badReq_unsupportedContentType.json'
+            unsupportedAgentType:
+              value:
+                $ref: './examples/errors/badReq_unsupportedAgentType.json'
+            badRequest:
+              value:
+                $ref: './examples/errors/badReq.json'
+    badRequestGetInvitations:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unsupportedVersion:
+              value:
+                $ref: './examples/errors/badReq_invalidVersionAcceptHeader.json'
+            badRequest:
+              value:
+                $ref: './examples/errors/badReq.json'
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+    AgentsInvitationsITSARequest:
+      title: Agent Invitation Request for MTD-IT
+      required:
+        - service
+        - clientType
+        - clientIdType
+        - clientId
+        - knownFact
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/ITSAService'
+        clientType:
+          allOf:
+            - $ref: '#/components/schemas/ClientTypePersonal'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeNI'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdNINO'
+        knownFact:
+          allOf:
+            - $ref: '#/components/schemas/KnownFactPostcode'
+        agentType:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
+    AgentsInvitationsVATRequest:
+      title: Agent Invitation Request for VAT
+      required:
+        - service
+        - clientType
+        - clientIdType
+        - clientId
+        - knownFact
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/VATService'
+        clientType:
+          oneOf:
+            - $ref: '#/components/schemas/ClientTypePersonal'
+            - $ref: '#/components/schemas/ClientTypeBusiness'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeVRN'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdVAT'
+        knownFact:
+          allOf:
+            - $ref: '#/components/schemas/KnownFactRegistrationDate'
+    DeleteRelationshipITSARequest:
+      title: Delete Relationship Request for MTD-IT
+      required:
+        - service
+        - clientType
+        - clientIdType
+        - clientId
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/ITSAService'
+        clientType:
+          allOf:
+            - $ref: '#/components/schemas/ClientTypePersonal'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeNI'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdNINO'
+        agentType:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
+    DeleteRelationshipVATRequest:
+      title: Delete Relationship Request for MTD-VAT
+      required:
+        - service
+        - clientType
+        - clientIdType
+        - clientId
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/VATService'
+        clientType:
+          oneOf:
+            - $ref: '#/components/schemas/ClientTypePersonal'
+            - $ref: '#/components/schemas/ClientTypeBusiness'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeVRN'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdVAT'
+    CheckRelationshipVATRequest:
+      title: Check Status of Relationship Request for MTD-VAT
+      required:
+        - service
+        - clientIdType
+        - clientId
+        - knownFact
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/VATService'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeVRN'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdVAT'
+        knownFact:
+          allOf:
+            - $ref: '#/components/schemas/KnownFactRegistrationDate'
+    CheckRelationshipITSARequest:
+      title: Check Status of Relationship Request for MTD-IT
+      required:
+        - service
+        - clientIdType
+        - clientId
+        - knownFact
+      type: object
+      properties:
+        service:
+          allOf:
+            - $ref: '#/components/schemas/ITSAService'
+        clientIdType:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdTypeNI'
+        clientId:
+          allOf:
+            - $ref: '#/components/schemas/ClientIdNINO'
+        knownFact:
+          allOf:
+            - $ref: '#/components/schemas/KnownFactPostcode'
+        agentType:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
+
+    ClientIdTypeNI:
+      title: ni
+      type: string
+    ClientIdTypeVRN:
+      title: vrn
+      type: string
+    ClientIdNINO:
+      title: National Insurance Number
+      type: string
+      pattern: ^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ]?\d{2}?\d{2}?\d{2}?[A-D]{1}$
+    ClientIdVAT:
+      title: VAT Registration Number
+      type: string
+      pattern: ^[0-9]{1,9}$
+    KnownFactPostcode:
+      title: Postcode
+      type: string
+      pattern: ^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$|BFPO\s?[0-9]{1,5}$
+    KnownFactRegistrationDate:
+      title: VAT registration date
+      type: string
+      pattern: yyyy-mm-dd
+    AgentType:
+      title: Agent type
+      nullable: true
+      type: string
+      enum: [
+        "main",
+        "supporting"
+      ]
+      description: Only MTD-IT supports this field. Defaults to "main" if omitted.
+
+    AgentsInvitationsResponse:
+      title: AgentsInvitationsResponse
+      required:
+        - _links
+        - service
+        - arn
+        - created
+        - status
+      type: object
+      properties:
+        _links:
+          allOf:
+            - $ref: '#/components/schemas/Links'
+            - description: The link to the invitation
+        service:
+          maxItems: 1
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/ITSAService'
+              - $ref: '#/components/schemas/VATService'
+          description: The service to which this invitation refers
+        arn:
+          type: string
+          description: The Agent Registration Number for the calling agency
+        created:
+          type: string
+          description: Creation time of the request (RFC3339 / ISO8601 format)
+          format: date-time
+        updated:
+          type: string
+          description: Update time of the request (RFC3339 / ISO8601 format)
+          format: date-time
+        expiresOn:
+          type: string
+          description: Expiration time of the request (RFC3339 / ISO8601 format)
+          format: date
+        status:
+          type: string
+          enum: [
+            "Pending",
+            "Accepted",
+            "Rejected",
+            "Cancelled",
+            "Deauthorised",
+            "Expired",
+            "Partialauth"
+          ]
+          description: The current status of the invitation
+        clientActionUrl:
+          type: string
+          description: Link for the client to authorise/reject this agent's invitation.
+          format: uri
+        agentType:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
+    VATService:
+      title: MTD-VAT
+      type: string
+      description: MTD VAT service
+    ITSAService:
+      title: MTD-IT
+      type: string
+      description: MTD IT service
+    ClientTypePersonal:
+      title: personal
+      type: string
+      description: An individual or sole trader
+    ClientTypeBusiness:
+      title: business
+      type: string
+      description: A company or partnership
+    Links:
+      title: Links
+      required:
+        - self
+      type: object
+      properties:
+        self:
+          allOf:
+            - $ref: '#/components/schemas/Self'
+      description: A link to the current resource.
+    Self:
+      title: Self
+      required:
+        - href
+      type: object
+      properties:
+        href:
+          type: string
+      description: A link to the current resource.
+paths:
+  /agents/{arn}/invitations:
+    post:
+      tags:
+        - Agents
+      summary: Create a new authorisation
+      description: Create a new authorisation request. The request will expire after 21 days.
+      operationId: Createanewauthorisation
+      security:
+        - userRestricted:
+            - write:sent-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/AgentsInvitationsITSARequest'
+                - $ref: '#/components/schemas/AgentsInvitationsVATRequest'
+            examples:
+              example-ITSA:
+                value:
+                  $ref: './examples/post-agency-invitations-itsa-example.json'
+              example-ITSA-main:
+                value:
+                  $ref: './examples/post-agency-invitations-itsa-main-example.json'
+              example-ITSA-supporting:
+                value:
+                  $ref: './examples/post-agency-invitations-itsa-supp-example.json'
+              example-VAT:
+                value:
+                  $ref: './examples/post-agency-invitations-vat-example.json'
+        required: true
+      responses:
+        '204':
+          description: The request was accepted and an authorisation request has been created
+          headers:
+            Location:
+              description: Location of the authorisation request.
+              schema:
+                type: string
+                example: /agents/AARN9999999/invitations/CS5AK7O8FPC43
+        '400':
+          $ref: '#/components/responses/badRequestCreateInvitation'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbiddenCreateInvitation'
+        '406':
+          $ref: '#/components/responses/notAcceptable'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      deprecated: false
+    get:
+      tags:
+        - Agents
+      summary: Get all authorisation requests for the last 30 days
+      operationId: Getallauthorisationrequestsforthelast30days
+      security:
+        - userRestricted:
+            - read:sent-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+      responses:
+        '200':
+          description: A list of authorisation requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentsInvitationsResponse'
+                description: Returns all authorisation requests for the last 30 days.
+              examples:
+                pending and responded:
+                  value:
+                    $ref: './examples/get-agency-invitations-example.json'
+        '204':
+          description: The agent has no authorisation requests in the last 30 days
+        '403':
+          $ref: '#/components/responses/forbiddenGetInvitations'
+        '400':
+          $ref: '#/components/responses/badRequestGetInvitations'
+        '406':
+          $ref: '#/components/responses/notAcceptable'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      deprecated: false
+  /agents/{arn}/invitations/{invitationId}:
+    get:
+      tags:
+        - Agents
+      summary: Get an invitation by id
+      operationId: Getaninvitationbyid
+      security:
+        - userRestricted:
+            - read:sent-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/invitationIdParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+      responses:
+        '200':
+          description: The authorisation request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentsInvitationsResponse'
+              examples:
+                pending:
+                  value:
+                    $ref: './examples/get-agency-invitation-pending-example.json'
+                responded:
+                  value:
+                    $ref: './examples/get-agency-invitation-responded-example.json'
+        '403':
+          $ref: '#/components/responses/forbiddenGetInvitations'
+        '404':
+          $ref: '#/components/responses/notFoundInvitation'
+        '400':
+          $ref: '#/components/responses/badRequestGetInvitations'
+        '406':
+          $ref: '#/components/responses/notAcceptable'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      deprecated: false
+    delete:
+      tags:
+        - Agents
+      summary: Cancel an invitation by id
+      operationId: Cancelaninvitationbyid
+      security:
+        - userRestricted:
+            - write:cancel-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/invitationIdParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
+      responses:
+        '204':
+          description: The authorisation request has been cancelled
+        '403':
+          $ref: '#/components/responses/forbiddenDelete'
+        '404':
+          $ref: '#/components/responses/notFoundInvitation'
+        '400':
+          $ref: '#/components/responses/badRequestCancelInvitation'
+        '406':
+          $ref: '#/components/responses/notAcceptable'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      deprecated: false
+  /agents/{arn}/relationships:
+    post:
+      tags:
+        - Agents
+      summary: Get Status of a Relationship
+      operationId: GetStatusofaRelationship
+      security:
+        - userRestricted:
+            - read:check-relationship
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CheckRelationshipVATRequest'
+                - $ref: '#/components/schemas/CheckRelationshipITSARequest'
+            examples:
+              example-ITSA:
+                value:
+                  $ref: './examples/post-agency-check-relationship-itsa-example.json'
+              example-ITSA-main:
+                value:
+                  $ref: './examples/post-agency-check-relationship-itsa-main-example.json'
+              example-ITSA-supporting:
+                value:
+                  $ref: './examples/post-agency-check-relationship-itsa-supp-example.json'
+              example-VAT:
+                value:
+                  $ref: './examples/post-agency-check-relationship-vat-example.json'
+        required: true
+      responses:
+        '204':
+          description: The agent is authorised to act for the client.
+        '403':
+          $ref: '#/components/responses/forbiddenGetRelationshipStatus'
+        '404':
+          $ref: "#/components/responses/notFoundRelationship"
+        '400':
+          $ref: '#/components/responses/badRequestGetRelationshipStatus'
+        '406':
+          $ref: '#/components/responses/notAcceptable'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      deprecated: false
+    delete:
+      tags:
+        - Agents
+      summary: Delete an existing relationship
+      operationId: DeleteRelationship
+      security:
+        - userRestricted:
+            - write:sent-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/DeleteRelationshipITSARequest'
+                - $ref: '#/components/schemas/DeleteRelationshipVATRequest'
+            examples:
+              example-ITSA:
+                value:
+                  service: ["MTD-IT"]
+                  clientType: "personal"
+                  clientIdType: "ni"
+                  clientId: "AA999999A"
+              example-VAT:
+                value:
+                  service: ["MTD-VAT"]
+                  clientType: "business"
+                  clientIdType: "vrn"
+                  clientId: "101747696"
+        required: true
+      responses:
+        '204':
+          description: The relationship has been removed.
+        '400':
+          $ref: '#/components/responses/badRequestGetRelationshipStatus'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                noRelationship:
+                  value:
+                    code: NO_RELATIONSHIP
+                    message: The specified relationship does not exist.
+                notAnAgent:
+                  value:
+                    $ref: './examples/errors/forbidden_notAgent.json'
+                agentNotSubscribed:
+                  value:
+                    $ref: './examples/errors/forbidden_agentNotSubscribed.json'
+                noPermissionOnAgency:
+                  value:
+                    $ref: './examples/errors/forbidden_noPermissionOnAgency.json'
+        '406':
+          $ref: '#/components/responses/notAcceptable'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+      deprecated: false
+
+tags:
+  - name: Agents
+    description: ''
