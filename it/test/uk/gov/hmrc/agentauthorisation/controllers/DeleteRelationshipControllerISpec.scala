@@ -40,7 +40,7 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
     s"""{"service": ["MTD-VAT"], "clientType": "business", "clientIdType": "vrn", "clientId": "${validVrn.value}"}"""
   )
 
-  "DELETE /agents/:arn/relationships" should {
+  "PUT /agents/:arn/relationships" should {
 
     "return 204 when the ITSA relationship is successfully removed" in {
       givenRemoveAuthorisationStub(
@@ -50,10 +50,10 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
         status = NO_CONTENT
       )
 
-      val deleteRelationship = controller.deleteRelationship(arn)
+      val deauthoriseRelationship = controller.deauthoriseRelationship(arn)
 
       val result: Result =
-        deleteRelationship(
+        deauthoriseRelationship(
           authorisedAsValidAgent(requestBase.withJsonBody(jsonBodyITSA), arn.value)
         ).futureValue
 
@@ -69,10 +69,10 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
         status = NO_CONTENT
       )
 
-      val deleteRelationship = controller.deleteRelationship(arn)
+      val deauthoriseRelationship = controller.deauthoriseRelationship(arn)
 
       val result: Result =
-        deleteRelationship(
+        deauthoriseRelationship(
           authorisedAsValidAgent(requestBase.withJsonBody(jsonBodyVAT), arn.value)
         ).futureValue
 
@@ -89,10 +89,10 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
         optCode = Some("RELATIONSHIP_NOT_FOUND")
       )
 
-      val deleteRelationship = controller.deleteRelationship(arn)
+      val deauthoriseRelationship = controller.deauthoriseRelationship(arn)
 
       val result: Result =
-        deleteRelationship(
+        deauthoriseRelationship(
           authorisedAsValidAgent(requestBase.withJsonBody(jsonBodyITSA), arn.value)
         ).futureValue
 
@@ -106,10 +106,10 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
           s"""{"service": ["MTD-IT"], "clientType": "business", "clientIdType": "ni", "clientId": "${validNino.value}"}"""
         )
 
-      val deleteRelationship = controller.deleteRelationship(arn)
+      val deauthoriseRelationship = controller.deauthoriseRelationship(arn)
 
       val result: Result =
-        deleteRelationship(
+        deauthoriseRelationship(
           authorisedAsValidAgent(requestBase.withJsonBody(invalidClientTypePayload), arn.value)
         ).futureValue
 

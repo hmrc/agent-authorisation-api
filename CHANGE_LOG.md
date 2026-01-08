@@ -1,6 +1,6 @@
 ## [APB-10433]
 * Introduce API documentation version 2.0 and configure the API to support both 1.0 and 2.0 Accept headers.
-* Add new endpoint `DELETE /agents/{arn}/relationships` to de-authorise existing MTD-IT and MTD-VAT relationships, returning 403 `NO_RELATIONSHIP` when no relationship exists.
+* Add new endpoint `PUT /agents/{arn}/relationships` to de-authorise existing MTD-IT and MTD-VAT relationships, returning 403 `NO_RELATIONSHIP` when no relationship exists.
 
 ## [0.137.0](https://github.com/hmrc/agent-authorisation-api/releases/tag/v0.137.0) 12 May 2025
 * Introduce handling for duplicate requests, now whenever the same request is received multiple times, a new error case will return 403 rather than permit the subsequent requests to proceed
