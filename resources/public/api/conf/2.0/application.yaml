@@ -839,6 +839,8 @@ paths:
         '500':
           $ref: '#/components/responses/internalServerError'
       deprecated: false
+
+  /agents/{arn}/deauthorise-client:
     put:
       tags:
         - Agents
