@@ -861,7 +861,7 @@ Relationship is active. Agent is authorised to act for the client.
 ---
 
 <a name="delete-relationship"></a>
-### DELETE /agents/{arn}/relationships
+### PUT /agents/{arn}/relationships
 
 Remove an existing Making Tax Digital relationship between an agent and a client.
 

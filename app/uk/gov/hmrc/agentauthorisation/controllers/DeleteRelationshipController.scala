@@ -36,7 +36,7 @@ class DeleteRelationshipController @Inject() (
 )(implicit val ec: ExecutionContext)
     extends BackendController(cc) with AuthActions {
 
-  def deleteRelationship(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
+  def deauthoriseRelationship(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
     withAuthorisedAsAgent { arn =>
       implicit val loggedInArn: Arn = arn
       validateArnInRequest(givenArn) {
