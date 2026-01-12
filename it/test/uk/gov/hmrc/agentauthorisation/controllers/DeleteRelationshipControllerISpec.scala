@@ -29,7 +29,7 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
 
   lazy val controller: DeleteRelationshipController = app.injector.instanceOf[DeleteRelationshipController]
 
-  private val requestBase = FakeRequest("DELETE", s"/agents/${arn.value}/relationships")
+  private val requestBase = FakeRequest("PUT", s"/agents/${arn.value}/deauthorise-client")
     .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
 
   private val jsonBodyITSA: JsValue = Json.parse(
@@ -40,7 +40,7 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
     s"""{"service": ["MTD-VAT"], "clientType": "business", "clientIdType": "vrn", "clientId": "${validVrn.value}"}"""
   )
 
-  "PUT /agents/:arn/relationships" should {
+  "PUT /agents/:arn/deauthorise-client" should {
 
     "return 204 when the ITSA relationship is successfully removed" in {
       givenRemoveAuthorisationStub(
