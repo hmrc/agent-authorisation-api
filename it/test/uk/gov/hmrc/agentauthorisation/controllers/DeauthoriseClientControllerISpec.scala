@@ -23,14 +23,13 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 
-import scala.concurrent.Future
+class DeauthoriseClientControllerISpec extends BaseISpec {
 
-class DeleteRelationshipControllerISpec extends BaseISpec {
+  lazy val controller: DeauthoriseClientController = app.injector.instanceOf[DeauthoriseClientController]
 
-  lazy val controller: DeleteRelationshipController = app.injector.instanceOf[DeleteRelationshipController]
-
-  private val requestBase = FakeRequest("PUT", s"/agents/${arn.value}/deauthorise-client")
-    .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
+  private val requestBase =
+    FakeRequest("PUT", s"/agents/${arn.value}/deauthorise-client")
+      .withHeaders("Accept" -> s"application/vnd.hmrc.2.0+json", "Authorization" -> "Bearer XYZ")
 
   private val jsonBodyITSA: JsValue = Json.parse(
     s"""{"service": ["MTD-IT"], "clientType": "personal", "clientIdType": "ni", "clientId": "${validNino.value}"}"""
@@ -118,3 +117,4 @@ class DeleteRelationshipControllerISpec extends BaseISpec {
     }
   }
 }
+

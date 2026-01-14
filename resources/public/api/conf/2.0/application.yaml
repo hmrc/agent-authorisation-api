@@ -412,7 +412,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/KnownFactRegistrationDate'
     DeleteRelationshipITSARequest:
-      title: Delete Relationship Request for MTD-IT
+      title: De-authorise client request for MTD-IT
       required:
         - service
         - clientType
@@ -436,7 +436,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/AgentType'
     DeleteRelationshipVATRequest:
-      title: Delete Relationship Request for MTD-VAT
+      title: De-authorise client request for MTD-VAT
       required:
         - service
         - clientType
@@ -844,8 +844,8 @@ paths:
     put:
       tags:
         - Agents
-      summary: Delete an existing relationship
-      operationId: DeleteRelationship
+      summary: De-authorise an existing client relationship
+      operationId: DeauthoriseClient
       security:
         - userRestricted:
             - write:sent-invitations

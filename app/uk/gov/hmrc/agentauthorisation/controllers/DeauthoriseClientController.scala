@@ -28,7 +28,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DeleteRelationshipController @Inject() (
+class DeauthoriseClientController @Inject() (
   deleteRelationshipService: DeleteRelationshipService,
   validateClientAccessDataService: ValidateClientAccessDataService,
   val authConnector: AuthConnector,
