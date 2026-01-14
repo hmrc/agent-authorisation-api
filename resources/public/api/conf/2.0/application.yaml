@@ -411,8 +411,8 @@ components:
         knownFact:
           allOf:
             - $ref: '#/components/schemas/KnownFactRegistrationDate'
-    DeleteRelationshipITSARequest:
-      title: Delete Relationship Request for MTD-IT
+    DeauthoriseClientITSARequest:
+      title: De-authorise client request for MTD-IT
       required:
         - service
         - clientType
@@ -435,8 +435,8 @@ components:
         agentType:
           allOf:
             - $ref: '#/components/schemas/AgentType'
-    DeleteRelationshipVATRequest:
-      title: Delete Relationship Request for MTD-VAT
+    DeauthoriseClientVATRequest:
+      title: De-authorise client request for MTD-VAT
       required:
         - service
         - clientType
@@ -844,8 +844,8 @@ paths:
     put:
       tags:
         - Agents
-      summary: Delete an existing relationship
-      operationId: DeleteRelationship
+      summary: De-authorise an existing client relationship
+      operationId: DeauthoriseClient
       security:
         - userRestricted:
             - write:sent-invitations
@@ -858,15 +858,23 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: '#/components/schemas/DeleteRelationshipITSARequest'
-                - $ref: '#/components/schemas/DeleteRelationshipVATRequest'
+                - $ref: '#/components/schemas/DeauthoriseClientITSARequest'
+                - $ref: '#/components/schemas/DeauthoriseClientVATRequest'
             examples:
-              example-ITSA:
+              example-ITSA-main:
                 value:
                   service: ["MTD-IT"]
                   clientType: "personal"
                   clientIdType: "ni"
                   clientId: "AA999999A"
+                  agentType: "main"
+              example-ITSA-supporting:
+                value:
+                  service: ["MTD-IT"]
+                  clientType: "personal"
+                  clientIdType: "ni"
+                  clientId: "AA999999A"
+                  agentType: "supporting"
               example-VAT:
                 value:
                   service: ["MTD-VAT"]

@@ -60,8 +60,8 @@ This service is tested by the following automated test repositories:
 [GET     /agents/{arn}/invitations](#get-invitations)\
 [GET     /agents/{arn}/invitations/{invitationId}](#get-invitation-by-id)\
 [DELETE  /agents/{arn}/invitations/{invitationId}](#cancel-invitation)\
-[POST    /agents/{arn}/relationships](#get-relationship-status)\
-[DELETE  /agents/{arn}/relationships](#delete-relationship)
+[POST   /agents/{arn}/relationships](#get-relationship-status)\
+[PUT    /agents/{arn}/deauthorise-client](#deauthorise-client)
 
 ---
 <a name="create-invitation"></a>
@@ -860,7 +860,7 @@ Relationship is active. Agent is authorised to act for the client.
 
 ---
 
-<a name="delete-relationship"></a>
+<a name="deauthorise-client"></a>
 ### PUT /agents/{arn}/deauthorise-client
 
 Remove an existing Making Tax Digital relationship between an agent and a client.
@@ -878,12 +878,24 @@ Remove an existing Making Tax Digital relationship between an agent and a client
 
 **Request payload**
 
+For MTD-IT relationships, include `agentType` as `main` or `supporting` when you need to de-authorise a specific relationship type.
+
 ```
 {
   "service": ["MTD-IT"],
   "clientType": "personal",
   "clientIdType": "ni",
-  "clientId": "AA999999A"
+  "clientId": "AA999999A",
+  "agentType": "main"
+}
+```
+```
+{
+  "service": ["MTD-IT"],
+  "clientType": "personal",
+  "clientIdType": "ni",
+  "clientId": "AA999999A",
+  "agentType": "supporting"
 }
 ```
 ```
