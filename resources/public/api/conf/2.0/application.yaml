@@ -85,6 +85,7 @@ components:
             read:sent-invitations: Grants read access
             read:check-relationship: Grants read access
             write:sent-invitations: Grants write access
+            write:relationships: Grants write access
             write:cancel-invitations: Grants write access
   responses:
     notFoundInvitation:
@@ -848,7 +849,7 @@ paths:
       operationId: DeauthoriseClient
       security:
         - userRestricted:
-            - write:sent-invitations
+            - write:relationships
       parameters:
         - $ref: '#/components/parameters/arnParameter'
         - $ref: '#/components/parameters/acceptHeader'
