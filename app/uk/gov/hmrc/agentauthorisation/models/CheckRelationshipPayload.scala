@@ -18,6 +18,7 @@ package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.agentauthorisation.models.ServiceReads.singleOrArray
 
 case class CheckRelationshipPayload(
   service: List[String],
@@ -30,7 +31,7 @@ case class CheckRelationshipPayload(
 object CheckRelationshipPayload {
 
   implicit val reads: Reads[CheckRelationshipPayload] =
-    ((JsPath \ "service").read[List[String]] and
+    ((JsPath \ "service").read(singleOrArray) and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String] and

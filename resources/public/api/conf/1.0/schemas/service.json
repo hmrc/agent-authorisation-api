@@ -1,23 +1,18 @@
 {
-  "type": "array",
+  "type": "string",
   "description": "What do you want the client to authorise you to do?",
-  "items": {
-    "type": "string",
-    "oneOf": [
-      {
-        "enum": [
-          "MTD-IT"
-        ],
-        "description": "Report income or expenses through software"
-      },
-      {
-        "enum": [
-          "MTD-VAT"
-        ],
-        "description": "Report their VAT returns through software"
-      }
-    ]
-  },
-  "maxItems": 1
+  "oneOf": [
+    {
+      "enum": [
+        "MTD-IT"
+      ],
+      "description": "Report income or expenses through software"
+    },
+    {
+      "enum": [
+        "MTD-VAT"
+      ],
+      "description": "Report their VAT returns through software"
+    }
+  ]
 }
-

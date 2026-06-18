@@ -1,5 +1,5 @@
 {
-  "service": ["MTD-VAT"],
+  "service": "MTD-VAT",
   "clientType":"business",
   "clientIdType": "vrn",
   "clientId": "101747696",

@@ -117,4 +117,3 @@ class DeauthoriseClientControllerISpec extends BaseISpec {
     }
   }
 }
-
