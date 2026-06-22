@@ -85,7 +85,7 @@ Create a new authorisation request. The request will expire after 21 days.
 
 ```
 {
-  "service": ["MTD-IT"],
+  "service": "MTD-IT",
   "clientType":"personal",
   "clientIdType": "ni",
   "clientId": "AA999999A",
@@ -95,7 +95,7 @@ Create a new authorisation request. The request will expire after 21 days.
 ```
 ```
 {
-"service": ["MTD-IT"],
+"service": "MTD-IT",
 "clientType":"personal",
 "clientIdType": "ni",
 "clientId": "AA999999A",
@@ -105,7 +105,7 @@ Create a new authorisation request. The request will expire after 21 days.
 ```
 ```
 {
-  "service": ["MTD-VAT"],
+  "service": "MTD-VAT",
   "clientType":"business",
   "clientIdType": "vrn",
   "clientId": "101747696",
@@ -313,7 +313,7 @@ Get all authorisation requests for the last 30 days.
   },
   "created": "2019-01-21T14:27:44.620Z",
   "arn": "AARN9999999",
-  "service": ["MTD-IT"],
+  "service": "MTD-IT",
   "status": "Pending",
   "expiresOn": "2019-02-04T00:00:00:000Z",
   "clientActionUrl": "https://www.tax.service.gov.uk/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you/12345678/agent-1/income-tax",
@@ -327,7 +327,7 @@ Get all authorisation requests for the last 30 days.
     },
     "created": "2019-01-21T14:27:44.620Z",
     "arn": "AARN9999999",
-    "service": ["MTD-IT"],
+    "service": "MTD-IT",
     "status": "Accepted",
     "updated": "2019-01-21T14:27:44.620Z",
     "agentType": "supporting"
@@ -442,7 +442,7 @@ Get an authorisation request.
   "created": "2019-01-21T14:27:44.620Z",
   "expiresOn": "2019-02-04T00:00:00.00",
   "arn": "AARN9999999",
-  "service": ["MTD-IT"]
+  "service": "MTD-IT"
   "status": "Pending",
   "clientActionUrl": "https://www.tax.service.gov.uk/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you/12345678/agent-1/income-tax",
   "agentType": "main"
@@ -458,7 +458,7 @@ Get an authorisation request.
   "created": "2019-01-21T14:27:44.620Z",
   "updated": "2019-01-21T14:27:44.620Z",
   "arn": "AARN9999999",
-  "service": ["MTD-VAT"],
+  "service": "MTD-VAT",
   "status": "Accepted",
   "agentType": "supporting"
 }
@@ -685,7 +685,7 @@ Get the status of a relationship.
 
 ```
 {
-  "service": ["MTD-IT"],
+  "service": "MTD-IT",
   "clientIdType": "ni",
   "clientId": "AA999999A",
   "knownFact": "AA11 1AA",
@@ -694,7 +694,7 @@ Get the status of a relationship.
 ```
 ```
 {
-"service": ["MTD-IT"],
+"service": "MTD-IT",
 "clientIdType": "ni",
 "clientId": "AA999999A",
 "knownFact": "AA11 1AA",
@@ -703,7 +703,7 @@ Get the status of a relationship.
 ```
 ```
 {
-  "service": ["MTD-VAT"],
+  "service": "MTD-VAT",
   "clientIdType": "vrn",
   "clientId": "101747696",
   "knownFact": "2007-05-18"
@@ -882,7 +882,7 @@ For MTD-IT relationships, include `agentType` as `main` or `supporting` when you
 
 ```
 {
-  "service": ["MTD-IT"],
+  "service": "MTD-IT",
   "clientType": "personal",
   "clientIdType": "ni",
   "clientId": "AA999999A",
@@ -891,7 +891,7 @@ For MTD-IT relationships, include `agentType` as `main` or `supporting` when you
 ```
 ```
 {
-  "service": ["MTD-IT"],
+  "service": "MTD-IT",
   "clientType": "personal",
   "clientIdType": "ni",
   "clientId": "AA999999A",
@@ -900,7 +900,7 @@ For MTD-IT relationships, include `agentType` as `main` or `supporting` when you
 ```
 ```
 {
-  "service": ["MTD-VAT"],
+  "service": "MTD-VAT",
   "clientType": "business",
   "clientIdType": "vrn",
   "clientId": "101747696"

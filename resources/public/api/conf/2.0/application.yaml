@@ -864,21 +864,21 @@ paths:
             examples:
               example-ITSA-main:
                 value:
-                  service: ["MTD-IT"]
+                  service: "MTD-IT"
                   clientType: "personal"
                   clientIdType: "ni"
                   clientId: "AA999999A"
                   agentType: "main"
               example-ITSA-supporting:
                 value:
-                  service: ["MTD-IT"]
+                  service: "MTD-IT"
                   clientType: "personal"
                   clientIdType: "ni"
                   clientId: "AA999999A"
                   agentType: "supporting"
               example-VAT:
                 value:
-                  service: ["MTD-VAT"]
+                  service: "MTD-VAT"
                   clientType: "business"
                   clientIdType: "vrn"
                   clientId: "101747696"

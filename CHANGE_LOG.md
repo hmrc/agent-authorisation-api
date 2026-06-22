@@ -1,3 +1,7 @@
+## [APB-11560]
+* Remove the array wrapper from the documented `service` field in API examples and schemas, while continuing to accept the legacy single-element array format for backwards compatibility.
+* This keeps the published documentation aligned with the intended string-shaped request payloads and reduces future confusion for API consumers.
+
 ## [APB-10433]
 * Introduce API documentation version 2.0 and configure the API to support both 1.0 and 2.0 Accept headers.
 * Add new endpoint `PUT /agents/{arn}/deauthorise-client` to de-authorise existing MTD-IT and MTD-VAT relationships, returning 403 `NO_RELATIONSHIP` when no relationship exists.

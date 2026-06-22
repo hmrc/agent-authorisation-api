@@ -14,7 +14,7 @@
       "description": "Report income or expenses through software",
       "properties": {
         "service": {
-          "const": ["MTD-IT"]
+          "const": "MTD-IT"
         },
         "clientType": {
           "const": "personal"
@@ -53,7 +53,7 @@
       "description": "Report their VAT returns through software",
       "properties": {
         "service": {
-          "const": ["MTD-VAT"]
+          "const": "MTD-VAT"
         },
         "clientType": {
           "type":"string",
