@@ -44,23 +44,29 @@ class ServiceReadsSpec extends BaseSpec {
 
   "CheckRelationshipPayload" should {
     "read service when it is a string" in {
-      Json.obj(
-        "service"      -> "MTD-VAT",
-        "clientIdType" -> "vrn",
-        "clientId"     -> "101747696",
-        "knownFact"    -> "2025-01-31"
-      ).validate[CheckRelationshipPayload].isSuccess shouldBe true
+      Json
+        .obj(
+          "service"      -> "MTD-VAT",
+          "clientIdType" -> "vrn",
+          "clientId"     -> "101747696",
+          "knownFact"    -> "2025-01-31"
+        )
+        .validate[CheckRelationshipPayload]
+        .isSuccess shouldBe true
     }
   }
 
   "DeleteRelationshipPayload" should {
     "read service when it is a string" in {
-      Json.obj(
-        "service"      -> "MTD-IT",
-        "clientType"   -> "personal",
-        "clientIdType" -> "ni",
-        "clientId"     -> "AA123456A"
-      ).validate[DeleteRelationshipPayload].isSuccess shouldBe true
+      Json
+        .obj(
+          "service"      -> "MTD-IT",
+          "clientType"   -> "personal",
+          "clientIdType" -> "ni",
+          "clientId"     -> "AA123456A"
+        )
+        .validate[DeleteRelationshipPayload]
+        .isSuccess shouldBe true
     }
   }
 }
