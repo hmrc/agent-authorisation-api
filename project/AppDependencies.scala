@@ -11,8 +11,6 @@ object AppDependencies {
     "uk.gov.hmrc"        %% s"bootstrap-frontend-$playVer" % bootstrapVersion,
     "uk.gov.hmrc"        %% s"bootstrap-backend-$playVer"  % bootstrapVersion,
     "uk.gov.hmrc.mongo"  %% s"hmrc-mongo-$playVer"         % mongoVer,
-    "uk.gov.hmrc"        %% s"play-hmrc-api-$playVer"      % "8.0.0",
-    "uk.gov.hmrc"        %% s"play-hal-$playVer"           % "4.0.0",
     "uk.gov.hmrc"        %% s"domain-$playVer"             % "11.0.0"
   )
 

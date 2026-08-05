@@ -27,75 +27,75 @@ class ApiErrorResponseSpec extends BaseSpec {
     "read from JSON when the code is recognised" in {
       Json
         .obj("code" -> "AGENT_SUSPENDED")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe NoPermissionOnAgency
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe NoPermissionOnAgency
       Json
         .obj("code" -> "AGENT_NOT_SUBSCRIBED")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe AgentNotSubscribed
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe AgentNotSubscribed
       Json
         .obj("code" -> "ALREADY_AUTHORISED")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe AlreadyAuthorised
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe AlreadyAuthorised
       Json
         .obj("code" -> "ALREADY_BEING_PROCESSED")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe LockedRequest
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe LockedRequest
       Json
         .obj("code" -> "CLIENT_ID_DOES_NOT_MATCH_SERVICE")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe ClientIdDoesNotMatchService
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe ClientIdDoesNotMatchService
       Json
         .obj("code" -> "CLIENT_ID_FORMAT_INVALID")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe ClientIdInvalidFormat
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe ClientIdInvalidFormat
       Json
         .obj("code" -> "CLIENT_REGISTRATION_NOT_FOUND")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe ClientRegistrationNotFound
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe ClientRegistrationNotFound
       Json
         .obj("code" -> "CLIENT_TYPE_NOT_SUPPORTED")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe UnsupportedClientType
-      Json.obj("code" -> "INVALID_PAYLOAD").as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe InvalidPayload
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe UnsupportedClientType
+      Json.obj("code" -> "INVALID_PAYLOAD").as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe InvalidPayload
       Json
         .obj("code" -> "POSTCODE_FORMAT_INVALID")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe PostcodeFormatInvalid
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe PostcodeFormatInvalid
       Json
         .obj("code" -> "SERVICE_NOT_SUPPORTED")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe UnsupportedService
-      Json.obj("code" -> "UNAUTHORIZED").as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe StandardUnauthorised
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe UnsupportedService
+      Json.obj("code" -> "UNAUTHORIZED").as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe StandardUnauthorised
       Json
         .obj("code" -> "VAT_REG_DATE_FORMAT_INVALID")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe VatRegDateFormatInvalid
-      Json.obj("code" -> "NOT_AN_AGENT").as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe NotAnAgent
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe VatRegDateFormatInvalid
+      Json.obj("code" -> "NOT_AN_AGENT").as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe NotAnAgent
       Json
         .obj("code" -> "INTERNAL_SERVER_ERROR")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe StandardInternalServerError
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe StandardInternalServerError
       Json
         .obj("code" -> "NO_PERMISSION_ON_AGENCY")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe NoPermissionOnAgency
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe NoPermissionOnAgency
       Json
         .obj("code" -> "INVITATION_NOT_FOUND")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe InvitationNotFound
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe InvitationNotFound
       Json
         .obj("code" -> "INVALID_INVITATION_STATUS")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe InvalidInvitationStatus
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe InvalidInvitationStatus
       Json
         .obj("code" -> "RELATIONSHIP_NOT_FOUND")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads()) shouldBe RelationshipNotFound
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe RelationshipNotFound
       Json
         .obj("code" -> "KNOWN_FACT_DOES_NOT_MATCH")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads(Some(ItsaMain))) shouldBe PostcodeDoesNotMatch
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads(Some(ItsaMain))) shouldBe PostcodeDoesNotMatch
       Json
         .obj("code" -> "KNOWN_FACT_DOES_NOT_MATCH")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads(Some(ItsaSupp))) shouldBe PostcodeDoesNotMatch
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads(Some(ItsaSupp))) shouldBe PostcodeDoesNotMatch
       Json
         .obj("code" -> "KNOWN_FACT_DOES_NOT_MATCH")
-        .as[ApiErrorResponse](ApiErrorResponse.acrReads(Some(Vat))) shouldBe VatRegDateDoesNotMatch
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads(Some(Vat))) shouldBe VatRegDateDoesNotMatch
     }
 
     "fail to read from JSON when the code is not recognised" in {
       intercept[IllegalArgumentException](
-        Json.obj("code" -> "BAD_CODE").as[ApiErrorResponse](ApiErrorResponse.acrReads())
+        Json.obj("code" -> "BAD_CODE").as[ApiErrorResponse](using ApiErrorResponse.acrReads())
       )
     }
 
     "fail to GenericApiErrorResponse with default settings  when json is empty" in {
       intercept[IllegalArgumentException](
-        Json.obj().as[ApiErrorResponse](ApiErrorResponse.acrReads())
+        Json.obj().as[ApiErrorResponse](using ApiErrorResponse.acrReads())
       )
     }
 

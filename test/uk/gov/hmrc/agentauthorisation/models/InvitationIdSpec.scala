@@ -25,7 +25,7 @@ import java.time.LocalDate
 
 class InvitationIdSpec extends AnyFlatSpec with Matchers {
   val invWithoutPrefix = (prefix: Char) =>
-    InvitationId.create("myAgency", "clientId", "service", LocalDate.parse("2001-01-01").atStartOfDay())(prefix)
+    InvitationId.create("myAgency", "clientId", "service", LocalDate.parse("2001-01-01").atStartOfDay())(using prefix)
 
   "create" should "add prefix to start of identifier" in {
     invWithoutPrefix('A').value.head shouldBe 'A'
@@ -52,14 +52,14 @@ class InvitationIdSpec extends AnyFlatSpec with Matchers {
     val clientId = "clientId"
     val service = "service"
     val time = LocalDate.parse("2001-01-01").atStartOfDay()
-    implicit val prefix = 'A'
+    given Char = 'A'
 
     val invA = InvitationId.create(agency, clientId, service, time).value
     val invB = InvitationId.create("different", clientId, service, time).value
     val invC = InvitationId.create(agency, "different", service, time).value
     val invD = InvitationId.create(agency, clientId, "different", time).value
     val invE = InvitationId.create(agency, clientId, service, LocalDate.parse("1999-01-01").atStartOfDay()).value
-    val invF = InvitationId.create(agency, clientId, service, LocalDate.parse("1999-01-01").atStartOfDay())('Z').value
+    val invF = InvitationId.create(agency, clientId, service, LocalDate.parse("1999-01-01").atStartOfDay())(using 'Z').value
 
     Set(invA, invB, invC, invD, invE, invF).size shouldBe 6
   }

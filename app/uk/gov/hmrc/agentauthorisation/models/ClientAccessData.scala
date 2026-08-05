@@ -92,13 +92,11 @@ object ClientAccessData {
       case _ => None
     }
 
-  implicit val writes: Writes[ClientAccessData] = new Writes[ClientAccessData] {
-    override def writes(o: ClientAccessData): JsValue =
-      Json.obj(
-        "service"          -> o.service,
-        "suppliedClientId" -> o.suppliedClientId.replaceAll(" ", ""),
-        "knownFact"        -> o.knownFact,
-        "clientType"       -> o.clientType
-      )
-  }
+  given Writes[ClientAccessData] = Writes: o =>
+    Json.obj(
+      "service"          -> o.service,
+      "suppliedClientId" -> o.suppliedClientId.replaceAll(" ", ""),
+      "knownFact"        -> o.knownFact,
+      "clientType"       -> o.clientType
+    )
 }

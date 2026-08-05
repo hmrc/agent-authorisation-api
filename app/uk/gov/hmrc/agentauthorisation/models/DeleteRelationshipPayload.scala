@@ -30,8 +30,8 @@ case class DeleteRelationshipPayload(
 
 object DeleteRelationshipPayload {
 
-  implicit val reads: Reads[DeleteRelationshipPayload] =
-    ((JsPath \ "service").read(singleOrArray) and
+  given Reads[DeleteRelationshipPayload] =
+    ((JsPath \ "service").read(using singleOrArray) and
       (JsPath \ "clientType").read[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and

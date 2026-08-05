@@ -32,7 +32,7 @@ abstract class BaseISpec
     extends UnitSpec with GuiceOneServerPerSuite with WireMockSupport with AuthStubs with MongoApp with DataStreamStubs
     with ACRStubs with TestIdentifiers {
 
-  override implicit lazy val app: Application = appBuilder.build()
+  override lazy given app: Application = appBuilder.build()
 
   def isEnabledItsaSupportingAgent: Boolean = true
 
@@ -60,7 +60,7 @@ abstract class BaseISpec
 
   protected def additionalConfiguration = Map.empty[String, Any]
 
-  protected implicit val materializer: Materializer = app.materializer
+  protected given Materializer = app.materializer
 
   lazy val mongoLockService: MongoLockService = new MongoLockService(mongoLockRepository)
   def mongoLockRepository = new MongoLockRepository(mongoComponent, new CurrentTimestampSupport)

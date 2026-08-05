@@ -29,9 +29,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 import java.net.URI
 
 abstract class BaseSpec extends UnitSpec {
-  implicit val sys: ActorSystem = ActorSystem("TestSystem")
-  implicit val mat: Materializer = NoMaterializer
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  given ActorSystem = ActorSystem("TestSystem")
+  given Materializer = NoMaterializer
+  given HeaderCarrier = HeaderCarrier()
 
   val arn: Arn = Arn("TARN0000001")
 

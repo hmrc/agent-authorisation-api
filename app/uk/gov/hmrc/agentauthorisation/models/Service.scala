@@ -56,14 +56,10 @@ object Service {
     override def urlPart: String = "vat"
   }
 
-  implicit val reads: Reads[Service] = new Reads[Service] {
-    override def reads(json: JsValue): JsResult[Service] = json match {
-      case JsString(name) => JsSuccess(Service(name))
-      case o              => JsError(s"Cannot parse service from $o, must be JsString.")
-    }
-  }
+  given Reads[Service] = Reads:
+    case JsString(name) => JsSuccess(Service(name))
+    case o              => JsError(s"Cannot parse service from $o, must be JsString.")
 
-  implicit val writes: Writes[Service] = new Writes[Service] {
-    override def writes(service: Service): JsValue = JsString(service.internalServiceName)
-  }
+  given Writes[Service] = Writes: service =>
+    JsString(service.internalServiceName)
 }

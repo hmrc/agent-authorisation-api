@@ -17,7 +17,6 @@
 package uk.gov.hmrc.agentauthorisation.audit
 
 import play.api.mvc.Request
-import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
 import uk.gov.hmrc.agentauthorisation.models.Arn
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
@@ -28,10 +27,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-object AgentAuthorisationEvent extends Enumeration {
-  val agentAuthorisationCreatedViaApi, agentAuthorisedCancelledViaApi = Value
-  type AgentAuthorisationEvent = Value
-}
+enum AgentAuthorisationEvent:
+  case agentAuthorisationCreatedViaApi, agentAuthorisedCancelledViaApi
 
 @Singleton
 class AuditService @Inject() (val auditConnector: AuditConnector) {
@@ -40,11 +37,11 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
     event: AgentAuthorisationEvent,
     transactionName: String,
     details: Seq[(String, Any)] = Seq.empty
-  )(implicit hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
-    send(createEvent(event, transactionName, details: _*))
+  )(using hc: HeaderCarrier, request: Request[Any], ec: ExecutionContext): Future[Unit] =
+    send(createEvent(event, transactionName, details*))
 
   def sendAgentInvitationCancelled(arn: Arn, invitationId: String, result: String, failure: Option[String] = None)(
-    implicit
+    using
     hc: HeaderCarrier,
     request: Request[Any],
     ec: ExecutionContext
@@ -58,18 +55,18 @@ class AuditService @Inject() (val auditConnector: AuditConnector) {
         .getOrElse(Seq.empty)
     )
 
-  private def createEvent(event: AgentAuthorisationEvent, transactionName: String, details: (String, Any)*)(implicit
+  private def createEvent(event: AgentAuthorisationEvent, transactionName: String, details: (String, Any)*)(using
     hc: HeaderCarrier,
     request: Request[Any]
   ): DataEvent = {
 
     val detail =
-      hc.toAuditDetails(details.map(pair => pair._1 -> pair._2.toString): _*)
+      hc.toAuditDetails(details.map(pair => pair._1 -> pair._2.toString)*)
     val tags = hc.toAuditTags(transactionName, request.path)
     DataEvent(auditSource = "agent-authorisation-api", auditType = event.toString, tags = tags, detail = detail)
   }
 
-  private def send(events: DataEvent*)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
+  private def send(events: DataEvent*)(using hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     Future {
       events.foreach { event =>
         Try(auditConnector.sendEvent(event))

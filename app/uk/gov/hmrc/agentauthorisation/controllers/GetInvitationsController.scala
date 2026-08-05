@@ -35,19 +35,20 @@ class GetInvitationsController @Inject() (
   val authConnector: AuthConnector,
   cc: ControllerComponents,
   appConfig: AppConfig
-)(implicit ec: ExecutionContext)
+)(using ec: ExecutionContext)
     extends BackendController(cc) with AuthActions {
 
   def getInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { request =>
+      given play.api.mvc.Request[AnyContent] = request
       withAuthorisedAsAgent { arn =>
-        implicit val loggedInArn: Arn = arn
+        given Arn = arn
         validateArnInRequest(givenArn) {
           getInvitationsService
             .getInvitation(arn, invitationId)
             .map {
               case Right(invitationDetails) =>
-                Ok(toJson(invitationDetails)(SingleInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
+                Ok(toJson(invitationDetails)(using SingleInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
               case Left(errorResponse: ApiErrorResponse) =>
                 errorResponse.toResult
             }
@@ -55,9 +56,10 @@ class GetInvitationsController @Inject() (
       }
     }
 
-  def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
+  def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { request =>
+    given play.api.mvc.Request[AnyContent] = request
     withAuthorisedAsAgent { arn =>
-      implicit val loggedInArn: Arn = arn
+      given Arn = arn
       validateArnInRequest(givenArn) {
         getInvitationsService
           .getAllInvitations(arn)
@@ -65,7 +67,7 @@ class GetInvitationsController @Inject() (
             case Right(AllInvitationDetails(_, Nil)) =>
               NoContent
             case Right(invitationDetails) =>
-              Ok(toJson(invitationDetails)(AllInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
+              Ok(toJson(invitationDetails)(using AllInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
             case Left(errorResponse: ApiErrorResponse) =>
               errorResponse.toResult
           }

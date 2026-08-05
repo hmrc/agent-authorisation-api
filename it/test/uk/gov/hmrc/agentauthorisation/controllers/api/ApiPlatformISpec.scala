@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.agentauthorisation.support.{BaseISpec, Resource}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -24,9 +25,31 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class ApiPlatformISpec extends BaseISpec {
 
-  implicit val ws: WSClient = app.injector.instanceOf[WSClient]
+  private val expectedDefinition = Json.obj(
+    "api" -> Json.obj(
+      "name"        -> "Agent Authorisation",
+      "description" -> "An API allowing MTD-enabled Agents to request authorisation to a service for a client, instead of filling the 64-8 paper form.",
+      "context"     -> "agents",
+      "versions" -> Json.arr(
+        Json.obj(
+          "version"          -> "1.0",
+          "status"           -> "BETA",
+          "endpointsEnabled" -> true,
+          "access"           -> Json.obj("type" -> "PRIVATE")
+        ),
+        Json.obj(
+          "version"          -> "2.0",
+          "status"           -> "BETA",
+          "endpointsEnabled" -> true,
+          "access"           -> Json.obj("type" -> "PRIVATE")
+        )
+      )
+    )
+  )
 
-  implicit val hc: HeaderCarrier =
+  given WSClient = app.injector.instanceOf[WSClient]
+
+  given HeaderCarrier =
     HeaderCarrier(otherHeaders = Seq("Accept" -> "application/vnd.hmrc.2.0+json"))
 
   "/public/api/definition" should {
@@ -36,16 +59,11 @@ class ApiPlatformISpec extends BaseISpec {
 
       val definition = response.json
 
-      (definition \ "api" \ "name").as[String] shouldBe "Agent Authorisation"
-
-      val accessConfig = definition \ "api" \ "versions" \\ "access"
-      (accessConfig.head \ "type").as[String] shouldBe "PRIVATE"
+      definition shouldBe expectedDefinition
     }
   }
 
-  "provide YAML documentation exists for all API versions" in new ApiTestSupport {
-
-    lazy override val runningPort: Int = port
+  "provide YAML documentation exists for all API versions" in new ApiTestSupport(port) {
 
     forAllApiVersions(yamlByVersion) { case (version, yaml) =>
       info(s"Checking API YAML documentation for version[$version] of the API")

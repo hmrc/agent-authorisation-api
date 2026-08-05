@@ -28,12 +28,12 @@ import scala.concurrent.{ExecutionContext, Future}
 class CreateInvitationService @Inject() (
   lockService: MongoLockService,
   acrConnector: AgentClientRelationshipsConnector
-)(implicit ec: ExecutionContext) {
+)(using ec: ExecutionContext) {
 
   def createInvitation(
     arn: Arn,
     clientAccessData: ClientAccessData
-  )(implicit rh: RequestHeader): Future[Either[ApiErrorResponse, InvitationId]] =
+  )(using rh: RequestHeader): Future[Either[ApiErrorResponse, InvitationId]] =
     lockService
       .acquireLock(
         arn = arn.value,

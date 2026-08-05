@@ -33,8 +33,8 @@ class AuthActionsISpec extends BaseISpec {
 
     override def authConnector: AuthConnector = app.injector.instanceOf[AuthConnector]
 
-    implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("Bearer XYZ")))
-    implicit val request: FakeRequest[AnyContentAsEmpty.type] =
+    given HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("Bearer XYZ")))
+    given FakeRequest[AnyContentAsEmpty.type] =
       FakeRequest().withHeaders("Authorization" -> "Bearer XYZ")
 
     def withAuthorisedAsAgent[A]: Result =

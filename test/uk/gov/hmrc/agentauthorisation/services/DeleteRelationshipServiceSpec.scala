@@ -32,31 +32,17 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteRelationshipServiceSpec extends BaseSpec with MockFactory {
 
-  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.global
+  given ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  private val servicesConfig: ServicesConfig = mock[ServicesConfig]
+  private val config = Configuration.apply(
+    "api.supported-versions"                                                 -> List("1.0"),
+    "api.access.type"                                                        -> "PRIVATE",
+    "microservice.services.agent-client-relationships.host"                  -> "localhost",
+    "microservice.services.agent-client-relationships.port"                  -> 9434,
+    "microservice.services.agent-client-relationships-frontend.external-url" -> "http://localhost"
+  )
 
-  (servicesConfig
-    .baseUrl(_: String))
-    .expects(*)
-    .atLeastOnce()
-    .returning("http://localhost")
-
-  (servicesConfig
-    .getConfString(_: String, _: String))
-    .expects(*, *)
-    .atLeastOnce()
-    .returning("http://localhost")
-
-  (servicesConfig
-    .getString(_: String))
-    .expects(*)
-    .atLeastOnce()
-    .returning("PRIVATE")
-
-  private val config = Configuration.apply("api.supported-versions" -> List(1.0))
-
-  private val appConfig = new AppConfig(servicesConfig, config)
+  private val appConfig = AppConfig(ServicesConfig(config), config)
 
   private class StubAcrConnector(expectedService: String, lockService: FakeLockService)
       extends AgentClientRelationshipsConnector(
@@ -71,7 +57,7 @@ class DeleteRelationshipServiceSpec extends BaseSpec with MockFactory {
       arn: Arn,
       clientId: String,
       service: String
-    )(implicit rh: play.api.mvc.RequestHeader): Future[Either[ApiErrorResponse, Unit]] = {
+    )(using rh: play.api.mvc.RequestHeader): Future[Either[ApiErrorResponse, Unit]] = {
       captured = Some((arn, clientId, service))
       lockService.locked should contain((arn.value, expectedService, clientId))
       Future.successful(Right(()))
@@ -85,7 +71,7 @@ class DeleteRelationshipServiceSpec extends BaseSpec with MockFactory {
       val acrConnector = new StubAcrConnector("HMRC-MTD-IT", lockService)
       val service = new DeleteRelationshipService(lockService, acrConnector)
 
-      implicit val rh = testRequest(FakeRequest())
+      given play.api.mvc.RequestHeader = testRequest(FakeRequest())
 
       val payload = DeleteRelationshipPayload(
         service = List("MTD-IT"),
@@ -106,7 +92,7 @@ class DeleteRelationshipServiceSpec extends BaseSpec with MockFactory {
       val acrConnector = new StubAcrConnector("HMRC-MTD-VAT", lockService)
       val service = new DeleteRelationshipService(lockService, acrConnector)
 
-      implicit val rh = testRequest(FakeRequest())
+      given play.api.mvc.RequestHeader = testRequest(FakeRequest())
 
       val payload = DeleteRelationshipPayload(
         service = List("MTD-VAT"),
@@ -127,7 +113,7 @@ class DeleteRelationshipServiceSpec extends BaseSpec with MockFactory {
       val acrConnector = new StubAcrConnector("HMRC-MTD-IT-SUPP", lockService)
       val service = new DeleteRelationshipService(lockService, acrConnector)
 
-      implicit val rh = testRequest(FakeRequest())
+      given play.api.mvc.RequestHeader = testRequest(FakeRequest())
 
       val payload = DeleteRelationshipPayload(
         service = List("MTD-IT"),

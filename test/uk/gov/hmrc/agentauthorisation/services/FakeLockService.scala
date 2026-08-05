@@ -24,7 +24,7 @@ class FakeLockService extends MongoLockService(null) {
 
   override def acquireLock[T](arn: String, service: String, clientId: String)(
     body: => Future[T]
-  )(implicit ec: ExecutionContext): Future[Option[T]] =
+  )(using ec: ExecutionContext): Future[Option[T]] =
     if (locked.contains((arn, service, clientId))) Future.successful(None)
     else {
       locked.add((arn, service, clientId))

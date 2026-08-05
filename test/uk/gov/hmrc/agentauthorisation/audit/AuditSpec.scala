@@ -23,8 +23,8 @@ import org.scalatest.concurrent.Eventually
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.agentauthorisation.models.Arn
+import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, RequestId, SessionId}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
@@ -33,45 +33,49 @@ import scala.concurrent.ExecutionContext
 
 class AuditSpec extends UnitSpec with MockitoSugar with Eventually {
 
+  private def sentEventFor(failure: Option[String] = None): DataEvent = {
+    val mockConnector = mock[AuditConnector]
+    val service = new AuditService(mockConnector)
+
+    given HeaderCarrier = HeaderCarrier(
+      authorization = Some(Authorization("dummy bearer token")),
+      sessionId = Some(SessionId("dummy session id")),
+      requestId = Some(RequestId("dummy request id"))
+    )
+    given ExecutionContext = ExecutionContext.Implicits.global
+    given FakeRequest[play.api.mvc.AnyContentAsEmpty.type] = FakeRequest("GET", "/path")
+
+    await(service.sendAgentInvitationCancelled(Arn("HX2345"), "1", "Success", failure))
+
+    eventually {
+      val captor = ArgumentCaptor.forClass(classOf[DataEvent])
+      verify(mockConnector).sendEvent(captor.capture())(using any[HeaderCarrier], any[ExecutionContext])
+      captor.getValue
+    }
+  }
+
   "auditEvent" should {
 
     "send an agentAuthorisedCancelledViaApi Event for ITSA" in {
-      val mockConnector = mock[AuditConnector]
-      val service = new AuditService(mockConnector)
+      val sentEvent = sentEventFor()
 
-      val hc = HeaderCarrier(
-        authorization = Some(Authorization("dummy bearer token")),
-        sessionId = Some(SessionId("dummy session id")),
-        requestId = Some(RequestId("dummy request id"))
-      )
+      sentEvent.auditType shouldBe "agentAuthorisedCancelledViaApi"
+      sentEvent.auditSource shouldBe "agent-authorisation-api"
+      sentEvent.detail("result") shouldBe "Success"
+      sentEvent.detail("invitationId") shouldBe "1"
+      sentEvent.detail("agentReferenceNumber") shouldBe "HX2345"
+      sentEvent.detail.contains("failureDescription") shouldBe false
 
-      val arn: Arn = Arn("HX2345")
-      val invitationId: String = "1"
-      val result: String = "Success"
+      sentEvent.tags("transactionName") shouldBe "agent-cancelled-invitation-via-api"
+      sentEvent.tags("path") shouldBe "/path"
+      sentEvent.tags("X-Session-ID") shouldBe "dummy session id"
+      sentEvent.tags("X-Request-ID") shouldBe "dummy request id"
+    }
 
-      await(
-        service.sendAgentInvitationCancelled(arn, invitationId, result)(
-          hc,
-          FakeRequest("GET", "/path"),
-          ExecutionContext.Implicits.global
-        )
-      )
+    "include failure description when one is supplied" in {
+      val sentEvent = sentEventFor(Some("Known failure"))
 
-      eventually {
-        val captor = ArgumentCaptor.forClass(classOf[DataEvent])
-        verify(mockConnector).sendEvent(captor.capture())(any[HeaderCarrier], any[ExecutionContext])
-        val sentEvent = captor.getValue.asInstanceOf[DataEvent]
-
-        sentEvent.auditType shouldBe "agentAuthorisedCancelledViaApi"
-        sentEvent.auditSource shouldBe "agent-authorisation-api"
-        sentEvent.detail("invitationId") shouldBe "1"
-        sentEvent.detail("agentReferenceNumber") shouldBe "HX2345"
-
-        sentEvent.tags("transactionName") shouldBe "agent-cancelled-invitation-via-api"
-        sentEvent.tags("path") shouldBe "/path"
-        sentEvent.tags("X-Session-ID") shouldBe "dummy session id"
-        sentEvent.tags("X-Request-ID") shouldBe "dummy request id"
-      }
+      sentEvent.detail("failureDescription") shouldBe "Known failure"
     }
   }
 }

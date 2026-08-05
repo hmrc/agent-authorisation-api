@@ -28,12 +28,12 @@ import scala.concurrent.{ExecutionContext, Future}
 class DeleteRelationshipService @Inject() (
   lockService: MongoLockService,
   acrConnector: AgentClientRelationshipsConnector
-)(implicit ec: ExecutionContext) {
+)(using ec: ExecutionContext) {
 
   def deleteRelationship(
     arn: Arn,
     payload: DeleteRelationshipPayload
-  )(implicit rh: RequestHeader): Future[Either[ApiErrorResponse, Unit]] = {
+  )(using rh: RequestHeader): Future[Either[ApiErrorResponse, Unit]] = {
     val externalService = payload.service.head
     val clientId = payload.clientId
 

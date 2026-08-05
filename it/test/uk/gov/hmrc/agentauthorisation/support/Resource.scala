@@ -17,9 +17,9 @@
 package uk.gov.hmrc.agentauthorisation.support
 
 import play.api.http.{HeaderNames, MimeTypes}
+import play.api.libs.ws.DefaultBodyWritables.{writeableOf_String, writeableOf_WsBody}
 import play.api.libs.ws.{EmptyBody, WSClient, WSRequest, WSResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.http.ws.WSHttpResponse
 
 import scala.concurrent.duration.{Duration, SECONDS, _}
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -27,43 +27,43 @@ import scala.language.postfixOps
 
 object Http {
 
-  def get(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse = perform(url) {
+  def get(url: String)(using hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse = perform(url) {
     request =>
       request.get()
   }
 
-  def post(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(implicit
+  def post(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(using
     hc: HeaderCarrier,
     ec: ExecutionContext,
     ws: WSClient
   ): HttpResponse = perform(url) { request =>
-    request.addHttpHeaders(headers: _*).post(body)
+    request.addHttpHeaders(headers*).post(body)
   }
 
-  def postEmpty(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse =
+  def postEmpty(url: String)(using hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse =
     perform(url) { request =>
       request.post(EmptyBody)
     }
 
-  def putEmpty(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse =
+  def putEmpty(url: String)(using hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse =
     perform(url) { request =>
       request.put(EmptyBody)
     }
 
-  def delete(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse = perform(url) {
+  def delete(url: String)(using hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse = perform(url) {
     request =>
       request.delete()
   }
 
   private def perform(
     url: String
-  )(fun: WSRequest => Future[WSResponse])(implicit hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient) =
+  )(fun: WSRequest => Future[WSResponse])(using hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient) =
     await(
       fun(
         ws.url(url)
-          .addHttpHeaders(hc.headersForUrl(HeaderCarrier.Config())(url): _*)
+          .addHttpHeaders(hc.headersForUrl(HeaderCarrier.Config())(url)*)
           .withRequestTimeout(20000 milliseconds)
-      ).map(WSHttpResponse(_))
+      ).map(response => HttpResponse(response.status, response.body))
     )
 
   private def await[A](future: Future[A]) = Await.result(future, Duration(10, SECONDS))
@@ -72,15 +72,15 @@ object Http {
 
 class Resource(path: String, port: Int) {
 
-  def get()(implicit hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
-    Http.get(s"http://localhost:$port$path")(hc, ec, ws)
+  def get()(using hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
+    Http.get(s"http://localhost:$port$path")
 
-  def postAsJson(body: String)(implicit hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
-    Http.post(s"http://localhost:$port$path", body, Seq(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON))(hc, ec, ws)
+  def postAsJson(body: String)(using hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
+    Http.post(s"http://localhost:$port$path", body, Seq(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON))
 
-  def postEmpty()(implicit hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
-    Http.postEmpty(s"http://localhost:$port$path")(hc, ec, ws)
+  def postEmpty()(using hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
+    Http.postEmpty(s"http://localhost:$port$path")
 
-  def putEmpty()(implicit hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
-    Http.putEmpty(s"http://localhost:$port$path")(hc, ec, ws)
+  def putEmpty()(using hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
+    Http.putEmpty(s"http://localhost:$port$path")
 }

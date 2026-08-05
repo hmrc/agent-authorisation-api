@@ -40,7 +40,7 @@ abstract class ApiErrorResponse(val statusCode: Int, val code: String, val messa
         InternalServerError(this.toJson)
     }
   }
-  lazy val toJson: JsValue = Json.toJson(this)(ApiErrorResponse.errorResponseWrites)
+  lazy val toJson: JsValue = Json.toJson(this)
 }
 
 object ApiErrorResponse {
@@ -87,9 +87,8 @@ object ApiErrorResponse {
       JsSuccess(response)
     }
 
-  implicit val errorResponseWrites: Writes[ApiErrorResponse] = new Writes[ApiErrorResponse] {
-    def writes(e: ApiErrorResponse): JsValue = Json.obj("code" -> e.code, "message" -> e.message)
-  }
+  given Writes[ApiErrorResponse] = Writes: e =>
+    Json.obj("code" -> e.code, "message" -> e.message)
 }
 
 case object AgentNotSubscribed

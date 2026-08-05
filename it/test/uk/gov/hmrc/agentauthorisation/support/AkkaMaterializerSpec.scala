@@ -27,8 +27,8 @@ import uk.gov.hmrc.agentauthorisation.support.UnitSpec
   */
 trait AkkaMaterializerSpec extends UnitSpec with BeforeAndAfterAll { this: Suite =>
 
-  implicit lazy val actorSystem: ActorSystem = ActorSystem()
-  implicit lazy val materializer: NoMaterializer.type = NoMaterializer
+  given actorSystem: ActorSystem = ActorSystem()
+  given materializer: NoMaterializer.type = NoMaterializer
 
   override protected def afterAll(): Unit = {
     super.afterAll()

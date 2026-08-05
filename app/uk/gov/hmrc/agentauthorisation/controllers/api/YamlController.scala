@@ -27,13 +27,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class YamlController @Inject() (assets: Assets, configuration: Configuration, cc: ControllerComponents)(implicit
+class YamlController @Inject() (assets: Assets, configuration: Configuration, cc: ControllerComponents)(using
   mat: Materializer,
   ec: ExecutionContext
 ) extends BackendController(cc) {
 
   def yaml(version: String, file: String): Action[AnyContent] =
-    CORSActionBuilder(configuration).async { implicit request =>
+    CORSActionBuilder(configuration).async { request =>
       assets.at(s"/public/api/conf/$version", file)(request)
     }
 }

@@ -34,12 +34,13 @@ class CheckRelationshipController @Inject() (
   validateClientAccessDataService: ValidateClientAccessDataService,
   val authConnector: AuthConnector,
   cc: ControllerComponents
-)(implicit val ec: ExecutionContext)
+)(using val ec: ExecutionContext)
     extends BackendController(cc) with AuthActions {
 
-  def checkRelationship(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
+  def checkRelationship(givenArn: Arn): Action[AnyContent] = Action.async { request =>
+    given Request[AnyContent] = request
     withAuthorisedAsAgent { arn =>
-      implicit val loggedInArn: Arn = arn
+      given Arn = arn
       validateArnInRequest(givenArn) {
         validateClientAccessDataService
           .validateCheckRelationshipPayload(request.body.asJson)

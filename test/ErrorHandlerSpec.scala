@@ -37,20 +37,20 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
   trait BaseSetup {
-    implicit val sys: ActorSystem = ActorSystem("MyTest")
-    implicit val mat: NoMaterializer.type = NoMaterializer
-    implicit val configuration: Configuration = Configuration(
+    given ActorSystem = ActorSystem("MyTest")
+    given NoMaterializer.type = NoMaterializer
+    given Configuration = Configuration(
       "bootstrap.errorHandler.warnOnly.statusCodes"     -> List(400, 404),
       "bootstrap.errorHandler.suppress4xxErrorMessages" -> false,
       "bootstrap.errorHandler.suppress5xxErrorMessages" -> false
     )
 
-    implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
+    given FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
     val mockAuditConnector = mock[AuditConnector]
     val mockAuditResult = mock[AuditResult]
     val mockHttpAuditEvent = mock[HttpAuditEvent]
 
-    when(mockAuditConnector.sendEvent(any[DataEvent]())(any[HeaderCarrier](), any[ExecutionContext]()))
+    when(mockAuditConnector.sendEvent(any[DataEvent]())(using any[HeaderCarrier](), any[ExecutionContext]()))
       .thenReturn(Future.successful(mockAuditResult))
 
     val errorHandler = new ErrorHandler(mockAuditConnector, mockHttpAuditEvent)
@@ -58,6 +58,7 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
 
   "onClientError" should {
     class Setup(statusCode: Int) extends BaseSetup {
+      private val fakeRequest = summon[FakeRequest[AnyContentAsEmpty.type]]
       val response = await(errorHandler.onClientError(fakeRequest, statusCode, "A message"))
     }
 
@@ -80,7 +81,9 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
 
   "onServerError" should {
     "return ErrorInternalServerError" in new BaseSetup {
-      val response = await(errorHandler.onServerError(fakeRequest, new RuntimeException("Internal Server Error")))
+      val response = await(
+        errorHandler.onServerError(summon[FakeRequest[AnyContentAsEmpty.type]], new RuntimeException("Internal Server Error"))
+      )
 
       contentAsJson(response) shouldBe StandardInternalServerError.toJson
     }

@@ -28,11 +28,11 @@ case class SingleInvitationDetails(
   invitation: InvitationDetails
 )
 object SingleInvitationDetails {
-  implicit val reads: Reads[SingleInvitationDetails] = Reads { json =>
+  given Reads[SingleInvitationDetails] = Reads { json =>
     JsSuccess(SingleInvitationDetails(json.as[AgentDetails], json.as[InvitationDetails]))
   }
   def apiWrites(arn: Arn, acrfUrl: String): Writes[SingleInvitationDetails] = Writes { details =>
-    Json.toJson(details.invitation)(InvitationDetails.apiWrites(arn, acrfUrl, details.agentDetails))
+    Json.toJson(details.invitation)(using InvitationDetails.apiWrites(arn, acrfUrl, details.agentDetails))
   }
 }
 
@@ -41,7 +41,7 @@ case class AllInvitationDetails(
   invitations: Seq[InvitationDetails]
 )
 object AllInvitationDetails {
-  implicit val reads: Reads[AllInvitationDetails] = Reads { json =>
+  given Reads[AllInvitationDetails] = Reads { json =>
     JsSuccess(
       AllInvitationDetails(
         json.as[AgentDetails],
@@ -50,7 +50,7 @@ object AllInvitationDetails {
     )
   }
   def apiWrites(arn: Arn, acrfUrl: String): Writes[AllInvitationDetails] = Writes { details =>
-    implicit val invitationWrites: Writes[InvitationDetails] =
+    given Writes[InvitationDetails] =
       InvitationDetails.apiWrites(arn, acrfUrl, details.agentDetails)
     Json.toJson(details.invitations)
   }
@@ -61,7 +61,7 @@ case class AgentDetails(
   normalizedAgentName: String
 )
 object AgentDetails {
-  implicit val reads: Reads[AgentDetails] = Json.reads[AgentDetails]
+  given Reads[AgentDetails] = Json.reads[AgentDetails]
 }
 
 case class InvitationDetails(
@@ -73,7 +73,7 @@ case class InvitationDetails(
   lastUpdated: Instant
 )
 object InvitationDetails {
-  implicit val reads: Reads[InvitationDetails] = Json.reads[InvitationDetails]
+  given Reads[InvitationDetails] = Json.reads[InvitationDetails]
 
   def apiWrites(arn: Arn, acrfUrl: String, agentDetails: AgentDetails): Writes[InvitationDetails] =
     Writes { invitation =>

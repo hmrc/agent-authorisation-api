@@ -28,7 +28,7 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
 
   val connector: AgentClientRelationshipsConnector = app.injector.instanceOf[AgentClientRelationshipsConnector]
 
-  private implicit val request: RequestHeader = FakeRequest()
+  private given RequestHeader = FakeRequest()
 
   val testClientAccessData: ClientAccessData = ClientAccessData(ItsaMain, "AB123456A", "DH14EJ", Some("personal"))
 

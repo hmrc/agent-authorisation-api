@@ -31,8 +31,8 @@ case class CreateInvitationPayload(
 
 object CreateInvitationPayload {
 
-  implicit val reads: Reads[CreateInvitationPayload] =
-    ((JsPath \ "service").read(singleOrArray) and
+  given Reads[CreateInvitationPayload] =
+    ((JsPath \ "service").read(using singleOrArray) and
       (JsPath \ "clientType").read[String] and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
@@ -42,14 +42,12 @@ object CreateInvitationPayload {
         CreateInvitationPayload(service, clientType, clientIdType, clientId, knownFact, agentType)
     )
 
-  implicit val writes: Writes[CreateInvitationPayload] = new Writes[CreateInvitationPayload] {
-    override def writes(o: CreateInvitationPayload): JsValue =
-      Json.obj(
-        "service"      -> o.service,
-        "clientType"   -> o.clientType,
-        "clientIdType" -> o.clientIdType,
-        "clientId"     -> o.clientId.replaceAll(" ", ""),
-        "knownFact"    -> o.knownFact
-      )
-  }
+  given Writes[CreateInvitationPayload] = Writes: o =>
+    Json.obj(
+      "service"      -> o.service,
+      "clientType"   -> o.clientType,
+      "clientIdType" -> o.clientIdType,
+      "clientId"     -> o.clientId.replaceAll(" ", ""),
+      "knownFact"    -> o.knownFact
+    )
 }
