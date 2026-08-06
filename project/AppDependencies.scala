@@ -2,7 +2,7 @@ import play.sbt.PlayImport.ws
 import sbt.*
 
 object AppDependencies {
-  private val mongoVer: String = "2.12.0"
+  private val mongoVer: String = "2.13.0"
   private val bootstrapVersion: String = "10.7.0"
   private val playVer: String = "play-30"
 
