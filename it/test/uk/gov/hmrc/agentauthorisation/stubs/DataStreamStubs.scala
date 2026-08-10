@@ -20,13 +20,13 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.libs.json.Json
-import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent.AgentAuthorisationEvent
+import uk.gov.hmrc.agentauthorisation.audit.AgentAuthorisationEvent
 import uk.gov.hmrc.agentauthorisation.support.WireMockSupport
 
 trait DataStreamStubs extends Eventually {
   me: WireMockSupport =>
 
-  override implicit val patienceConfig: PatienceConfig =
+  override given  patienceConfig: PatienceConfig =
     PatienceConfig(scaled(Span(5, Seconds)), scaled(Span(500, Millis)))
 
   def givenAuditConnector(): Unit = {
@@ -46,7 +46,7 @@ trait DataStreamStubs extends Eventually {
   ): Unit =
     eventually {
       verify(
-        1,
+        count,
         postRequestedFor(urlPathEqualTo(auditUrl))
           .withRequestBody(similarToJson(s"""{
           |  "auditSource": "agent-authorisation-api",

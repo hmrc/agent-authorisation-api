@@ -35,7 +35,7 @@ object InvitationId {
       .read[String]
       .map(x => InvitationId(x))
 
-  implicit val idFormats: Format[InvitationId] = Format(idReads, idWrites)
+  given Format[InvitationId] = Format(idReads, idWrites)
 
   private val pattern = "^[ABCDEFGHJKLMNOPRSTUWXYZ123456789]{13}$".r
 
@@ -49,7 +49,7 @@ object InvitationId {
     clientId: String,
     serviceName: String,
     timestamp: LocalDateTime = Instant.now().atZone(ZoneOffset.UTC).toLocalDateTime
-  )(implicit prefix: Char): InvitationId = {
+  )(using prefix: Char): InvitationId = {
     val idUnhashed = s"$arn.$clientId,$serviceName-${timestamp.toInstant(ZoneOffset.UTC).toEpochMilli}"
     val idBytes = MessageDigest.getInstance("SHA-256").digest(idUnhashed.getBytes("UTF-8")).take(7)
     val idChars = bytesTo5BitNums(unsafeWrapArray(idBytes)).map(to5BitAlphaNumeric).mkString

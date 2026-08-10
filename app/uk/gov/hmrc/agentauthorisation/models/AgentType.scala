@@ -18,28 +18,16 @@ package uk.gov.hmrc.agentauthorisation.models
 
 import play.api.libs.json._
 
-sealed trait AgentType {
-  def agentTypeName: String
-}
+enum AgentType(val agentTypeName: String):
+  case Main extends AgentType("main")
+  case Supporting extends AgentType("supporting")
 
-object AgentType {
+object AgentType:
 
   def apply(name: String): AgentType =
-    name match {
-      case "main"       => Main
-      case "supporting" => Supporting
-    }
+    name match
+      case "main"       => AgentType.Main
+      case "supporting" => AgentType.Supporting
 
-  final case object Main extends AgentType {
-    override val agentTypeName: String = "main"
-  }
-
-  final case object Supporting extends AgentType {
-    override val agentTypeName: String = "supporting"
-  }
-
-  implicit val writes: Writes[AgentType] = new Writes[AgentType] {
+  given Writes[AgentType] with
     override def writes(agentType: AgentType): JsValue = JsString(agentType.agentTypeName)
-  }
-
-}

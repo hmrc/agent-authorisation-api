@@ -27,7 +27,7 @@ class MongoLockService @Inject() (lockRepository: MongoLockRepository) {
 
   def acquireLock[T](arn: String, service: String, clientId: String)(
     body: => Future[T]
-  )(implicit ec: ExecutionContext): Future[Option[T]] = {
+  )(using ec: ExecutionContext): Future[Option[T]] = {
     val lock = LockService(
       lockRepository = lockRepository,
       lockId = s"create-invitation-$arn-$service-$clientId",

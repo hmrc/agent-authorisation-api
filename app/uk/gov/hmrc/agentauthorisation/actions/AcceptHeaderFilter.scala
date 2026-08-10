@@ -29,8 +29,8 @@ import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
 @Singleton
-class AcceptHeaderFilter @Inject() (appConfig: AppConfig)(implicit materializer: Materializer) extends Filter {
-  override implicit def mat: Materializer = materializer
+class AcceptHeaderFilter @Inject() (appConfig: AppConfig)(using materializer: Materializer) extends Filter {
+  override given mat: Materializer = materializer
 
   import AcceptHeaderFilter._
 

@@ -21,11 +21,11 @@ import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
 
 object UrlBinders {
 
-  implicit val invitationIdBinder: PathBindable[InvitationId] =
+  given invitationIdBinder: PathBindable[InvitationId] =
     getInvitationIdBinder
-  implicit object ArnBinder extends SimpleObjectBinder[Arn](Arn.apply, _.value)
+  given arnBinder: PathBindable[Arn] = new SimpleObjectBinder[Arn](Arn.apply, _.value)
 
-  def getInvitationIdBinder(implicit stringBinder: PathBindable[String]): PathBindable[InvitationId] =
+  def getInvitationIdBinder(using stringBinder: PathBindable[String]): PathBindable[InvitationId] =
     new PathBindable[InvitationId] {
 
       override def bind(key: String, value: String): Either[String, InvitationId] = {

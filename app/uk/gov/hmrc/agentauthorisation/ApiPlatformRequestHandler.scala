@@ -17,6 +17,7 @@
 package uk.gov.hmrc.agentauthorisation
 
 import javax.inject.Inject
+import javax.inject.Provider
 import play.api.http.{DefaultHttpRequestHandler, HttpConfiguration, HttpErrorHandler, HttpFilters}
 import play.api.mvc.request.RequestTarget
 import play.api.mvc.{Handler, RequestHeader}
@@ -34,7 +35,8 @@ class ApiPlatformRequestHandler @Inject() (
 ) extends DefaultHttpRequestHandler(
       new DefaultWebCommands,
       None,
-      router = () => router,
+      router = new Provider[Router]:
+        override def get(): Router = router,
       errorHandler,
       configuration,
       filters.filters

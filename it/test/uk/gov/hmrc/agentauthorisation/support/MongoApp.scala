@@ -27,7 +27,7 @@ trait MongoApp extends MongoSupport with ResetMongoBeforeTest {
 }
 
 trait ResetMongoBeforeTest extends BeforeAndAfterEach {
-  me: Suite with MongoSupport =>
+  me: Suite & MongoSupport =>
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()

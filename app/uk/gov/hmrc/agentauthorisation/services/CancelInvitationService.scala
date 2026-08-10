@@ -31,7 +31,7 @@ class CancelInvitationService @Inject() (
 
   def cancelInvitation(
     invitationId: InvitationId
-  )(implicit rh: RequestHeader): Future[Either[ApiErrorResponse, Int]] =
+  )(using rh: RequestHeader): Future[Either[ApiErrorResponse, Int]] =
     acrConnector
       .cancelInvitation(invitationId)
 

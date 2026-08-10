@@ -30,8 +30,8 @@ case class CheckRelationshipPayload(
 
 object CheckRelationshipPayload {
 
-  implicit val reads: Reads[CheckRelationshipPayload] =
-    ((JsPath \ "service").read(singleOrArray) and
+  given Reads[CheckRelationshipPayload] =
+    ((JsPath \ "service").read(using singleOrArray) and
       (JsPath \ "clientIdType").read[String] and
       (JsPath \ "clientId").read[String].map(_.replaceAll(" ", "")) and
       (JsPath \ "knownFact").read[String] and
@@ -39,13 +39,11 @@ object CheckRelationshipPayload {
       CheckRelationshipPayload(service, clientIdType, clientId, knownFact, agentType)
     )
 
-  implicit val writes: Writes[CheckRelationshipPayload] = new Writes[CheckRelationshipPayload] {
-    override def writes(o: CheckRelationshipPayload): JsValue =
-      Json.obj(
-        "service"      -> o.service,
-        "clientIdType" -> o.clientIdType,
-        "clientId"     -> o.clientId.replaceAll(" ", ""),
-        "knownFact"    -> o.knownFact
-      )
-  }
+  given Writes[CheckRelationshipPayload] = Writes: o =>
+    Json.obj(
+      "service"      -> o.service,
+      "clientIdType" -> o.clientIdType,
+      "clientId"     -> o.clientId.replaceAll(" ", ""),
+      "knownFact"    -> o.knownFact
+    )
 }

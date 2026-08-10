@@ -32,7 +32,7 @@ class CheckRelationshipService @Inject() (
   def checkRelationship(
     arn: Arn,
     clientAccessData: ClientAccessData
-  )(implicit rh: RequestHeader): Future[Either[ApiErrorResponse, Boolean]] =
+  )(using rh: RequestHeader): Future[Either[ApiErrorResponse, Boolean]] =
     acrConnector.checkRelationship(arn, clientAccessData)
 
 }

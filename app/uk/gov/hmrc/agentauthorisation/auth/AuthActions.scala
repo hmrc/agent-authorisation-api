@@ -44,7 +44,7 @@ trait AuthActions extends AuthorisedFunctions {
 
   protected def withEnrolledAsAgent[A](
     body: String => Future[Result]
-  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  )(using hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
     authorised(AuthProviders(GovernmentGateway))
       .retrieve(affinityGroupAllEnrolls) {
         case Some(affinity) ~ allEnrols =>
@@ -69,8 +69,8 @@ trait AuthActions extends AuthorisedFunctions {
 
   protected def withAuthorisedAsAgent[A](
     body: Arn => Future[Result]
-  )(implicit ec: ExecutionContext, request: Request[_]): Future[Result] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
+  )(using ec: ExecutionContext, request: Request[?]): Future[Result] = {
+    given HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
     withEnrolledAsAgent { arn =>
       body(Arn(arn))
     } recoverWith {
@@ -83,7 +83,7 @@ trait AuthActions extends AuthorisedFunctions {
     }
   }
 
-  protected def validateArnInRequest(requestedArn: Arn)(block: => Future[Result])(implicit arn: Arn): Future[Result] =
+  protected def validateArnInRequest(requestedArn: Arn)(block: => Future[Result])(using arn: Arn): Future[Result] =
     if (requestedArn != arn) {
       Logger(getClass).warn(s"Requested Arn ${requestedArn.value} does not match to logged in Arn")
       Future successful NoPermissionOnAgency.toResult

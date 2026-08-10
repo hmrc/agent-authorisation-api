@@ -16,9 +16,6 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-object Syntax {
+object Syntax:
 
-  implicit class intOps(i: Int) {
-    def isSuccess = i > 199 && i < 206
-  }
-}
+  extension (i: Int) def isSuccess: Boolean = i > 199 && i < 206

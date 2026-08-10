@@ -49,7 +49,7 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
   // Override this to get debug logging
   lazy val notifier: Option[Notifier] = None
 
-  protected implicit val implicitWireMockBaseUrl: WireMockBaseUrl = WireMockBaseUrl(wireMockBaseUrl)
+  protected given WireMockBaseUrl = WireMockBaseUrl(wireMockBaseUrl)
 
   protected def basicWireMockConfig(): WireMockConfiguration = notifier.fold(wireMockConfig()) { n =>
     wireMockConfig().notifier(n)
@@ -110,7 +110,7 @@ object Port extends Logging {
         false
       }
     catch {
-      case t: Throwable => false
+      case _: Throwable => false
     } finally
       if (socket != null) socket.close()
   }

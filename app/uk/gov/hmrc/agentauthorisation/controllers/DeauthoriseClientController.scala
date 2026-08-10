@@ -33,12 +33,13 @@ class DeauthoriseClientController @Inject() (
   validateClientAccessDataService: ValidateClientAccessDataService,
   val authConnector: AuthConnector,
   cc: ControllerComponents
-)(implicit val ec: ExecutionContext)
+)(using val ec: ExecutionContext)
     extends BackendController(cc) with AuthActions {
 
-  def deauthoriseRelationship(givenArn: Arn): Action[AnyContent] = Action.async { implicit request =>
+  def deauthoriseRelationship(givenArn: Arn): Action[AnyContent] = Action.async { request =>
+    given Request[AnyContent] = request
     withAuthorisedAsAgent { arn =>
-      implicit val loggedInArn: Arn = arn
+      given Arn = arn
       validateArnInRequest(givenArn) {
         validateClientAccessDataService
           .validateDeleteRelationshipPayload(request.body.asJson)

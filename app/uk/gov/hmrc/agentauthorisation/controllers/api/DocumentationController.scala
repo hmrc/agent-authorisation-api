@@ -16,33 +16,39 @@
 
 package uk.gov.hmrc.agentauthorisation.controllers.api
 
-import controllers.Assets
-
 import javax.inject.{Inject, Singleton}
-import play.api.http.HttpErrorHandler
+import play.api.http.{ContentTypes, MimeTypes}
 import play.api.libs.json.{Json, OFormat}
-import play.api.mvc._
+import play.api.mvc.{Action, AnyContent, Codec, ControllerComponents}
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.views.txt
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.Future
 
 case class ApiAccess(`type`: String)
 
-object ApiAccess {
-  implicit lazy val formats: OFormat[ApiAccess] = Json.format[ApiAccess]
-}
+object ApiAccess:
+  given OFormat[ApiAccess] = Json.format[ApiAccess]
 
 @Singleton
 class DocumentationController @Inject() (
-  errorHandler: HttpErrorHandler,
   appConfig: AppConfig,
-  cc: ControllerComponents,
-  assets: Assets
-) extends uk.gov.hmrc.api.controllers.DocumentationController(cc, assets, errorHandler) {
+  cc: ControllerComponents
+) extends BackendController(cc) {
 
   private val apiAccess = ApiAccess(appConfig.apiType)
 
-  override def definition(): Action[AnyContent] = Action {
-    Ok(txt.definition(apiAccess))
-      .withHeaders("Content-Type" -> "application/json")
-  }
+  def definition(): Action[AnyContent] = Action.async:
+    Future.successful(
+      Ok(txt.definition(apiAccess))
+        .as(ContentTypes.withCharset(MimeTypes.JSON)(using Codec.utf_8))
+    )
+
+  def documentation(version: String, endpointName: String): Action[AnyContent] = Action:
+    Ok(
+      <documentation version={version} endpoint={endpointName}>
+        <summary>Static documentation placeholder retained for Scala 3 migration.</summary>
+      </documentation>
+    )
 }

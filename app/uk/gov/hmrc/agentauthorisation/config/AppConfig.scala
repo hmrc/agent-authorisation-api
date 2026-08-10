@@ -27,13 +27,14 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration
 
   val appName = "agent-authorisation-api"
 
-  def getConfString(key: String): String =
-    servicesConfig.getConfString(key, throw new RuntimeException(s"config '$key' not found"))
-
   def baseUrl(serviceName: String): String = servicesConfig.baseUrl(serviceName)
 
   val acrBaseUrl: String = baseUrl("agent-client-relationships")
-  val acrfExternalUrl: String = getConfString("agent-client-relationships-frontend.external-url")
+  val acrfExternalUrl: String =
+    servicesConfig.getConfString(
+      "agent-client-relationships-frontend.external-url",
+      throw new RuntimeException("config 'agent-client-relationships-frontend.external-url' not found")
+    )
 
   val apiSupportedVersions: util.List[String] = config.underlying.getStringList("api.supported-versions")
 

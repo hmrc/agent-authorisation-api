@@ -25,7 +25,7 @@ import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId, Vrn}
 import uk.gov.hmrc.domain.Nino
 
 trait ACRStubs {
-  me: WireMockSupport with TestIdentifiers =>
+  me: WireMockSupport & TestIdentifiers =>
 
   def createInvitationStub(
     arn: Arn,

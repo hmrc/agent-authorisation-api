@@ -29,12 +29,12 @@ class GetInvitationsService @Inject() (
   agentClientRelationshipsConnector: AgentClientRelationshipsConnector
 ) {
 
-  def getInvitation(arn: Arn, invitationId: InvitationId)(implicit
+  def getInvitation(arn: Arn, invitationId: InvitationId)(using
     rh: RequestHeader
   ): Future[Either[ApiErrorResponse, SingleInvitationDetails]] =
     agentClientRelationshipsConnector.getInvitation(arn, invitationId)
 
-  def getAllInvitations(arn: Arn)(implicit
+  def getAllInvitations(arn: Arn)(using
     rh: RequestHeader
   ): Future[Either[ApiErrorResponse, AllInvitationDetails]] =
     agentClientRelationshipsConnector.getAllInvitations(arn)

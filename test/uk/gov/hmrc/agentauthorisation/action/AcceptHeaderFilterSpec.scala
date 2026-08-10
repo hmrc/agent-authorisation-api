@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.agentauthorisation.action
 
-import org.scalamock.scalatest.MockFactory
 import play.api.Configuration
 import play.api.mvc.Results._
 import play.api.mvc.{Call, RequestHeader, Result}
@@ -29,28 +28,17 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.Future
 
-class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
+class AcceptHeaderFilterSpec extends BaseSpec {
 
-  val servicesConfig: ServicesConfig = mock[ServicesConfig]
-  (servicesConfig
-    .baseUrl(_: String))
-    .expects(*)
-    .atLeastOnce()
-    .returning("blah-url")
-  (servicesConfig
-    .getConfString(_: String, _: String))
-    .expects(*, *)
-    .atLeastOnce()
-    .returning("blah")
-  (servicesConfig
-    .getString(_: String))
-    .expects(*)
-    .atLeastOnce()
-    .returning("some config string")
+  val config = Configuration.apply(
+    "api.supported-versions"                                                 -> List("1.0"),
+    "api.access.type"                                                        -> "some config string",
+    "microservice.services.agent-client-relationships.host"                  -> "localhost",
+    "microservice.services.agent-client-relationships.port"                  -> 9434,
+    "microservice.services.agent-client-relationships-frontend.external-url" -> "blah"
+  )
 
-  val config = Configuration.apply("api.supported-versions" -> List(1.0))
-
-  val appConfig = new AppConfig(servicesConfig, config)
+  val appConfig = AppConfig( ServicesConfig(config), config)
 
   case class TestAcceptHeaderFilter(supportedVersion: Seq[String]) extends AcceptHeaderFilter(appConfig) {
     def response(f: RequestHeader => Future[Result])(rh: RequestHeader) = await(super.apply(f)(rh))
@@ -61,10 +49,10 @@ class AcceptHeaderFilterSpec extends BaseSpec with MockFactory {
     val testHeaderVersion: String => Seq[(String, String)] =
       (testVersion: String) => Seq("Accept" -> s"application/vnd.hmrc.$testVersion+json")
 
-    def fakeHeaders(headers: Seq[(String, String)]): RequestHeader = testRequest(FakeRequest().withHeaders(headers: _*))
+    def fakeHeaders(headers: Seq[(String, String)]): RequestHeader = testRequest(FakeRequest().withHeaders(headers*))
 
     def fakeHeaders(call: Call, headers: Seq[(String, String)]): RequestHeader =
-      testRequest(FakeRequest(call).withHeaders(headers: _*))
+      testRequest(FakeRequest(call).withHeaders(headers*))
 
     def toResult(result: Result): RequestHeader => Future[Result] = (_: RequestHeader) => Future.successful(result)
   }

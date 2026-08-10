@@ -33,13 +33,14 @@ class CancelInvitationController @Inject() (
   cancelInvitationService: CancelInvitationService,
   val authConnector: AuthConnector,
   cc: ControllerComponents
-)(implicit val ec: ExecutionContext)
+)(using val ec: ExecutionContext)
     extends BackendController(cc) with AuthActions {
 
   def cancelInvitation(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { request =>
+      given Request[AnyContent] = request
       withAuthorisedAsAgent { arn =>
-        implicit val loggedInArn: Arn = arn
+        given Arn = arn
         validateArnInRequest(givenArn) {
           cancelInvitationService
             .cancelInvitation(invitationId)
