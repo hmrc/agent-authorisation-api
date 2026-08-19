@@ -54,6 +54,15 @@ class ApiErrorResponseSpec extends BaseSpec {
         .obj("code" -> "POSTCODE_FORMAT_INVALID")
         .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe PostcodeFormatInvalid
       Json
+        .obj("code" -> "POSTCODE_DOES_NOT_MATCH")
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe PostcodeDoesNotMatch
+      Json
+        .obj("code" -> "COUNTRY_CODE_DOES_NOT_MATCH")
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe CountryCodeDoesNotMatch
+      Json
+        .obj("code" -> "COUNTRY_CODE_FORMAT_INVALID")
+        .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe CountryCodeFormatInvalid
+      Json
         .obj("code" -> "SERVICE_NOT_SUPPORTED")
         .as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe UnsupportedService
       Json.obj("code" -> "UNAUTHORIZED").as[ApiErrorResponse](using ApiErrorResponse.acrReads()) shouldBe StandardUnauthorised

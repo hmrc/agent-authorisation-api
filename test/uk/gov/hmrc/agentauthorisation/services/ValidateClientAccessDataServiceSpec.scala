@@ -64,7 +64,7 @@ class ValidateClientAccessDataServiceSpec extends BaseSpec {
     "return None when JsValue is missing" in {
       testService.validateCheckRelationshipPayload(None) shouldBe Left(InvalidPayload)
     }
-    "return success check relationship payload is valid" in {
+    "return success check relationship payload is valid known fact postcode" in {
       testService.validateCheckRelationshipPayload(
         Some(
           Json.obj(
@@ -84,6 +84,28 @@ class ValidateClientAccessDataServiceSpec extends BaseSpec {
         )
       )
     }
+
+    "return success check relationship payload is valid known fact country code" in {
+      testService.validateCheckRelationshipPayload(
+        Some(
+          Json.obj(
+            "service" -> Json.arr("MTD-IT"),
+            "clientId" -> "NL019207B",
+            "clientIdType" -> "ni",
+            "knownFact" -> "AM",
+            "agentType" -> "main"
+          )
+        )
+      ) shouldBe Right(
+        ClientAccessData(
+          service = ItsaMain,
+          suppliedClientId = "NL019207B",
+          knownFact = "AM",
+          clientType = None
+        )
+      )
+    }
+
     "return PostcodeFormatInvalid when payload includes known fact that fails postcode regex" in {
       testService.validateCheckRelationshipPayload(
         Some(
