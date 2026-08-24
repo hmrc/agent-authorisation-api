@@ -279,6 +279,13 @@ class CreateInvitationControllerISpec extends BaseISpec {
       contentAsJson(result) shouldBe PostcodeDoesNotMatch.toJson
     }
 
+    "return 403 COUNTRY_CODE_DOES_NOT_MATCH when the Country Code and clientId do not match" in {
+      stubCreateItsaInAcr(error = Some(CountryCodeDoesNotMatch), main = true)
+      val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyITSA), arn.value)).futureValue
+      status(result) shouldBe 403
+      contentAsJson(result) shouldBe CountryCodeDoesNotMatch.toJson
+    }
+
     "return 403 VAT_REG_DATE_DOES_NOT_MATCH when the VAT registration date and clientId do not match" in {
       stubCreateVatInAcr(error = Some(VatRegDateDoesNotMatch))
       val result = createInvitation(authorisedAsValidAgent(request.withJsonBody(jsonBodyVAT), arn.value)).futureValue

@@ -110,6 +110,8 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
 
   private val postcodeRegex =
     "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
+    
+  private val countryCodeRegex = "^[A-Z]{2}$"
 
   private val personalClientType = "personal"
   private val businessClientType = "business"
@@ -135,7 +137,7 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
   private def isKnownFactTypeValid(service: Service, knownFact: String): Boolean =
     service match {
       case ItsaMain | ItsaSupp =>
-        knownFact.matches(postcodeRegex)
+        knownFact.matches(postcodeRegex) || knownFact.matches(countryCodeRegex)
       case Vat => isValidDateString(knownFact)
     }
 

@@ -65,6 +65,8 @@ object ApiErrorResponse {
             case "NOT_AN_AGENT"                => NotAnAgent
             case "POSTCODE_DOES_NOT_MATCH"     => PostcodeDoesNotMatch
             case "POSTCODE_FORMAT_INVALID"     => PostcodeFormatInvalid
+            case "COUNTRY_CODE_DOES_NOT_MATCH" => CountryCodeDoesNotMatch
+            case "COUNTRY_CODE_FORMAT_INVALID" => CountryCodeFormatInvalid
             case "RELATIONSHIP_NOT_FOUND"      => RelationshipNotFound
             case "SERVICE_NOT_SUPPORTED"       => UnsupportedService
             case "VAT_CLIENT_INSOLVENT"        => VatClientInsolvent
@@ -217,6 +219,20 @@ case object PostcodeFormatInvalid
       "POSTCODE_FORMAT_INVALID",
       "Postcode must be in the correct format. Check the API documentation to find the correct format."
     )
+
+case object CountryCodeDoesNotMatch
+  extends ApiErrorResponse(
+    403,
+    "COUNTRY_CODE_DOES_NOT_MATCH",
+    "The country code provided does not match HMRC's record for this client."
+  )
+
+case object CountryCodeFormatInvalid
+  extends ApiErrorResponse(
+    400,
+    "COUNTRY_CODE_FORMAT_INVALID",
+    "Country code must be in the correct format. Check the API documentation to find the correct format."
+  )
 
 case object RelationshipNotFound
     extends ApiErrorResponse(
