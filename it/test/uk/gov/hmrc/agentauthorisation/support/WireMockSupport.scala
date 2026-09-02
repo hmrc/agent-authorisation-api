@@ -21,9 +21,10 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.common.Notifier
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration.*
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
-import play.api.Logging
+import uk.gov.hmrc.agentaccesscontrol.support.NoRequest
+import uk.gov.hmrc.agentauthorisation.util.RequestAwareLogging
 
 import scala.annotation.tailrec
 
@@ -77,7 +78,7 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
 }
 
 // This class was copy-pasted from the hmrctest project, which is now deprecated.
-object Port extends Logging {
+object Port extends RequestAwareLogging {
   val rnd = new scala.util.Random
   val range = 8000 to 39999
   val usedPorts = List[Int]()
@@ -90,10 +91,10 @@ object Port extends Logging {
       case p: Int =>
         available(p) match {
           case false =>
-            logger.debug(s"Port $p is in use, trying another")
+            logger.debug(s"Port $p is in use, trying another")(using NoRequest)
             randomAvailable
           case true =>
-            logger.debug("Taking port : " + p)
+            logger.debug("Taking port : " + p)(using NoRequest)
             usedPorts :+ p
             p
         }
