@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.agentaccesscontrol.support
+package uk.gov.hmrc.agentauthorisation.support
 
 import java.net.URI
 

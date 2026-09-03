@@ -17,7 +17,7 @@
 package uk.gov.hmrc.agentauthorisation.services
 
 import play.api.libs.json.{JsSuccess, JsValue}
-import uk.gov.hmrc.agentaccesscontrol.support.NoRequest
+import uk.gov.hmrc.agentauthorisation.support.NoRequest
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.models.*
 import uk.gov.hmrc.agentauthorisation.models.Vrn

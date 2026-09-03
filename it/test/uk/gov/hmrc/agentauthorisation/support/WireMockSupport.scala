@@ -23,7 +23,7 @@ import com.github.tomakehurst.wiremock.common.Notifier
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.*
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
-import uk.gov.hmrc.agentaccesscontrol.support.NoRequest
+import uk.gov.hmrc.agentauthorisation.support.NoRequest
 import uk.gov.hmrc.agentauthorisation.util.RequestAwareLogging
 
 import scala.annotation.tailrec

@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.models
 import play.api.libs.json.*
 import play.api.mvc.Result
 import play.api.mvc.Results.*
-import uk.gov.hmrc.agentaccesscontrol.support.NoRequest
+import uk.gov.hmrc.agentauthorisation.support.NoRequest
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
 import uk.gov.hmrc.agentauthorisation.util.RequestAwareLogging
 
