@@ -36,7 +36,7 @@ class DeleteRelationshipServiceSpec extends BaseSpec with MockFactory {
 
   private val config = Configuration.apply(
     "api.supported-versions"                                                 -> List("1.0"),
-    "api.access.type"                                                        -> "PRIVATE",
+    "api.access"                                                        -> "PRIVATE",
     "microservice.services.agent-client-relationships.host"                  -> "localhost",
     "microservice.services.agent-client-relationships.port"                  -> 9434,
     "microservice.services.agent-client-relationships-frontend.external-url" -> "http://localhost"
