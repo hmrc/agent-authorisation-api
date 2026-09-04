@@ -16,15 +16,16 @@
 
 package uk.gov.hmrc.agentauthorisation.models
 
-import play.api.Logging
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.Result
-import play.api.mvc.Results._
+import play.api.mvc.Results.*
+import uk.gov.hmrc.agentauthorisation.support.NoRequest
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
+import uk.gov.hmrc.agentauthorisation.util.RequestAwareLogging
 
-abstract class ApiErrorResponse(val statusCode: Int, val code: String, val message: String) extends Logging {
+abstract class ApiErrorResponse(val statusCode: Int, val code: String, val message: String) extends RequestAwareLogging {
   def toResult: Result = {
-    logger.warn(s"Create invitation error ${this.code}: ${this.message}")
+    logger.warn(s"Create invitation error ${this.code}: ${this.message}")(using NoRequest)
     this.statusCode match {
       case 400 =>
         BadRequest(this.toJson)

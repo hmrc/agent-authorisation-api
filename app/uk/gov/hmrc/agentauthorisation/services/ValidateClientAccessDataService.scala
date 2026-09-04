@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.agentauthorisation.services
 
-import play.api.Logging
 import play.api.libs.json.{JsSuccess, JsValue}
+import uk.gov.hmrc.agentauthorisation.support.NoRequest
 import uk.gov.hmrc.agentauthorisation.models.Service.{ItsaMain, ItsaSupp, Vat}
-import uk.gov.hmrc.agentauthorisation.models._
+import uk.gov.hmrc.agentauthorisation.models.*
 import uk.gov.hmrc.agentauthorisation.models.Vrn
+import uk.gov.hmrc.agentauthorisation.util.RequestAwareLogging
 import uk.gov.hmrc.domain.Nino
 
 import java.time.LocalDate
@@ -29,12 +30,12 @@ import javax.inject.{Inject, Singleton}
 import scala.util.Try
 
 @Singleton
-class ValidateClientAccessDataService @Inject() () extends Logging {
+class ValidateClientAccessDataService @Inject() () extends RequestAwareLogging {
 
   def validateCreateInvitationPayload(payload: Option[JsValue]): Either[ApiErrorResponse, ClientAccessData] =
     payload match {
       case None =>
-        logger.warn("The payload could not be parsed as Json")
+        logger.warn("The payload could not be parsed as Json")(using NoRequest)
         Left(InvalidPayload)
       case Some(jsValue) =>
         jsValue.validate[CreateInvitationPayload] match {
@@ -47,7 +48,7 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
               if !List("main", "supporting").contains(agentType) =>
             Left(UnsupportedAgentType)
           case other =>
-            logger.debug(s"The payload is not valid: $other")
+            logger.debug(s"The payload is not valid: $other")(using NoRequest)
             Left(InvalidPayload)
         }
     }
@@ -55,7 +56,7 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
   def validateCheckRelationshipPayload(payload: Option[JsValue]): Either[ApiErrorResponse, ClientAccessData] =
     payload match {
       case None =>
-        logger.warn("The payload could not be parsed as Json")
+        logger.warn("The payload could not be parsed as Json")(using NoRequest)
         Left(InvalidPayload)
       case Some(jsValue) =>
         jsValue.validate[CheckRelationshipPayload] match {
@@ -68,7 +69,7 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
               if !List("main", "supporting").contains(agentType) =>
             Left(UnsupportedAgentType)
           case other =>
-            logger.debug(s"The payload is not valid: $other")
+            logger.debug(s"The payload is not valid: $other")(using NoRequest)
             Left(InvalidPayload)
         }
     }
@@ -78,14 +79,14 @@ class ValidateClientAccessDataService @Inject() () extends Logging {
   ): Either[ApiErrorResponse, DeleteRelationshipPayload] =
     payload match {
       case None =>
-        logger.warn("The payload could not be parsed as Json")
+        logger.warn("The payload could not be parsed as Json")(using NoRequest)
         Left(InvalidPayload)
       case Some(jsValue) =>
         jsValue.validate[DeleteRelationshipPayload] match {
           case JsSuccess(deletePayload, _) =>
             validateDeleteRelationshipFields(deletePayload)
           case other =>
-            logger.debug(s"The payload is not valid: $other")
+            logger.debug(s"The payload is not valid: $other")(using NoRequest)
             Left(InvalidPayload)
         }
     }
