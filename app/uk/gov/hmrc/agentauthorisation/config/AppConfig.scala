@@ -38,6 +38,6 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration
 
   val apiSupportedVersions: util.List[String] = config.underlying.getStringList("api.supported-versions")
 
-  val apiType: String = servicesConfig.getString("api.access.type")
+  val apiType: String = servicesConfig.getString("api.access")
 
 }
