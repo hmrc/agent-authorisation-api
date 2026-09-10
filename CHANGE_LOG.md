@@ -1,3 +1,9 @@
+## [APB-11802]
+* Roll back the change to the `service` field in API examples and schemas.
+* The `service` field will continue to be documented as an array for consistency with the response payload model, while accepting both array and flat formats in requests.
+* A later version of the API will include a full switch to a flat format for the `service` field with a breaking version that applies to response payloads as well.
+* Remove unused old API docs and clean up the schema.
+
 ## [APB-11560]
 * Remove the array wrapper from the documented `service` field in API examples and schemas, while continuing to accept the legacy single-element array format for backwards compatibility.
 * This keeps the published documentation aligned with the intended string-shaped request payloads and reduces future confusion for API consumers.

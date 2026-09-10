@@ -503,12 +503,9 @@ components:
             - $ref: '#/components/schemas/Links'
             - description: The link to the invitation
         service:
-          maxItems: 1
-          type: array
-          items:
-            oneOf:
-              - $ref: '#/components/schemas/ITSAService'
-              - $ref: '#/components/schemas/VATService'
+          oneOf:
+            - $ref: '#/components/schemas/ITSAService'
+            - $ref: '#/components/schemas/VATService'
           description: The service to which this invitation refers
         arn:
           type: string
@@ -546,11 +543,27 @@ components:
             - $ref: '#/components/schemas/AgentType'
     VATService:
       title: MTD-VAT
-      type: string
+      type: array
+      minItems: 1
+      maxItems: 1
+      items:
+        type: string
+        enum:
+          - MTD-VAT
+      example:
+        - MTD-VAT
       description: MTD VAT service
     ITSAService:
       title: MTD-IT
-      type: string
+      type: array
+      minItems: 1
+      maxItems: 1
+      items:
+        type: string
+        enum:
+          - MTD-IT
+      example:
+        - MTD-IT
       description: MTD IT service
     ClientTypePersonal:
       title: personal
