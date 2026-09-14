@@ -29,7 +29,7 @@ class AppConfigSpec extends UnitSpec {
     "read service URLs and API settings from configuration" in {
       val configuration = Configuration(
         "api.supported-versions"                                                 -> List("1.0", "2.0"),
-        "api.access.type"                                                        -> "PRIVATE",
+        "api.access"                                                        -> "PRIVATE",
         "microservice.services.agent-client-relationships.host"                  -> "localhost",
         "microservice.services.agent-client-relationships.port"                  -> 9434,
         "microservice.services.agent-client-relationships-frontend.external-url" -> "http://localhost:9435"
@@ -46,7 +46,7 @@ class AppConfigSpec extends UnitSpec {
     "fail clearly when agent-client-relationships-frontend.external-url is missing" in {
       val configuration = Configuration(
         "api.supported-versions"                                -> List("1.0"),
-        "api.access.type"                                       -> "PRIVATE",
+        "api.access"                                       -> "PRIVATE",
         "microservice.services.agent-client-relationships.host" -> "localhost",
         "microservice.services.agent-client-relationships.port" -> 9434
       )
