@@ -54,13 +54,13 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
             "version"          -> "1.0",
             "status"           -> "BETA",
             "endpointsEnabled" -> true,
-            "access"           -> Json.obj("type" -> accessType)
+            "access"           -> accessType
           ),
           Json.obj(
             "version"          -> "2.0",
             "status"           -> "BETA",
             "endpointsEnabled" -> true,
-            "access"           -> Json.obj("type" -> accessType)
+            "access"           -> accessType
           )
         )
       )
@@ -77,4 +77,4 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
       val result = controller("PUBLIC").definition()(FakeRequest()).futureValue
       val versions = (contentAsJson(result) \ "api" \ "versions").as[JsArray].value
 
-      versions.map(_ \ "access" \ "type").map(_.as[String]).distinct shouldBe Seq("PUBLIC")
+      versions.map(_ \ "access").map(_.as[String]).distinct shouldBe Seq("PUBLIC")
