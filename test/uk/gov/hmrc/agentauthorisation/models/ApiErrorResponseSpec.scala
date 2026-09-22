@@ -112,6 +112,22 @@ class ApiErrorResponseSpec extends BaseSpec {
       NotAnAgent.toJson shouldBe Json.obj("code" -> "NOT_AN_AGENT", "message" -> NotAnAgent.message)
     }
 
+    "write the V3 known-fact format error to the public contract" in {
+      KnownFactFormatInvalid.statusCode shouldBe 400
+      KnownFactFormatInvalid.toJson shouldBe Json.obj(
+        "code"    -> "KNOWN_FACT_FORMAT_INVALID",
+        "message" -> KnownFactFormatInvalid.message
+      )
+    }
+
+    "write the V3 known-fact compatibility error to the public contract" in {
+      KnownFactIncompatibleWithService.statusCode shouldBe 400
+      KnownFactIncompatibleWithService.toJson shouldBe Json.obj(
+        "code"    -> "KNOWN_FACT_INCOMPATIBLE_WITH_SERVICE",
+        "message" -> KnownFactIncompatibleWithService.message
+      )
+    }
+
     "convert to result" in {
       val result = StandardInternalServerError.toResult
       result.header.status shouldBe 500

@@ -18,10 +18,9 @@ package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.Logger
 import play.api.mvc._
-import uk.gov.hmrc.agentauthorisation.auth.AuthActions
+import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{DeleteRelationshipService, ValidateClientAccessDataService}
-import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -31,34 +30,28 @@ import scala.concurrent.{ExecutionContext, Future}
 class DeauthoriseClientController @Inject() (
   deleteRelationshipService: DeleteRelationshipService,
   validateClientAccessDataService: ValidateClientAccessDataService,
-  val authConnector: AuthConnector,
-  cc: ControllerComponents
+  cc: ControllerComponents,
+  apiVersionAction: ApiVersionAction,
+  authorisedAgentAction: AuthorisedAgentAction
 )(using val ec: ExecutionContext)
-    extends BackendController(cc) with AuthActions {
+    extends BackendController(cc) {
 
-  def deauthoriseRelationship(givenArn: Arn): Action[AnyContent] = Action.async { request =>
-    given Request[AnyContent] = request
-    withAuthorisedAsAgent { arn =>
-      given Arn = arn
-      validateArnInRequest(givenArn) {
-        validateClientAccessDataService
-          .validateDeleteRelationshipPayload(request.body.asJson)
-          .fold(
-            errorResponse => {
-              Logger(getClass).warn(s"Payload failed validation: $errorResponse")
-              Future.successful(errorResponse.toResult)
-            },
-            payload =>
-              for {
-                result <- deleteRelationshipService.deleteRelationship(arn, payload)
-              } yield result match {
-                case Right(_) =>
-                  NoContent
-                case Left(errorResponse: ApiErrorResponse) =>
-                  errorResponse.toResult
-              }
-          )
-      }
+  def deauthoriseRelationship(givenArn: Arn): Action[AnyContent] =
+    cc.actionBuilder.andThen(apiVersionAction).andThen(authorisedAgentAction(givenArn)).async { request =>
+      validateClientAccessDataService
+        .validateDeleteRelationshipPayload(request.body.asJson)
+        .fold(
+          errorResponse => {
+            Logger(getClass).warn(s"Payload failed validation: $errorResponse")
+            Future.successful(errorResponse.toResult)
+          },
+          payload =>
+            deleteRelationshipService.deleteRelationship(request.arn, payload)(using request).map {
+              case Right(_) =>
+                NoContent
+              case Left(errorResponse: ApiErrorResponse) =>
+                errorResponse.toResult
+            }
+        )
     }
-  }
 }

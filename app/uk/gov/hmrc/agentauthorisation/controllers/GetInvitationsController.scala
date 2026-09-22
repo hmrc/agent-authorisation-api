@@ -18,12 +18,11 @@ package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.libs.json.Json.toJson
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.agentauthorisation.auth.AuthActions
+import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction}
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models.{AllInvitationDetails, ApiErrorResponse, SingleInvitationDetails}
 import uk.gov.hmrc.agentauthorisation.services.GetInvitationsService
 import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
-import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -32,46 +31,35 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class GetInvitationsController @Inject() (
   getInvitationsService: GetInvitationsService,
-  val authConnector: AuthConnector,
   cc: ControllerComponents,
-  appConfig: AppConfig
+  appConfig: AppConfig,
+  apiVersionAction: ApiVersionAction,
+  authorisedAgentAction: AuthorisedAgentAction
 )(using ec: ExecutionContext)
-    extends BackendController(cc) with AuthActions {
+    extends BackendController(cc):
 
   def getInvitationApi(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
-    Action.async { request =>
-      given play.api.mvc.Request[AnyContent] = request
-      withAuthorisedAsAgent { arn =>
-        given Arn = arn
-        validateArnInRequest(givenArn) {
-          getInvitationsService
-            .getInvitation(arn, invitationId)
-            .map {
-              case Right(invitationDetails) =>
-                Ok(toJson(invitationDetails)(using SingleInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
-              case Left(errorResponse: ApiErrorResponse) =>
-                errorResponse.toResult
-            }
+    cc.actionBuilder.andThen(apiVersionAction).andThen(authorisedAgentAction(givenArn)).async { request =>
+      getInvitationsService
+        .getInvitation(request.arn, invitationId)(using request)
+        .map {
+          case Right(invitationDetails) =>
+            Ok(toJson(invitationDetails)(using SingleInvitationDetails.apiWrites(request.arn, appConfig.acrfExternalUrl)))
+          case Left(errorResponse: ApiErrorResponse) =>
+            errorResponse.toResult
         }
-      }
     }
 
-  def getInvitationsApi(givenArn: Arn): Action[AnyContent] = Action.async { request =>
-    given play.api.mvc.Request[AnyContent] = request
-    withAuthorisedAsAgent { arn =>
-      given Arn = arn
-      validateArnInRequest(givenArn) {
-        getInvitationsService
-          .getAllInvitations(arn)
-          .map {
-            case Right(AllInvitationDetails(_, Nil)) =>
-              NoContent
-            case Right(invitationDetails) =>
-              Ok(toJson(invitationDetails)(using AllInvitationDetails.apiWrites(arn, appConfig.acrfExternalUrl)))
-            case Left(errorResponse: ApiErrorResponse) =>
-              errorResponse.toResult
-          }
-      }
+  def getInvitationsApi(givenArn: Arn): Action[AnyContent] =
+    cc.actionBuilder.andThen(apiVersionAction).andThen(authorisedAgentAction(givenArn)).async { request =>
+      getInvitationsService
+        .getAllInvitations(request.arn)(using request)
+        .map {
+          case Right(AllInvitationDetails(_, Nil)) =>
+            NoContent
+          case Right(invitationDetails) =>
+            Ok(toJson(invitationDetails)(using AllInvitationDetails.apiWrites(request.arn, appConfig.acrfExternalUrl)))
+          case Left(errorResponse: ApiErrorResponse) =>
+            errorResponse.toResult
+        }
     }
-  }
-}

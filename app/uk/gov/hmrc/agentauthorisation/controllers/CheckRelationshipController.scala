@@ -18,11 +18,10 @@ package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.Logger
 import play.api.mvc._
-import uk.gov.hmrc.agentauthorisation.auth.AuthActions
+import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{CheckRelationshipService, ValidateClientAccessDataService}
 import uk.gov.hmrc.agentauthorisation.models.Arn
-import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -32,36 +31,29 @@ import scala.concurrent.{ExecutionContext, Future}
 class CheckRelationshipController @Inject() (
   checkRelationshipService: CheckRelationshipService,
   validateClientAccessDataService: ValidateClientAccessDataService,
-  val authConnector: AuthConnector,
-  cc: ControllerComponents
+  cc: ControllerComponents,
+  apiVersionAction: ApiVersionAction,
+  authorisedAgentAction: AuthorisedAgentAction
 )(using val ec: ExecutionContext)
-    extends BackendController(cc) with AuthActions {
+    extends BackendController(cc):
 
-  def checkRelationship(givenArn: Arn): Action[AnyContent] = Action.async { request =>
-    given Request[AnyContent] = request
-    withAuthorisedAsAgent { arn =>
-      given Arn = arn
-      validateArnInRequest(givenArn) {
-        validateClientAccessDataService
-          .validateCheckRelationshipPayload(request.body.asJson)
-          .fold(
-            errorResponse => {
-              Logger(getClass).warn(s"Payload failed validation: $errorResponse")
-              Future successful errorResponse.toResult
-            },
-            clientAccessData =>
-              for {
-                result <- checkRelationshipService.checkRelationship(arn, clientAccessData)
-              } yield result match {
-                case Right(false) =>
-                  RelationshipNotFound.toResult
-                case Right(true) =>
-                  NoContent
-                case Left(errorResponse: ApiErrorResponse) =>
-                  errorResponse.toResult
-              }
-          )
-      }
+  def checkRelationship(givenArn: Arn): Action[AnyContent] =
+    cc.actionBuilder.andThen(apiVersionAction).andThen(authorisedAgentAction(givenArn)).async { request =>
+      validateClientAccessDataService
+        .validateCheckRelationshipPayload(request.body.asJson)
+        .fold(
+          errorResponse => {
+            Logger(getClass).warn(s"Payload failed validation: $errorResponse")
+            Future.successful(errorResponse.toResult)
+          },
+          clientAccessData =>
+            checkRelationshipService.checkRelationship(request.arn, clientAccessData)(using request).map {
+              case Right(false) =>
+                RelationshipNotFound.toResult
+              case Right(true) =>
+                NoContent
+              case Left(errorResponse: ApiErrorResponse) =>
+                errorResponse.toResult
+            }
+        )
     }
-  }
-}

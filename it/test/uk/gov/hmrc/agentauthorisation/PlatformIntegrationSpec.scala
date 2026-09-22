@@ -73,5 +73,16 @@ class PlatformIntegrationSpec extends BaseISpec {
       status(result) shouldBe OK
       Helpers.contentAsString(result) should startWith("openapi: 3.0.3")
     }
+
+    "provide the unregistered V3 OpenAPI draft" in {
+      val result = yamlController.yaml("3.0", "application.yaml")(request)
+
+      status(result) shouldBe OK
+      val yaml = Helpers.contentAsString(result)
+      yaml should include("version: '3.0'")
+      yaml should include("/agents/{arn}/invitations:")
+      yaml should include("operationId: createInvitationV3")
+      yaml should include("application/vnd.hmrc.3.0+json")
+    }
   }
 }

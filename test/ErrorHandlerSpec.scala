@@ -27,6 +27,7 @@ import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 import org.mockito.ArgumentMatchers._
 import play.api.Configuration
 import play.api.mvc.AnyContentAsEmpty
+import uk.gov.hmrc.agentauthorisation.binders.ErrorConstants
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,14 +36,15 @@ import uk.gov.hmrc.play.audit.model.DataEvent
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
-  trait BaseSetup {
+class ErrorHandlerSpec extends UnitSpec with MockitoSugar:
+  class BaseSetup(v3Enabled: Boolean = false) {
     given ActorSystem = ActorSystem("MyTest")
     given NoMaterializer.type = NoMaterializer
     given Configuration = Configuration(
       "bootstrap.errorHandler.warnOnly.statusCodes"     -> List(400, 404),
       "bootstrap.errorHandler.suppress4xxErrorMessages" -> false,
-      "bootstrap.errorHandler.suppress5xxErrorMessages" -> false
+      "bootstrap.errorHandler.suppress5xxErrorMessages" -> false,
+      "features.enable-v3"                              -> v3Enabled
     )
 
     given FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
@@ -70,6 +72,70 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
       contentAsJson(response) shouldBe StandardBadRequest.toJson
     }
 
+    "return ARN_FORMAT_INVALID when ARN binding fails" in new BaseSetup {
+      val response = await(
+        errorHandler.onClientError(
+          summon[FakeRequest[AnyContentAsEmpty.type]],
+          BAD_REQUEST,
+          ErrorConstants.ArnInvalid
+        )
+      )
+
+      contentAsJson(response) shouldBe ArnInvalidFormat.toJson
+    }
+
+    "return INVITATION_ID_FORMAT_INVALID when invitation ID binding fails" in new BaseSetup {
+      val response = await(
+        errorHandler.onClientError(
+          summon[FakeRequest[AnyContentAsEmpty.type]],
+          BAD_REQUEST,
+          ErrorConstants.InvitationIdInvalid
+        )
+      )
+
+      contentAsJson(response) shouldBe InvitationIdInvalidFormat.toJson
+    }
+
+    "return SERVICE_NOT_SUPPORTED when service binding fails" in new BaseSetup {
+      val response = await(
+        errorHandler.onClientError(
+          summon[FakeRequest[AnyContentAsEmpty.type]],
+          BAD_REQUEST,
+          ErrorConstants.ServiceUnsupported
+        )
+      )
+
+      contentAsJson(response) shouldBe UnsupportedService.toJson
+    }
+
+    "return CLIENT_ID_FORMAT_INVALID when client ID binding fails" in new BaseSetup {
+      val response = await(
+        errorHandler.onClientError(
+          summon[FakeRequest[AnyContentAsEmpty.type]],
+          BAD_REQUEST,
+          ErrorConstants.ClientIdInvalid
+        )
+      )
+
+      contentAsJson(response) shouldBe ClientIdInvalidFormat.toJson
+    }
+
+    "return INVALID_PAYLOAD for malformed JSON selected for V3" in new BaseSetup(v3Enabled = true) {
+      val request = summon[FakeRequest[AnyContentAsEmpty.type]]
+        .withHeaders(ACCEPT -> ApiVersion.V3AcceptHeader)
+      val response = await(errorHandler.onClientError(request, BAD_REQUEST, "Invalid Json: malformed"))
+
+      contentAsJson(response) shouldBe InvalidPayload.toJson
+    }
+
+    "retain BAD_REQUEST for malformed JSON when V3 is not selected" in new BaseSetup {
+      val request = summon[FakeRequest[AnyContentAsEmpty.type]]
+        .withHeaders(ACCEPT -> ApiVersion.V3AcceptHeader)
+      val response = await(errorHandler.onClientError(request, BAD_REQUEST, "Invalid Json: malformed"))
+
+      contentAsJson(response) shouldBe StandardBadRequest.toJson
+    }
+
     "return ErrorUnauthorized on 401 Unauthorized" in new Setup(UNAUTHORIZED) {
       contentAsJson(response) shouldBe StandardUnauthorised.toJson
     }
@@ -88,4 +154,3 @@ class ErrorHandlerSpec extends UnitSpec with MockitoSugar {
       contentAsJson(response) shouldBe StandardInternalServerError.toJson
     }
   }
-}

@@ -16,10 +16,23 @@
 
 package uk.gov.hmrc.agentauthorisation
 
+import play.api.http.HeaderNames.ACCEPT
 import play.api.http.Status._
 import play.api.mvc._
 import play.api.{Configuration, Logger}
-import uk.gov.hmrc.agentauthorisation.models.{StandardBadRequest, StandardInternalServerError, StandardNotFound, StandardUnauthorised}
+import uk.gov.hmrc.agentauthorisation.binders.ErrorConstants
+import uk.gov.hmrc.agentauthorisation.models.{
+  ArnInvalidFormat,
+  ApiVersion,
+  ClientIdInvalidFormat,
+  InvalidPayload,
+  InvitationIdInvalidFormat,
+  StandardBadRequest,
+  StandardInternalServerError,
+  StandardNotFound,
+  StandardUnauthorised,
+  UnsupportedService
+}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
@@ -33,14 +46,35 @@ class ErrorHandler @Inject() (auditConnector: AuditConnector, httpAuditEvent: Ht
   configuration: Configuration
 ) extends JsonErrorHandler(auditConnector, httpAuditEvent, configuration) {
 
+  private val v3Enabled = configuration.getOptional[Boolean]("features.enable-v3").getOrElse(false)
+
+  private def isMalformedV3Json(request: RequestHeader, message: String): Boolean =
+    v3Enabled &&
+      request.headers.get(ACCEPT).contains(ApiVersion.V3AcceptHeader) &&
+      message.startsWith("Invalid Json")
+
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
     super.onClientError(request, statusCode, message).map { auditedError =>
       Logger(getClass).warn(s"Client Side Error: $message from request: $request statusCode: $statusCode")
       statusCode match {
-        case NOT_FOUND    => StandardNotFound.toResult
-        case BAD_REQUEST  => StandardBadRequest.toResult
-        case UNAUTHORIZED => StandardUnauthorised.toResult
-        case _            => auditedError
+        case NOT_FOUND                                           =>
+          StandardNotFound.toResult
+        case BAD_REQUEST if message == ErrorConstants.ArnInvalid =>
+          ArnInvalidFormat.toResult
+        case BAD_REQUEST if message == ErrorConstants.ClientIdInvalid =>
+          ClientIdInvalidFormat.toResult
+        case BAD_REQUEST if message == ErrorConstants.InvitationIdInvalid =>
+          InvitationIdInvalidFormat.toResult
+        case BAD_REQUEST if message == ErrorConstants.ServiceUnsupported =>
+          UnsupportedService.toResult
+        case BAD_REQUEST if isMalformedV3Json(request, message) =>
+          InvalidPayload.toResult
+        case BAD_REQUEST  =>
+          StandardBadRequest.toResult
+        case UNAUTHORIZED =>
+          StandardUnauthorised.toResult
+        case _            =>
+          auditedError
       }
     }
 

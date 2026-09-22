@@ -42,9 +42,7 @@ trait AuthActions extends AuthorisedFunctions {
       .flatMap(_.getIdentifier(enrolId))
       .map(_.value)
 
-  protected def withEnrolledAsAgent[A](
-    body: String => Future[Result]
-  )(using hc: HeaderCarrier, ec: ExecutionContext): Future[Result] =
+  private def enrolledAgentArn(using hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ApiErrorResponse, Arn]] =
     authorised(AuthProviders(GovernmentGateway))
       .retrieve(affinityGroupAllEnrolls) {
         case Some(affinity) ~ allEnrols =>
@@ -52,36 +50,43 @@ trait AuthActions extends AuthorisedFunctions {
             isAgent(affinity),
             extractEnrolmentData(allEnrols.enrolments, "HMRC-AS-AGENT", "AgentReferenceNumber")
           ) match {
-            case (true, Some(arn)) => body(arn)
+            case (true, Some(arn)) => Future.successful(Right(Arn(arn)))
             case (true, None) =>
               Logger(getClass).warn(
                 s"Logged in user has Affinity Group: Agent but does not have Enrolment: HMRC-AS-AGENT"
               )
-              Future successful AgentNotSubscribed.toResult
+              Future.successful(Left(AgentNotSubscribed))
             case _ =>
               Logger(getClass).warn(s"Logged in user does not have Affinity Group: Agent. Discovered: $affinity")
-              Future successful NotAnAgent.toResult
+              Future.successful(Left(NotAnAgent))
           }
         case _ =>
           Logger(getClass).warn(s"User Attempted to Login with Invalid Credentials")
-          Future successful NotAnAgent.toResult
+          Future.successful(Left(NotAnAgent))
       }
+
+  protected def authorisedAgentArn[A](using
+    ec: ExecutionContext,
+    request: Request[A]
+  ): Future[Either[ApiErrorResponse, Arn]] = {
+    given HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
+    enrolledAgentArn.recover {
+      case _: InsufficientEnrolments =>
+        Logger(getClass).warn(s"User has Insufficient Enrolments to Login")
+        Left(NotAnAgent)
+      case e: AuthorisationException =>
+        Logger(getClass).warn(s"User has Missing Bearer Token in Header or: $e")
+        Left(StandardUnauthorised)
+    }
+  }
 
   protected def withAuthorisedAsAgent[A](
     body: Arn => Future[Result]
-  )(using ec: ExecutionContext, request: Request[?]): Future[Result] = {
-    given HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
-    withEnrolledAsAgent { arn =>
-      body(Arn(arn))
-    } recoverWith {
-      case _: InsufficientEnrolments =>
-        Logger(getClass).warn(s"User has Insufficient Enrolments to Login")
-        Future successful NotAnAgent.toResult
-      case e: AuthorisationException =>
-        Logger(getClass).warn(s"User has Missing Bearer Token in Header or: $e")
-        Future successful StandardUnauthorised.toResult
+  )(using ec: ExecutionContext, request: Request[A]): Future[Result] =
+    authorisedAgentArn.flatMap {
+      case Right(arn) => body(arn)
+      case Left(error) => Future.successful(error.toResult)
     }
-  }
 
   protected def validateArnInRequest(requestedArn: Arn)(block: => Future[Result])(using arn: Arn): Future[Result] =
     if (requestedArn != arn) {

@@ -17,9 +17,9 @@
 package uk.gov.hmrc.agentauthorisation.binders
 
 import uk.gov.hmrc.agentauthorisation.support.UnitSpec
-import uk.gov.hmrc.agentauthorisation.models.InvitationId
+import uk.gov.hmrc.agentauthorisation.models.{ApiClientId, ApiService, Arn, InvitationId}
 
-class BindersSpec extends UnitSpec {
+class BindersSpec extends UnitSpec:
 
   "getInvitationIdBinder.bind" should {
     "return a successful invitationId when the invitationId is valid" in {
@@ -29,7 +29,7 @@ class BindersSpec extends UnitSpec {
 
     "return an error when the invitationId is invalid" in {
       UrlBinders.getInvitationIdBinder
-        .bind("invitationId", "foo") shouldBe Left(ErrorConstants.InvitationIdNotFound)
+        .bind("invitationId", "foo") shouldBe Left(ErrorConstants.InvitationIdInvalid)
     }
   }
 
@@ -39,4 +39,42 @@ class BindersSpec extends UnitSpec {
     }
   }
 
-}
+  "arnBinder.bind" should {
+    "return an ARN when it is valid" in {
+      UrlBinders.arnBinder.bind("arn", "TARN0000001") shouldBe Right(Arn("TARN0000001"))
+    }
+
+    "return an error when the ARN is invalid" in {
+      UrlBinders.arnBinder.bind("arn", "not-an-arn") shouldBe Left(ErrorConstants.ArnInvalid)
+    }
+  }
+
+  "arnBinder.unbind" should {
+    "return the ARN string" in {
+      UrlBinders.arnBinder.unbind("arn", Arn("TARN0000001")) shouldBe "TARN0000001"
+    }
+  }
+
+  "apiServiceBinder" should {
+    "bind and unbind a supported service" in {
+      UrlBinders.apiServiceBinder.bind("service", "PILLAR2") shouldBe Right(ApiService.Pillar2)
+      UrlBinders.apiServiceBinder.unbind("service", ApiService.Pillar2) shouldBe "PILLAR2"
+    }
+
+    "reject an unsupported service" in {
+      UrlBinders.apiServiceBinder.bind("service", "SA") shouldBe Left(ErrorConstants.ServiceUnsupported)
+    }
+  }
+
+  "apiClientIdBinder" should {
+    "bind and unbind an identifier with a supported format" in {
+      val clientId = ApiClientId.from("101747696").value
+
+      UrlBinders.apiClientIdBinder.bind("clientId", clientId.value) shouldBe Right(clientId)
+      UrlBinders.apiClientIdBinder.unbind("clientId", clientId) shouldBe "101747696"
+    }
+
+    "reject an identifier with no supported format" in {
+      UrlBinders.apiClientIdBinder.bind("clientId", "invalid") shouldBe Left(ErrorConstants.ClientIdInvalid)
+    }
+  }
