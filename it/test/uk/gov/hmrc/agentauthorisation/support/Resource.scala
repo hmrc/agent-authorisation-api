@@ -27,9 +27,13 @@ import scala.language.postfixOps
 
 object Http {
 
-  def get(url: String)(using hc: HeaderCarrier, ec: ExecutionContext, ws: WSClient): HttpResponse = perform(url) {
+  def get(url: String, headers: Seq[(String, String)] = Seq.empty)(using
+    hc: HeaderCarrier,
+    ec: ExecutionContext,
+    ws: WSClient
+  ): HttpResponse = perform(url) {
     request =>
-      request.get()
+      request.addHttpHeaders(headers*).get()
   }
 
   def post(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(using
@@ -91,8 +95,12 @@ object Http {
 
 class Resource(path: String, port: Int) {
 
-  def get()(using hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
-    Http.get(s"http://localhost:$port$path")
+  def get(headers: Seq[(String, String)] = Seq.empty)(using
+    hc: HeaderCarrier = HeaderCarrier(),
+    ec: ExecutionContext,
+    ws: WSClient
+  ) =
+    Http.get(s"http://localhost:$port$path", headers)
 
   def postAsJson(body: String)(using hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
     Http.post(s"http://localhost:$port$path", body, Seq(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON))

@@ -70,6 +70,12 @@ class LegacyAcceptRoutingV3OffISpec extends LegacyAcceptRoutingISpec:
     "leave the exact V3 Accept header on the legacy handler" in:
       getInvitation(Some(ApiVersion.V3AcceptHeader)).status shouldBe 200
 
+    "leave the exact V3 Accept header on the legacy list handler" in:
+      val response = getInvitations(Some(ApiVersion.V3AcceptHeader))
+
+      response.status shouldBe 200
+      response.json.as[JsArray].value should have size 1
+
 class LegacyAcceptRoutingV3OnISpec extends LegacyAcceptRoutingISpec:
   override protected def v3Enabled: Boolean = true
 

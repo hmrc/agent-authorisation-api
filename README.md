@@ -40,6 +40,20 @@ When an API changes in a way that is backwards-incompatible, we increase the ver
 See our [reference guide](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#versioning) for more on
 versioning.
 
+#### V3 feature-switch ownership
+
+Agent Authorisation API is the single owner of the V3 runtime feature switch (`features.enable-v3`). It combines that
+switch with the incoming `Accept` header to select the request flow:
+
+- when the switch is enabled, an exact `application/vnd.hmrc.3.0+json` header selects the V3 handler;
+- when the switch is disabled, all requests use the existing V1/V2 handler, including requests carrying the V3 header;
+- missing or other `Accept` header values continue to use the existing V1/V2 handler.
+
+Downstream services provide backward-compatible capabilities and do not duplicate this exposure switch. A V3 handler
+must call its downstream contract explicitly rather than rely on the public `Accept` header being forwarded. Deploy
+compatible downstream capability first, deploy this service with V3 disabled, and enable V3 here only after the full
+flow has been verified. Disabling this single switch removes public V3 exposure during rollback.
+
 ### Errors
 We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They are usually in the range:
 * 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action

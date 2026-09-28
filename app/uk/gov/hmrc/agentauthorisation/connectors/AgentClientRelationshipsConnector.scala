@@ -23,7 +23,14 @@ import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
-import uk.gov.hmrc.agentauthorisation.models.v3.{AcrClientDetails, AcrCreateInvitationRequest, CreateInvitationV3Response}
+import uk.gov.hmrc.agentauthorisation.models.v3.{
+  AcrAgentLinkV3,
+  AcrClientDetails,
+  AcrCreateInvitationRequest,
+  AcrInvitationPageV3,
+  AcrInvitationV3,
+  CreateInvitationV3Response
+}
 import uk.gov.hmrc.agentauthorisation.util.RequestSupport.given
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -42,6 +49,7 @@ class AgentClientRelationshipsConnector @Inject() (
 )(using val ec: ExecutionContext) {
 
   private val acrUrl = url"${appConfig.acrBaseUrl}/agent-client-relationships"
+  private val invitationPageSize = 100
 
   def getClientDetails(service: String, clientId: String)(using
     rh: RequestHeader
@@ -74,6 +82,48 @@ class AgentClientRelationshipsConnector @Inject() (
 
   private def errorCode(response: HttpResponse): Option[String] =
     Try((response.json \ "code").asOpt[String]).toOption.flatten
+
+  def getInvitationsV3(arn: Arn)(using
+    rh: RequestHeader
+  ): Future[Either[ApiErrorResponse, Seq[AcrInvitationV3]]] =
+    getInvitationsPageV3(arn, pageNumber = 1).flatMap {
+      case Left(error) => Future.successful(Left(error))
+      case Right(firstPage) =>
+        val remainingPages = 2 to Math.ceil(firstPage.totalResults.toDouble / invitationPageSize).toInt
+        Future
+          .traverse(remainingPages)(getInvitationsPageV3(arn, _))
+          .map { pages =>
+            pages.foldLeft[Either[ApiErrorResponse, Vector[AcrInvitationV3]]](Right(firstPage.requests.toVector)) {
+              case (Left(error), _)                  => Left(error)
+              case (_, Left(error))                  => Left(error)
+              case (Right(invitations), Right(page)) => Right(invitations ++ page.requests)
+            }
+          }
+    }
+
+  private def getInvitationsPageV3(arn: Arn, pageNumber: Int)(using
+    rh: RequestHeader
+  ): Future[Either[ApiErrorResponse, AcrInvitationPageV3]] =
+    httpClient
+      .get(
+        url"$acrUrl/agent/${arn.value}/authorisation-requests?pageNumber=$pageNumber&pageSize=$invitationPageSize"
+      )
+      .execute[HttpResponse]
+      .map {
+        case response @ HttpResponse(OK, _, _) => Right(response.json.as[AcrInvitationPageV3])
+        case _                                  => Left(StandardInternalServerError)
+      }
+
+  def getAgentLinkV3()(using
+    rh: RequestHeader
+  ): Future[Either[ApiErrorResponse, AcrAgentLinkV3]] =
+    httpClient
+      .get(url"$acrUrl/agent/agent-link")
+      .execute[HttpResponse]
+      .map {
+        case response @ HttpResponse(OK, _, _) => Right(response.json.as[AcrAgentLinkV3])
+        case _                                  => Left(StandardInternalServerError)
+      }
 
   def createInvitation(arn: Arn, clientAccessData: ClientAccessData)(using
     rh: RequestHeader
