@@ -29,7 +29,14 @@ trait AuthStubs {
   def authorisedAsValidAgent[A](request: FakeRequest[A], arn: String): FakeRequest[A] =
     authenticatedAgent(request, Enrolment("HMRC-AS-AGENT", "AgentReferenceNumber", arn))
 
-  def authenticatedAgent[A](request: FakeRequest[A], enrolment: Enrolment): FakeRequest[A] = {
+  def givenAuthorisedAsValidAgent(arn: String): Unit =
+    givenAuthenticatedAgent(Enrolment("HMRC-AS-AGENT", "AgentReferenceNumber", arn))
+
+  def authenticatedAgent[A](request: FakeRequest[A], enrolment: Enrolment): FakeRequest[A] =
+    givenAuthenticatedAgent(enrolment)
+    request.withSession(SessionKeys.authToken -> "Bearer XYZ")
+
+  def givenAuthenticatedAgent(enrolment: Enrolment): Unit =
     givenAuthorisedFor(
       s"""
          |{
@@ -49,8 +56,6 @@ trait AuthStubs {
          |]}
           """.stripMargin
     )
-    request.withSession(SessionKeys.authToken -> "Bearer XYZ")
-  }
 
   def givenUnauthorisedWith(mdtpDetail: String): Unit =
     stubFor(

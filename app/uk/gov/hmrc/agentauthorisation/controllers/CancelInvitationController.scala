@@ -18,11 +18,10 @@ package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.Logger
 import play.api.mvc._
-import uk.gov.hmrc.agentauthorisation.auth.AuthActions
+import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.CancelInvitationService
 import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
-import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -31,30 +30,25 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class CancelInvitationController @Inject() (
   cancelInvitationService: CancelInvitationService,
-  val authConnector: AuthConnector,
-  cc: ControllerComponents
+  cc: ControllerComponents,
+  apiVersionAction: ApiVersionAction,
+  authorisedAgentAction: AuthorisedAgentAction
 )(using val ec: ExecutionContext)
-    extends BackendController(cc) with AuthActions {
+    extends BackendController(cc) {
 
   def cancelInvitation(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
-    Action.async { request =>
-      given Request[AnyContent] = request
-      withAuthorisedAsAgent { arn =>
-        given Arn = arn
-        validateArnInRequest(givenArn) {
-          cancelInvitationService
-            .cancelInvitation(invitationId)
-            .map {
-              case Right(_) => NoContent
-              case Left(errorResponse: ApiErrorResponse) =>
-                errorResponse.toResult
-            }
-            .recoverWith { case e =>
-              Logger(getClass).warn(s"Invitation Cancellation Failed: ${e.getMessage}")
-              Future.failed(e)
-            }
+    cc.actionBuilder.andThen(apiVersionAction).andThen(authorisedAgentAction(givenArn)).async { request =>
+      cancelInvitationService
+        .cancelInvitation(invitationId)(using request)
+        .map {
+          case Right(_) => NoContent
+          case Left(errorResponse: ApiErrorResponse) =>
+            errorResponse.toResult
         }
-      }
+        .recoverWith { case e =>
+          Logger(getClass).warn(s"Invitation Cancellation Failed: ${e.getMessage}")
+          Future.failed(e)
+        }
     }
 
 }

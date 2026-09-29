@@ -37,6 +37,8 @@ abstract class ApiErrorResponse(val statusCode: Int, val code: String, val messa
         NotFound(this.toJson)
       case 406 =>
         NotAcceptable(this.toJson)
+      case 409 =>
+        Conflict(this.toJson)
       case _ =>
         InternalServerError(this.toJson)
     }
@@ -108,10 +110,31 @@ case object AlreadyAuthorised
       "The client has already authorised the agent for this service. The agent does not need ask the client for this authorisation again."
     )
 
+case object ArnInvalidFormat
+    extends ApiErrorResponse(
+      400,
+      "ARN_FORMAT_INVALID",
+      "Bad Request"
+    )
+
 case object ClientIdDoesNotMatchService
     extends ApiErrorResponse(
       400,
       "CLIENT_ID_DOES_NOT_MATCH_SERVICE",
+      "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
+    )
+
+case object ClientIdIncompatibleWithService
+    extends ApiErrorResponse(
+      400,
+      "CLIENT_ID_INCOMPATIBLE_WITH_SERVICE",
+      "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
+    )
+
+case object ClientIdNotCompatibleWithService
+    extends ApiErrorResponse(
+      400,
+      "CLIENT_ID_NOT_COMPATIBLE_WITH_SERVICE",
       "The specified client identifier does not match the requested service. Check the API documentation to find the correct format."
     )
 
@@ -162,6 +185,48 @@ case object InvitationNotFound
       404,
       "INVITATION_NOT_FOUND",
       "The authorisation request cannot be found."
+    )
+
+case object InvitationIdInvalidFormat
+    extends ApiErrorResponse(
+      400,
+      "INVITATION_ID_FORMAT_INVALID",
+      "Bad Request"
+    )
+
+case object KnownFactFormatInvalid
+    extends ApiErrorResponse(
+      400,
+      "KNOWN_FACT_FORMAT_INVALID",
+      "Known fact must be in the correct format. Check the API documentation to find the correct format."
+    )
+
+case object KnownFactIncompatibleWithService
+    extends ApiErrorResponse(
+      400,
+      "KNOWN_FACT_INCOMPATIBLE_WITH_SERVICE",
+      "The known fact does not match the requested service. Check the API documentation to find the correct format."
+    )
+
+case object KnownFactDoesNotMatch
+    extends ApiErrorResponse(
+      403,
+      "KNOWN_FACT_DOES_NOT_MATCH",
+      "The known fact provided does not match HMRC's record for this client."
+    )
+
+case object ClientInsolvent
+    extends ApiErrorResponse(
+      403,
+      "CLIENT_INSOLVENT",
+      "The client cannot authorise an agent because their registration is not active."
+    )
+
+case object DuplicateAuthorisationRequestV3
+    extends ApiErrorResponse(
+      409,
+      "DUPLICATE_AUTHORISATION_REQUEST",
+      "The authorisation request is a duplicate of a previous request."
     )
 
 case object LockedRequest

@@ -41,6 +41,7 @@ class AppConfigSpec extends UnitSpec {
       appConfig.acrfExternalUrl shouldBe "http://localhost:9435"
       appConfig.apiType shouldBe "PRIVATE"
       appConfig.apiSupportedVersions.toArray.toSeq shouldBe Seq("1.0", "2.0")
+      appConfig.v3Enabled shouldBe false
     }
 
     "fail clearly when agent-client-relationships-frontend.external-url is missing" in {
@@ -55,6 +56,19 @@ class AppConfigSpec extends UnitSpec {
         AppConfig(servicesConfig(configuration), configuration)
 
       exception.getMessage.shouldBe("config 'agent-client-relationships-frontend.external-url' not found")
+    }
+
+    "read an enabled V3 feature switch from configuration" in {
+      val configuration = Configuration(
+        "api.supported-versions"                                                 -> List("1.0", "2.0"),
+        "api.access.type"                                                        -> "PRIVATE",
+        "features.enable-v3"                                                     -> true,
+        "microservice.services.agent-client-relationships.host"                  -> "localhost",
+        "microservice.services.agent-client-relationships.port"                  -> 9434,
+        "microservice.services.agent-client-relationships-frontend.external-url" -> "http://localhost:9435"
+      )
+
+      AppConfig(servicesConfig(configuration), configuration).v3Enabled shouldBe true
     }
   }
 }

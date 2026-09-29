@@ -1,0 +1,539 @@
+openapi: 3.0.3
+
+info:
+  title: Agent Authorisation
+  version: '3.0'
+  description: >-
+    Create and manage requests for a client to authorise an agent.
+
+    This draft documents only the V3 operations currently implemented. Version
+    3.0 is not advertised through the API definition until the V3 release is
+    enabled.
+
+servers:
+  - url: https://test-api.service.hmrc.gov.uk/
+    description: Sandbox
+  - url: https://api.service.hmrc.gov.uk/
+    description: Production
+
+components:
+  parameters:
+    arnParameter:
+      name: arn
+      in: path
+      description: The agent reference number for the calling agency, including a valid check character.
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Z]ARN[0-9]{7}$'
+        example: TARN0000001
+    acceptHeader:
+      name: Accept
+      in: header
+      description: Selects version 3.0 of the API.
+      required: true
+      schema:
+        type: string
+        enum:
+          - application/vnd.hmrc.3.0+json
+    contentTypeHeader:
+      name: Content-Type
+      in: header
+      description: The media type of the request body.
+      required: true
+      schema:
+        type: string
+        enum:
+          - application/json
+
+  securitySchemes:
+    userRestricted:
+      type: oauth2
+      description: >-
+        HMRC supports OAuth 2.0 for authenticating user-restricted API requests
+        using a bearer token in the Authorization header.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api.service.hmrc.gov.uk/oauth/authorize
+          tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
+          refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
+          scopes:
+            write:sent-invitations: Grants write access to sent invitations
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+    CreateInvitationResponse:
+      type: object
+      required:
+        - invitationId
+      properties:
+        invitationId:
+          type: string
+          description: The unique identifier of the created authorisation request.
+          pattern: '^[ABCDEFGHJKLMNOPRSTUWXYZ123456789]{13}$'
+          example: ABERULMHCKKW3
+
+    AgentType:
+      type: string
+      description: >-
+        The type of agent relationship. If omitted, the invitation is created
+        for a main agent. A supporting agent type affects MTD-IT only.
+      enum:
+        - main
+        - supporting
+
+    PostcodeOrCountryCode:
+      description: A UK postcode or a two-letter ISO country code.
+      oneOf:
+        - type: string
+          title: UK postcode
+          pattern: '^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$|^BFPO\s?[0-9]{1,5}$'
+          example: AA1 1AA
+        - type: string
+          title: ISO country code
+          pattern: '^[A-Z]{2}$'
+          example: FR
+
+    DateKnownFact:
+      type: string
+      format: date
+      description: A valid calendar date in ISO 8601 format.
+      pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+      example: '2020-01-01'
+
+    EmailKnownFact:
+      type: string
+      format: email
+      pattern: '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+      example: client@example.com
+
+    CreateInvitationRequest:
+      oneOf:
+        - $ref: '#/components/schemas/MtdItCreateInvitationRequest'
+        - $ref: '#/components/schemas/MtdVatCreateInvitationRequest'
+        - $ref: '#/components/schemas/TrustsCreateInvitationRequest'
+        - $ref: '#/components/schemas/IrvCreateInvitationRequest'
+        - $ref: '#/components/schemas/CgtCreateInvitationRequest'
+        - $ref: '#/components/schemas/PptCreateInvitationRequest'
+        - $ref: '#/components/schemas/CbcCreateInvitationRequest'
+        - $ref: '#/components/schemas/Pillar2CreateInvitationRequest'
+      discriminator:
+        propertyName: service
+        mapping:
+          MTD-IT: '#/components/schemas/MtdItCreateInvitationRequest'
+          MTD-VAT: '#/components/schemas/MtdVatCreateInvitationRequest'
+          TRUSTS: '#/components/schemas/TrustsCreateInvitationRequest'
+          IRV: '#/components/schemas/IrvCreateInvitationRequest'
+          CGT-PD: '#/components/schemas/CgtCreateInvitationRequest'
+          PPT: '#/components/schemas/PptCreateInvitationRequest'
+          CBC: '#/components/schemas/CbcCreateInvitationRequest'
+          PILLAR2: '#/components/schemas/Pillar2CreateInvitationRequest'
+
+    MtdItCreateInvitationRequest:
+      title: MTD-IT invitation
+      type: object
+      required:
+        - service
+        - clientId
+        - knownFact
+      properties:
+        service:
+          type: string
+          enum: [MTD-IT]
+        clientId:
+          type: string
+          description: The client's National Insurance number.
+          pattern: '^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ] ?[0-9]{2} ?[0-9]{2} ?[0-9]{2} ?[A-D]$'
+          example: AB123456A
+        knownFact:
+          $ref: '#/components/schemas/PostcodeOrCountryCode'
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
+    MtdVatCreateInvitationRequest:
+      title: MTD-VAT invitation
+      type: object
+      required:
+        - service
+        - clientId
+        - knownFact
+      properties:
+        service:
+          type: string
+          enum: [MTD-VAT]
+        clientId:
+          type: string
+          description: The client's VAT registration number.
+          pattern: '^[0-9]{9}$'
+          example: '101747696'
+        knownFact:
+          $ref: '#/components/schemas/DateKnownFact'
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
+    TrustsCreateInvitationRequest:
+      title: Trust invitation
+      type: object
+      description: The knownFact field must be omitted for a trust invitation.
+      required:
+        - service
+        - clientId
+      not:
+        required:
+          - knownFact
+      properties:
+        service:
+          type: string
+          enum: [TRUSTS]
+        clientId:
+          description: The trust's UTR or URN.
+          oneOf:
+            - type: string
+              title: UTR
+              pattern: '^[0-9]{10}$'
+              example: '1234567890'
+            - type: string
+              title: URN
+              pattern: '^[A-Z]{2}TRUST[0-9]{8}$'
+              example: XXTRUST12345678
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
+    IrvCreateInvitationRequest:
+      title: Income Record Viewer invitation
+      type: object
+      required:
+        - service
+        - clientId
+        - knownFact
+      properties:
+        service:
+          type: string
+          enum: [IRV]
+        clientId:
+          type: string
+          description: The client's National Insurance number.
+          pattern: '^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ] ?[0-9]{2} ?[0-9]{2} ?[0-9]{2} ?[A-D]$'
+          example: AB123456A
+        knownFact:
+          $ref: '#/components/schemas/DateKnownFact'
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
+    CgtCreateInvitationRequest:
+      title: Capital Gains Tax invitation
+      type: object
+      required:
+        - service
+        - clientId
+        - knownFact
+      properties:
+        service:
+          type: string
+          enum: [CGT-PD]
+        clientId:
+          type: string
+          description: The client's Capital Gains Tax reference.
+          pattern: '^X[A-Z]CGTP[0-9]{9}$'
+          example: XACGTP123456789
+        knownFact:
+          $ref: '#/components/schemas/PostcodeOrCountryCode'
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
+    PptCreateInvitationRequest:
+      title: Plastic Packaging Tax invitation
+      type: object
+      required:
+        - service
+        - clientId
+        - knownFact
+      properties:
+        service:
+          type: string
+          enum: [PPT]
+        clientId:
+          type: string
+          description: The client's Plastic Packaging Tax reference.
+          pattern: '^X[A-Z]PPT000[0-9]{7}$'
+          example: XAPPT0001234567
+        knownFact:
+          $ref: '#/components/schemas/DateKnownFact'
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
+    CbcCreateInvitationRequest:
+      title: Country-by-Country Reporting invitation
+      type: object
+      required:
+        - service
+        - clientId
+        - knownFact
+      properties:
+        service:
+          type: string
+          enum: [CBC]
+        clientId:
+          type: string
+          description: The client's Country-by-Country Reporting identifier.
+          pattern: '^X[A-Z]CBC[0-9]{10}$'
+          example: XACBC1234567890
+        knownFact:
+          $ref: '#/components/schemas/EmailKnownFact'
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
+    Pillar2CreateInvitationRequest:
+      title: Pillar 2 invitation
+      type: object
+      required:
+        - service
+        - clientId
+        - knownFact
+      properties:
+        service:
+          type: string
+          enum: [PILLAR2]
+        clientId:
+          type: string
+          description: The client's Pillar 2 reference.
+          pattern: '^X[A-Z]PLR[0-9]{10}$'
+          example: XAPLR1234567890
+        knownFact:
+          $ref: '#/components/schemas/DateKnownFact'
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
+  responses:
+    Unauthorized:
+      description: The bearer token is missing or is not authorised.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAUTHORIZED
+            message: Bearer token is missing or not authorized.
+    BadRequestCreateInvitation:
+      description: The request or one of its fields is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidPayload:
+              value:
+                code: INVALID_PAYLOAD
+                message: The payload is invalid.
+            invalidArn:
+              value:
+                code: ARN_FORMAT_INVALID
+                message: Bad Request
+            unsupportedService:
+              value:
+                code: SERVICE_NOT_SUPPORTED
+                message: The service requested is not supported. Check the API documentation to find which services are supported.
+            invalidClientId:
+              value:
+                code: CLIENT_ID_FORMAT_INVALID
+                message: Client identifier must be in the correct format. Check the API documentation to find the correct format.
+            incompatibleClientId:
+              value:
+                code: CLIENT_ID_NOT_COMPATIBLE_WITH_SERVICE
+                message: The specified client identifier does not match the requested service. Check the API documentation to find the correct format.
+            invalidKnownFact:
+              value:
+                code: KNOWN_FACT_FORMAT_INVALID
+                message: Known fact must be in the correct format. Check the API documentation to find the correct format.
+            incompatibleKnownFact:
+              value:
+                code: KNOWN_FACT_INCOMPATIBLE_WITH_SERVICE
+                message: The known fact does not match the requested service. Check the API documentation to find the correct format.
+            unsupportedAgentType:
+              value:
+                code: AGENT_TYPE_NOT_SUPPORTED
+                message: The agent type requested is not supported. Check the API documentation to find which agent types are supported.
+    ForbiddenCreateInvitation:
+      description: The caller or client is not permitted to create the invitation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notAnAgent:
+              value:
+                code: NOT_AN_AGENT
+                message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+            agentNotSubscribed:
+              value:
+                code: AGENT_NOT_SUBSCRIBED
+                message: This agent needs to create an agent services account before they can use this service.
+            noPermissionOnAgency:
+              value:
+                code: NO_PERMISSION_ON_AGENCY
+                message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+            clientRegistrationNotFound:
+              value:
+                code: CLIENT_REGISTRATION_NOT_FOUND
+                message: The details provided for this client do not match HMRC's records.
+            knownFactDoesNotMatch:
+              value:
+                code: KNOWN_FACT_DOES_NOT_MATCH
+                message: The known fact provided does not match HMRC's record for this client.
+            clientInsolvent:
+              value:
+                code: CLIENT_INSOLVENT
+                message: The client cannot authorise an agent because their registration is not active.
+            alreadyAuthorised:
+              value:
+                code: ALREADY_AUTHORISED
+                message: The client has already authorised the agent for this service. The agent does not need ask the client for this authorisation again.
+            alreadyBeingProcessed:
+              value:
+                code: ALREADY_BEING_PROCESSED
+                message: More than one request received to create the same invitation.
+    ConflictCreateInvitation:
+      description: An equivalent invitation already exists.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: DUPLICATE_AUTHORISATION_REQUEST
+            message: The authorisation request is a duplicate of a previous request.
+    NotAcceptable:
+      description: The Accept header is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            missingAcceptHeader:
+              value:
+                code: ACCEPT_HEADER_INVALID
+                message: Missing 'Accept' header.
+            invalidAcceptHeader:
+              value:
+                code: ACCEPT_HEADER_INVALID
+                message: Invalid 'Accept' header.
+    InternalServerError:
+      description: An unexpected error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INTERNAL_SERVER_ERROR
+            message: Internal server error.
+
+paths:
+  /agents/{arn}/invitations:
+    post:
+      tags:
+        - Agents
+      summary: Create an authorisation request
+      description: >-
+        Creates an authorisation request for the client. The request expires
+        after 21 days.
+      operationId: createInvitationV3
+      security:
+        - userRestricted:
+            - write:sent-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+        - $ref: '#/components/parameters/contentTypeHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvitationRequest'
+            examples:
+              mtdItMain:
+                summary: MTD-IT main agent
+                value:
+                  service: MTD-IT
+                  clientId: AB123456A
+                  knownFact: AA1 1AA
+                  agentType: main
+              mtdItSupporting:
+                summary: MTD-IT supporting agent with an overseas client
+                value:
+                  service: MTD-IT
+                  clientId: AB123456A
+                  knownFact: FR
+                  agentType: supporting
+              mtdVat:
+                value:
+                  service: MTD-VAT
+                  clientId: '101747696'
+                  knownFact: '2020-01-01'
+              taxableTrust:
+                value:
+                  service: TRUSTS
+                  clientId: '1234567890'
+              nonTaxableTrust:
+                value:
+                  service: TRUSTS
+                  clientId: XXTRUST12345678
+              irv:
+                value:
+                  service: IRV
+                  clientId: AB123456A
+                  knownFact: '1990-01-01'
+              cgt:
+                value:
+                  service: CGT-PD
+                  clientId: XACGTP123456789
+                  knownFact: AA1 1AA
+              ppt:
+                value:
+                  service: PPT
+                  clientId: XAPPT0001234567
+                  knownFact: '2020-01-01'
+              cbc:
+                value:
+                  service: CBC
+                  clientId: XACBC1234567890
+                  knownFact: client@example.com
+              pillar2:
+                value:
+                  service: PILLAR2
+                  clientId: XAPLR1234567890
+                  knownFact: '2020-01-01'
+      responses:
+        '201':
+          description: The authorisation request was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateInvitationResponse'
+              example:
+                invitationId: ABERULMHCKKW3
+        '400':
+          $ref: '#/components/responses/BadRequestCreateInvitation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/ForbiddenCreateInvitation'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '409':
+          $ref: '#/components/responses/ConflictCreateInvitation'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+tags:
+  - name: Agents
+    description: Operations performed by an agent.

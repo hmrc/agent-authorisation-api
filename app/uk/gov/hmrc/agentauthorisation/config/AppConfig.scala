@@ -40,4 +40,6 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration
 
   val apiType: String = servicesConfig.getString("api.access.type")
 
+  val v3Enabled: Boolean = config.getOptional[Boolean]("features.enable-v3").getOrElse(false)
+
 }

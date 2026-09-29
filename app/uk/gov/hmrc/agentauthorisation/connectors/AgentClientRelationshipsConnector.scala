@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.agentauthorisation.connectors
 
-import play.api.http.Status.{CREATED, NO_CONTENT, OK}
+import play.api.http.Status.{CREATED, NOT_FOUND, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
+import uk.gov.hmrc.agentauthorisation.models.v3.{AcrClientDetails, AcrCreateInvitationRequest, CreateInvitationV3Response}
 import uk.gov.hmrc.agentauthorisation.util.RequestSupport.given
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -31,6 +32,7 @@ import uk.gov.hmrc.play.bootstrap.metrics.Metrics
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 @Singleton
 class AgentClientRelationshipsConnector @Inject() (
@@ -40,6 +42,38 @@ class AgentClientRelationshipsConnector @Inject() (
 )(using val ec: ExecutionContext) {
 
   private val acrUrl = url"${appConfig.acrBaseUrl}/agent-client-relationships"
+
+  def getClientDetails(service: String, clientId: String)(using
+    rh: RequestHeader
+  ): Future[Either[ApiErrorResponse, AcrClientDetails]] =
+    httpClient
+      .get(url"$acrUrl/client/$service/details/$clientId")
+      .execute[HttpResponse]
+      .map {
+        case response @ HttpResponse(OK, _, _) => Right(response.json.as[AcrClientDetails])
+        case HttpResponse(NOT_FOUND, _, _)      => Left(ClientRegistrationNotFound)
+        case _                                  => Left(StandardInternalServerError)
+      }
+
+  def createInvitationV3(arn: Arn, request: AcrCreateInvitationRequest)(using
+    rh: RequestHeader
+  ): Future[Either[ApiErrorResponse, InvitationId]] =
+    httpClient
+      .post(url"$acrUrl/agent/${arn.value}/authorisation-request")
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse]
+      .map {
+        case response @ HttpResponse(CREATED, _, _) =>
+          Right(InvitationId(response.json.as[CreateInvitationV3Response].invitationId))
+        case response if errorCode(response).contains("DUPLICATE_AUTHORISATION_REQUEST") =>
+          Left(DuplicateAuthorisationRequestV3)
+        case response if errorCode(response).contains("ALREADY_AUTHORISED") =>
+          Left(AlreadyAuthorised)
+        case _ => Left(StandardInternalServerError)
+      }
+
+  private def errorCode(response: HttpResponse): Option[String] =
+    Try((response.json \ "code").asOpt[String]).toOption.flatten
 
   def createInvitation(arn: Arn, clientAccessData: ClientAccessData)(using
     rh: RequestHeader

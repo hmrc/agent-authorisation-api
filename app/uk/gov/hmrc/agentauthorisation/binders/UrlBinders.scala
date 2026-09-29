@@ -17,13 +17,33 @@
 package uk.gov.hmrc.agentauthorisation.binders
 
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
+import uk.gov.hmrc.agentauthorisation.models.{ApiClientId, ApiService, Arn, InvitationId}
 
 object UrlBinders {
 
   given invitationIdBinder: PathBindable[InvitationId] =
     getInvitationIdBinder
-  given arnBinder: PathBindable[Arn] = new SimpleObjectBinder[Arn](Arn.apply, _.value)
+  given apiServiceBinder: PathBindable[ApiService] = new PathBindable[ApiService] {
+    override def bind(key: String, value: String): Either[String, ApiService] =
+      ApiService.from(value).toRight(ErrorConstants.ServiceUnsupported)
+
+    override def unbind(key: String, service: ApiService): String =
+      service.value
+  }
+  given apiClientIdBinder: PathBindable[ApiClientId] = new PathBindable[ApiClientId] {
+    override def bind(key: String, value: String): Either[String, ApiClientId] =
+      ApiClientId.from(value).toRight(ErrorConstants.ClientIdInvalid)
+
+    override def unbind(key: String, clientId: ApiClientId): String =
+      clientId.value
+  }
+  given arnBinder: PathBindable[Arn] = new PathBindable[Arn] {
+    override def bind(key: String, value: String): Either[String, Arn] =
+      if (Arn.isValid(value)) Right(Arn(value)) else Left(ErrorConstants.ArnInvalid)
+
+    override def unbind(key: String, arn: Arn): String =
+      arn.value
+  }
 
   def getInvitationIdBinder(using stringBinder: PathBindable[String]): PathBindable[InvitationId] =
     new PathBindable[InvitationId] {
@@ -35,7 +55,7 @@ object UrlBinders {
         if (isValidPrefix && InvitationId.isValid(value))
           Right(InvitationId(value))
         else
-          Left(ErrorConstants.InvitationIdNotFound)
+          Left(ErrorConstants.InvitationIdInvalid)
       }
 
       override def unbind(key: String, id: InvitationId): String =
@@ -44,5 +64,8 @@ object UrlBinders {
 }
 
 object ErrorConstants {
-  val InvitationIdNotFound = "INVITATION_ID_NOTFOUND"
+  val ArnInvalid = "ARN_FORMAT_INVALID"
+  val ClientIdInvalid = "CLIENT_ID_FORMAT_INVALID"
+  val InvitationIdInvalid = "INVITATION_ID_FORMAT_INVALID"
+  val ServiceUnsupported = "SERVICE_NOT_SUPPORTED"
 }
