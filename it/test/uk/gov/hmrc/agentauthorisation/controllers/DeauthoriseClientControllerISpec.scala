@@ -49,7 +49,7 @@ class DeauthoriseClientControllerISpec extends BaseISpec {
         status = NO_CONTENT
       )
 
-      val deauthoriseRelationship = controller.deauthoriseRelationship(arn)
+      val deauthoriseRelationship = controller.deauthoriseRelationshipV1V2(arn)
 
       val result: Result =
         deauthoriseRelationship(
@@ -68,7 +68,7 @@ class DeauthoriseClientControllerISpec extends BaseISpec {
         status = NO_CONTENT
       )
 
-      val deauthoriseRelationship = controller.deauthoriseRelationship(arn)
+      val deauthoriseRelationship = controller.deauthoriseRelationshipV1V2(arn)
 
       val result: Result =
         deauthoriseRelationship(
@@ -88,7 +88,7 @@ class DeauthoriseClientControllerISpec extends BaseISpec {
         optCode = Some("RELATIONSHIP_NOT_FOUND")
       )
 
-      val deauthoriseRelationship = controller.deauthoriseRelationship(arn)
+      val deauthoriseRelationship = controller.deauthoriseRelationshipV1V2(arn)
 
       val result: Result =
         deauthoriseRelationship(
@@ -105,7 +105,7 @@ class DeauthoriseClientControllerISpec extends BaseISpec {
           s"""{"service": ["MTD-IT"], "clientType": "business", "clientIdType": "ni", "clientId": "${validNino.value}"}"""
         )
 
-      val deauthoriseRelationship = controller.deauthoriseRelationship(arn)
+      val deauthoriseRelationship = controller.deauthoriseRelationshipV1V2(arn)
 
       val result: Result =
         deauthoriseRelationship(

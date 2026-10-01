@@ -20,7 +20,6 @@ import play.api.libs.json.JsValue
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.agentauthorisation.connectors.AgentClientRelationshipsConnector
 import uk.gov.hmrc.agentauthorisation.models.*
-import uk.gov.hmrc.agentauthorisation.models.ApiClientId.value
 import uk.gov.hmrc.agentauthorisation.models.v3.*
 import uk.gov.hmrc.agentauthorisation.services.MongoLockService
 

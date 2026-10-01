@@ -40,20 +40,21 @@ object ApiService:
   def from(value: String): Option[ApiService] =
     values.find(_.value == value)
 
-opaque type ApiClientId = String
+// restore when (or if) play framework supports opaque types in path binders
+// https://github.com/playframework/playframework/issues/12774
+// opaque type ApiClientId = String
+case class ApiClientId private (value: String) extends AnyVal
 
 object ApiClientId:
   def from(value: String): Option[ApiClientId] =
-    Option.when(ApiService.values.exists(_.acceptsRaw(value)))(value)
-
-  extension (clientId: ApiClientId) def value: String = clientId
+    Option.when(ApiService.values.exists(_.acceptsRaw(value)))(ApiClientId(value))
 
 final class ApiServiceClient private (val service: ApiService, val clientId: ApiClientId)
 
 object ApiServiceClient:
   def validate(service: String, clientId: String): Either[ApiErrorResponse, ApiServiceClient] =
     for
-      parsedService <- ApiService.from(service).toRight(UnsupportedService)
+      parsedService  <- ApiService.from(service).toRight(UnsupportedService)
       parsedClientId <- ApiClientId.from(clientId).toRight(ClientIdInvalidFormat)
       compatiblePair <- from(parsedService, parsedClientId)
     yield compatiblePair

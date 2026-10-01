@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>[%level] %message %replace(exception=[%xException]){'^exception=\[\]$',''} %date{ISO8601} %n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.google.inject" level="OFF"/>
+    <logger name="org.asynchttpclient.netty" level="OFF"/>
+    <logger name="io.netty.buffer" level="OFF"/>
+    <logger name="play.core.netty" level="OFF"/>
+
+    <root level="DEBUG">
+        <!-- We send DEBUG logs to an ERROR-filtering appender rather than setting log level to ERROR directly
+        so that all the logging statements are exercised during tests -->
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

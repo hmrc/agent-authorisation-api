@@ -27,6 +27,24 @@ components:
         type: string
         pattern: '^[A-Z]ARN[0-9]{7}$'
         example: TARN0000001
+    serviceParameter:
+      name: service
+      in: path
+      description: The service for which the client relationship should be removed.
+      required: true
+      schema:
+        type: string
+        enum:
+          - MTD-IT
+          - MTD-VAT
+        example: MTD-IT
+    clientIdParameter:
+      name: clientId
+      in: path
+      description: The client identifier for the selected service.
+      required: true
+      schema:
+        type: string
     acceptHeader:
       name: Accept
       in: header
@@ -480,6 +498,25 @@ components:
               value:
                 code: ALREADY_BEING_PROCESSED
                 message: More than one request received to create the same invitation.
+    ForbiddenDeauthoriseRelationship:
+      description: The caller is not permitted to remove the relationship.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notAnAgent:
+              value:
+                code: NOT_AN_AGENT
+                message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+            noRelationship:
+              value:
+                code: NO_RELATIONSHIP
+                message: The specified relationship does not exist.
+            alreadyBeingProcessed:
+              value:
+                code: ALREADY_BEING_PROCESSED
+                message: More than one request received to remove the same relationship.
     ConflictCreateInvitation:
       description: An equivalent invitation already exists.
       content:
@@ -644,6 +681,36 @@ paths:
           $ref: '#/components/responses/ConflictCreateInvitation'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /agents/{arn}/services/{service}/client/{clientId}/relationship:
+    delete:
+      tags:
+        - Agents
+      summary: Remove an existing client relationship
+      description: >-
+        Removes an existing relationship between the agent and the client for the
+        specified service. Returns 204 when the relationship is removed, or 204
+        when no relationship exists.
+      operationId: deauthoriseRelationshipV3
+      security:
+        - userRestricted: []
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/serviceParameter'
+        - $ref: '#/components/parameters/clientIdParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+      responses:
+        '204':
+          description: The relationship has been removed successfully, or no relationship existed.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/ForbiddenDeauthoriseRelationship'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 
 tags:
   - name: Agents
