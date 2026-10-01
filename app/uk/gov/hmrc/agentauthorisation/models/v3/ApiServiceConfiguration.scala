@@ -17,7 +17,6 @@
 package uk.gov.hmrc.agentauthorisation.models.v3
 
 import uk.gov.hmrc.agentauthorisation.models.{AgentType, ApiClientId, ApiService}
-import uk.gov.hmrc.agentauthorisation.models.ApiClientId.value
 
 final case class ApiServiceConfiguration(
   detailsService: String,
