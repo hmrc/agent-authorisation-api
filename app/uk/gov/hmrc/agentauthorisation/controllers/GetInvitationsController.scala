@@ -17,24 +17,27 @@
 package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.libs.json.Json.toJson
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction, AuthorisedAgentRequest, VersionedAgentAction}
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models.{AllInvitationDetails, ApiErrorResponse, SingleInvitationDetails}
 import uk.gov.hmrc.agentauthorisation.services.GetInvitationsService
+import uk.gov.hmrc.agentauthorisation.services.v3.GetInvitationsV3Service
 import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class GetInvitationsController @Inject() (
   getInvitationsService: GetInvitationsService,
+  getInvitationsV3Service: GetInvitationsV3Service,
   cc: ControllerComponents,
   appConfig: AppConfig,
   apiVersionAction: ApiVersionAction,
-  authorisedAgentAction: AuthorisedAgentAction
+  authorisedAgentAction: AuthorisedAgentAction,
+  versionedAgentAction: VersionedAgentAction
 )(using ec: ExecutionContext)
     extends BackendController(cc):
 
@@ -51,15 +54,22 @@ class GetInvitationsController @Inject() (
     }
 
   def getInvitationsApi(givenArn: Arn): Action[AnyContent] =
-    cc.actionBuilder.andThen(apiVersionAction).andThen(authorisedAgentAction(givenArn)).async { request =>
-      getInvitationsService
-        .getAllInvitations(request.arn)(using request)
-        .map {
-          case Right(AllInvitationDetails(_, Nil)) =>
-            NoContent
-          case Right(invitationDetails) =>
-            Ok(toJson(invitationDetails)(using AllInvitationDetails.apiWrites(request.arn, appConfig.acrfExternalUrl)))
-          case Left(errorResponse: ApiErrorResponse) =>
-            errorResponse.toResult
-        }
+    versionedAgentAction(givenArn)(getInvitationsV1V2, getInvitationsV3)
+
+  private def getInvitationsV1V2(request: AuthorisedAgentRequest[AnyContent]): Future[Result] =
+    getInvitationsService
+      .getAllInvitations(request.arn)(using request)
+      .map {
+        case Right(AllInvitationDetails(_, Nil)) =>
+          NoContent
+        case Right(invitationDetails) =>
+          Ok(toJson(invitationDetails)(using AllInvitationDetails.apiWrites(request.arn, appConfig.acrfExternalUrl)))
+        case Left(errorResponse: ApiErrorResponse) =>
+          errorResponse.toResult
+      }
+
+  private def getInvitationsV3(request: AuthorisedAgentRequest[AnyContent]): Future[Result] =
+    getInvitationsV3Service.getInvitations(request.arn)(using request).map {
+      case Right(invitations) => Ok(toJson(invitations))
+      case Left(error)        => error.toResult
     }

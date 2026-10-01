@@ -30,6 +30,12 @@ final case class ApiServiceConfiguration(
       case ApiService.Cbc if details.isOverseas.contains(true)                 => "HMRC-CBC-NONUK-ORG"
       case _                                                                  => detailsService
 
+final case class ApiInvitationServiceConfiguration(
+  service: ApiService,
+  clientActionUrlPart: String,
+  agentType: Option[AgentType] = None
+)
+
 object ApiServiceConfiguration:
   private val postalOrCountry = Set(ApiKnownFactType.PostalCode, ApiKnownFactType.CountryCode)
 
@@ -45,3 +51,25 @@ object ApiServiceConfiguration:
       case ApiService.Ppt    => ApiServiceConfiguration("HMRC-PPT-ORG", "EtmpRegistrationNumber", Set(ApiKnownFactType.Date))
       case ApiService.Cbc    => ApiServiceConfiguration("HMRC-CBC-ORG", "cbcId", Set(ApiKnownFactType.Email))
       case ApiService.Pillar2 => ApiServiceConfiguration("HMRC-PILLAR2-ORG", "PLRID", Set(ApiKnownFactType.Date))
+
+  def forAcrInvitationService(service: String): Option[ApiInvitationServiceConfiguration] =
+    service match
+      case "HMRC-MTD-IT" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.MtdIt, "income-tax", Some(AgentType.Main)))
+      case "HMRC-MTD-IT-SUPP" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.MtdIt, "income-tax", Some(AgentType.Supporting)))
+      case "HMRC-MTD-VAT" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.MtdVat, "vat"))
+      case "HMRC-TERS-ORG" | "HMRC-TERSNT-ORG" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.Trusts, "trusts-and-estates"))
+      case "PERSONAL-INCOME-RECORD" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.Irv, "income-record-viewer"))
+      case "HMRC-CGT-PD" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.CgtPd, "capital-gains-tax-uk-property"))
+      case "HMRC-PPT-ORG" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.Ppt, "plastic-packaging-tax"))
+      case "HMRC-CBC-ORG" | "HMRC-CBC-NONUK-ORG" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.Cbc, "country-by-country-reporting"))
+      case "HMRC-PILLAR2-ORG" =>
+        Some(ApiInvitationServiceConfiguration(ApiService.Pillar2, "pillar-2"))
+      case _ => None

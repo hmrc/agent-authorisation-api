@@ -82,6 +82,7 @@ class PlatformIntegrationSpec extends BaseISpec {
       yaml should include("version: '3.0'")
       yaml should include("/agents/{arn}/invitations:")
       yaml should include("operationId: createInvitationV3")
+      yaml should include("operationId: getInvitationsV3")
       yaml should include("application/vnd.hmrc.3.0+json")
     }
   }

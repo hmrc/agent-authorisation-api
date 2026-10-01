@@ -58,6 +58,7 @@ components:
           tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
           refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
           scopes:
+            read:sent-invitations: Grants read access to sent invitations
             write:sent-invitations: Grants write access to sent invitations
 
   schemas:
@@ -82,6 +83,55 @@ components:
           description: The unique identifier of the created authorisation request.
           pattern: '^[ABCDEFGHJKLMNOPRSTUWXYZ123456789]{13}$'
           example: ABERULMHCKKW3
+
+    Invitation:
+      type: object
+      required:
+        - href
+        - service
+        - status
+        - created
+      properties:
+        href:
+          type: string
+          description: Relative URL of the invitation resource.
+          example: /agents/TARN0000001/invitations/ABERULMHCKKW3
+        service:
+          type: string
+          enum:
+            - MTD-VAT
+            - MTD-IT
+            - PILLAR2
+            - PPT
+            - CGT-PD
+            - IRV
+            - CBC
+            - TRUSTS
+        status:
+          type: string
+          enum:
+            - Pending
+            - Accepted
+            - Rejected
+            - Cancelled
+            - Deauthorised
+            - Expired
+            - Partialauth
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        expiresOn:
+          type: string
+          format: date
+        clientActionUrl:
+          type: string
+          format: uri
+          description: Link for the client to accept or reject a pending invitation.
+        agentType:
+          $ref: '#/components/schemas/AgentType'
 
     AgentType:
       type: string
@@ -324,6 +374,34 @@ components:
           example:
             code: UNAUTHORIZED
             message: Bearer token is missing or not authorized.
+    BadRequestArn:
+      description: The ARN path parameter is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: ARN_FORMAT_INVALID
+            message: Bad Request
+    ForbiddenAgent:
+      description: The caller is not permitted to access this agency's invitations.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notAnAgent:
+              value:
+                code: NOT_AN_AGENT
+                message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+            agentNotSubscribed:
+              value:
+                code: AGENT_NOT_SUBSCRIBED
+                message: This agent needs to create an agent services account before they can use this service.
+            noPermissionOnAgency:
+              value:
+                code: NO_PERMISSION_ON_AGENCY
+                message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
     BadRequestCreateInvitation:
       description: The request or one of its fields is invalid.
       content:
@@ -438,6 +516,39 @@ components:
 
 paths:
   /agents/{arn}/invitations:
+    get:
+      tags:
+        - Agents
+      summary: List authorisation requests
+      description: >-
+        Returns the calling agency's invitation history. An empty history is
+        returned as an empty array.
+      operationId: getInvitationsV3
+      security:
+        - userRestricted:
+            - read:sent-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+      responses:
+        '200':
+          description: The invitation history, which may be empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invitation'
+        '400':
+          $ref: '#/components/responses/BadRequestArn'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/ForbiddenAgent'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags:
         - Agents
