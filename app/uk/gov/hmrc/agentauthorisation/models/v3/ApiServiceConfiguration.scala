@@ -17,12 +17,12 @@
 package uk.gov.hmrc.agentauthorisation.models.v3
 
 import uk.gov.hmrc.agentauthorisation.models.{AgentType, ApiClientId, ApiService}
-import uk.gov.hmrc.agentauthorisation.models.ApiClientId.value
 
 final case class ApiServiceConfiguration(
   detailsService: String,
   suppliedClientIdType: String,
-  acceptedKnownFactTypes: Set[ApiKnownFactType]
+  acceptedKnownFactTypes: Set[ApiKnownFactType],
+  associatedService: Option[String] = None
 ):
   def createService(command: ValidatedCreateInvitationV3, details: AcrClientDetails): String =
     command.service match
@@ -41,7 +41,7 @@ object ApiServiceConfiguration:
 
   def forCommand(service: ApiService, clientId: ApiClientId): ApiServiceConfiguration =
     service match
-      case ApiService.MtdIt  => ApiServiceConfiguration("HMRC-MTD-IT", "ni", postalOrCountry)
+      case ApiService.MtdIt  => ApiServiceConfiguration("HMRC-MTD-IT", "ni", postalOrCountry, associatedService = Some("HMRC-MTD-IT-SUPP"))
       case ApiService.MtdVat => ApiServiceConfiguration("HMRC-MTD-VAT", "vrn", Set(ApiKnownFactType.Date))
       case ApiService.Trusts if clientId.value.forall(_.isDigit) =>
         ApiServiceConfiguration("HMRC-TERS-ORG", "utr", Set.empty)

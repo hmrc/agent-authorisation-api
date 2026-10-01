@@ -32,7 +32,7 @@ class VersionedAgentAction @Inject() (
   appConfig: AppConfig
 ):
 
-  private val v3VersionWarning = "invalid client version, this endpoint requires one of [V3]"
+  private def versionWarning(requires: ApiVersion) = s"invalid client version, this endpoint requires one of [$requires]"
 
   def apply(requestedArn: Arn)(
     v1V2: AuthorisedAgentRequest[AnyContent] => Future[Result],
@@ -53,6 +53,16 @@ class VersionedAgentAction @Inject() (
       .andThen(apiVersionAction)
       .async: request =>
         request.apiVersion match
-          case ApiVersion.V1V2 if appConfig.v3Enabled => Future.successful(NotAcceptable(v3VersionWarning))
+          case ApiVersion.V1V2 if appConfig.v3Enabled => Future.successful(NotAcceptable(versionWarning(ApiVersion.V3)))
           case ApiVersion.V1V2                        => Future.successful(StandardNotFound.toResult)
           case ApiVersion.V3                          => authorisedAgentAction(requestedArn).invokeBlock(request, v3)
+
+  def v1V2Only(requestedArn: Arn)(
+    v1V2: AuthorisedAgentRequest[AnyContent] => Future[Result]
+  ): Action[AnyContent] =
+    controllerComponents.actionBuilder
+      .andThen(apiVersionAction)
+      .async: request =>
+        request.apiVersion match
+          case ApiVersion.V3 => Future.successful(NotAcceptable(versionWarning(ApiVersion.V1V2)))
+          case ApiVersion.V1V2 => authorisedAgentAction(requestedArn).invokeBlock(request, v1V2)
