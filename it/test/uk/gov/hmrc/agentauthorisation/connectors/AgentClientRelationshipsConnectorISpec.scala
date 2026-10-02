@@ -186,6 +186,13 @@ class AgentClientRelationshipsConnectorISpec extends BaseISpec {
       result shouldBe Left(InvitationNotFound)
     }
 
+    "return the invalid invitation status reported by ACR" in {
+      givenCancelAgentInvitationStubInvalid(InvalidInvitationStatus, invitationIdITSA)
+      val result = connector.cancelInvitation(invitationIdITSA).futureValue
+
+      result shouldBe Left(InvalidInvitationStatus)
+    }
+
     "return 500 when an invitation cannot be cancelled" in {
       givenCancelAgentInvitationStubInvalid(StandardInternalServerError, invitationIdITSA)
       val result = connector.cancelInvitation(invitationIdITSA).futureValue

@@ -54,6 +54,15 @@ object Http {
       request.put(EmptyBody)
     }
 
+  def patchEmpty(url: String, headers: Seq[(String, String)] = Seq.empty)(using
+    hc: HeaderCarrier,
+    ec: ExecutionContext,
+    ws: WSClient
+  ): HttpResponse =
+    perform(url) { request =>
+      request.addHttpHeaders(headers*).patch(EmptyBody)
+    }
+
   def put(url: String, body: String, headers: Seq[(String, String)] = Seq.empty)(using
     hc: HeaderCarrier,
     ec: ExecutionContext,
@@ -110,6 +119,13 @@ class Resource(path: String, port: Int) {
 
   def putEmpty()(using hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
     Http.putEmpty(s"http://localhost:$port$path")
+
+  def patchEmpty(headers: Seq[(String, String)] = Seq.empty)(using
+    hc: HeaderCarrier = HeaderCarrier(),
+    ec: ExecutionContext,
+    ws: WSClient
+  ) =
+    Http.patchEmpty(s"http://localhost:$port$path", headers)
 
   def putAsJson(body: String)(using hc: HeaderCarrier = HeaderCarrier(), ec: ExecutionContext, ws: WSClient) =
     Http.put(s"http://localhost:$port$path", body, Seq(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON))
