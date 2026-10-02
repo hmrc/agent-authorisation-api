@@ -22,7 +22,7 @@ import play.api.mvc.ControllerComponents
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
-import uk.gov.hmrc.agentauthorisation.models.{ApiVersion, NoPermissionOnAgency, NotAnAgent}
+import uk.gov.hmrc.agentauthorisation.models.{ApiVersion, NoPermissionOnAgency, NotAnAgent, StandardNotFound}
 import uk.gov.hmrc.agentauthorisation.support.BaseISpec
 
 import scala.concurrent.Future
@@ -48,6 +48,20 @@ class VersionedAgentActionISpec extends BaseISpec with MockitoSugar:
       _ => Future.successful(Ok("legacy")),
       _ => Future.successful(Ok("v3"))
     )(request).futureValue
+
+  private def invokeV3Only(v3Enabled: Boolean, acceptHeader: Option[String]) =
+    val appConfig = mock[AppConfig]
+    when(appConfig.v3Enabled).thenReturn(v3Enabled)
+    val versionedAction = VersionedAgentAction(
+      controllerComponents,
+      ApiVersionAction(appConfig, controllerComponents),
+      authorisedAgentAction
+    )
+    val request = acceptHeader.fold(
+      FakeRequest().withHeaders("Authorization" -> "Bearer XYZ")
+    )(value => FakeRequest().withHeaders("Authorization" -> "Bearer XYZ", "Accept" -> value))
+
+    versionedAction.v3Only(arn)(_ => Future.successful(Ok("v3")))(request).futureValue
 
   "VersionedAgentAction" should:
     "invoke the legacy handler for the V3 header when the switch is off" in:
@@ -97,3 +111,22 @@ class VersionedAgentActionISpec extends BaseISpec with MockitoSugar:
 
       status(result) shouldBe 403
       contentAsJson(result) shouldBe NotAnAgent.toJson
+
+  "VersionedAgentAction.v3Only" should:
+    "invoke the handler only for the exact V3 header with the switch on" in:
+      givenAuthorisedAsValidAgent(arn.value)
+
+      contentAsString(invokeV3Only(v3Enabled = true, Some(ApiVersion.V3AcceptHeader))) shouldBe "v3"
+
+    "return NOT_FOUND before authorisation when the switch is off" in:
+      val result = invokeV3Only(v3Enabled = false, Some(ApiVersion.V3AcceptHeader))
+
+      status(result) shouldBe 404
+      contentAsJson(result) shouldBe StandardNotFound.toJson
+
+    "return NOT_FOUND before authorisation for other or missing headers" in:
+      Seq(None, Some("application/vnd.hmrc.2.0+json"), Some("application/json")).foreach: accept =>
+        val result = invokeV3Only(v3Enabled = true, accept)
+
+        status(result) shouldBe 404
+        contentAsJson(result) shouldBe StandardNotFound.toJson

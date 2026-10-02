@@ -18,10 +18,10 @@ package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.Logger
 import play.api.mvc._
-import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction}
+import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction, AuthorisedAgentRequest, VersionedAgentAction}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.CancelInvitationService
-import uk.gov.hmrc.agentauthorisation.models.{Arn, InvitationId}
+import uk.gov.hmrc.agentauthorisation.services.v3.CancelInvitationByIdV3Service
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -30,9 +30,11 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class CancelInvitationController @Inject() (
   cancelInvitationService: CancelInvitationService,
+  cancelInvitationByIdV3Service: CancelInvitationByIdV3Service,
   cc: ControllerComponents,
   apiVersionAction: ApiVersionAction,
-  authorisedAgentAction: AuthorisedAgentAction
+  authorisedAgentAction: AuthorisedAgentAction,
+  versionedAgentAction: VersionedAgentAction
 )(using val ec: ExecutionContext)
     extends BackendController(cc) {
 
@@ -50,5 +52,17 @@ class CancelInvitationController @Inject() (
           Future.failed(e)
         }
     }
+
+  def cancelInvitationV3(givenArn: Arn, invitationId: InvitationId): Action[AnyContent] =
+    versionedAgentAction.v3Only(givenArn): request =>
+      handleV3Cancellation(invitationId, request)
+
+  private def handleV3Cancellation(
+    invitationId: InvitationId,
+    request: AuthorisedAgentRequest[AnyContent]
+  ): Future[Result] =
+    cancelInvitationByIdV3Service.cancelInvitation(invitationId)(using request).map:
+      case Right(())    => NoContent
+      case Left(error) => error.toResult
 
 }
