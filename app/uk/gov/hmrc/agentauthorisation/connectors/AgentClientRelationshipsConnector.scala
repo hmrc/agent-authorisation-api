@@ -27,6 +27,7 @@ import uk.gov.hmrc.agentauthorisation.models.v3.{
   AcrAgentLinkV3,
   AcrClientDetails,
   AcrCreateInvitationRequest,
+  AcrInvitationInfoV3,
   AcrInvitationPageV3,
   AcrInvitationV3,
   CreateInvitationV3Response
@@ -122,6 +123,18 @@ class AgentClientRelationshipsConnector @Inject() (
       .execute[HttpResponse]
       .map {
         case response @ HttpResponse(OK, _, _) => Right(response.json.as[AcrAgentLinkV3])
+        case _                                  => Left(StandardInternalServerError)
+      }
+
+  def getInvitationV3(arn: Arn, invitationId: InvitationId)(using
+    rh: RequestHeader
+  ): Future[Either[ApiErrorResponse, AcrInvitationInfoV3]] =
+    httpClient
+      .get(url"$acrUrl/agent/${arn.value}/authorisation-request-info/${invitationId.value}")
+      .execute[HttpResponse]
+      .map {
+        case response @ HttpResponse(OK, _, _) => Right(response.json.as[AcrInvitationInfoV3])
+        case HttpResponse(NOT_FOUND, _, _)      => Left(InvitationNotFound)
         case _                                  => Left(StandardInternalServerError)
       }
 

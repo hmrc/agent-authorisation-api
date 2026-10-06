@@ -143,6 +143,56 @@ components:
         agentType:
           $ref: '#/components/schemas/AgentType'
 
+    InvitationById:
+      type: object
+      required:
+        - invitationId
+        - service
+        - status
+        - created
+      properties:
+        invitationId:
+          type: string
+          description: The unique identifier of the authorisation request.
+          pattern: '^[ABCDEFGHJKLMNOPRSTUWXYZ123456789]{13}$'
+          example: ABERULMHCKKW3
+        service:
+          type: string
+          enum:
+            - MTD-VAT
+            - MTD-IT
+            - PILLAR2
+            - PPT
+            - CGT-PD
+            - IRV
+            - CBC
+            - TRUSTS
+        status:
+          type: string
+          enum:
+            - Pending
+            - Accepted
+            - Rejected
+            - Cancelled
+            - Deauthorised
+            - Expired
+            - Partialauth
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        expiresOn:
+          type: string
+          format: date
+        clientActionUrl:
+          type: string
+          format: uri
+          description: Link for the client to accept or reject a pending invitation.
+        agentType:
+          $ref: '#/components/schemas/AgentType'
+
     AgentType:
       type: string
       description: >-
@@ -499,7 +549,7 @@ components:
           example:
             code: DUPLICATE_AUTHORISATION_REQUEST
             message: The authorisation request is a duplicate of a previous request.
-    BadRequestCancelInvitation:
+    BadRequestInvitationPath:
       description: A path parameter is invalid.
       content:
         application/json:
@@ -703,6 +753,38 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /agents/{arn}/invitations/{invitationId}:
+    get:
+      tags:
+        - Agents
+      summary: Get an authorisation request
+      description: Returns a single authorisation request for the calling agency.
+      operationId: getInvitationByIdV3
+      security:
+        - userRestricted:
+            - read:sent-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/invitationIdParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+      responses:
+        '200':
+          description: The requested authorisation request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationById'
+        '400':
+          $ref: '#/components/responses/BadRequestInvitationPath'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/ForbiddenAgent'
+        '404':
+          $ref: '#/components/responses/InvitationNotFound'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
         - Agents
@@ -722,7 +804,7 @@ paths:
         '204':
           description: The authorisation request was cancelled.
         '400':
-          $ref: '#/components/responses/BadRequestCancelInvitation'
+          $ref: '#/components/responses/BadRequestInvitationPath'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
