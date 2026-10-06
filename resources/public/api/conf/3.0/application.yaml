@@ -27,6 +27,15 @@ components:
         type: string
         pattern: '^[A-Z]ARN[0-9]{7}$'
         example: TARN0000001
+    invitationIdParameter:
+      name: invitationId
+      in: path
+      description: The unique identifier of the authorisation request.
+      required: true
+      schema:
+        type: string
+        pattern: '^[ABCDEFGHJKLMNOPRSTUWXYZ123456789]{13}$'
+        example: ABERULMHCKKW3
     acceptHeader:
       name: Accept
       in: header
@@ -60,6 +69,7 @@ components:
           scopes:
             read:sent-invitations: Grants read access to sent invitations
             write:sent-invitations: Grants write access to sent invitations
+            write:cancel-invitations: Grants write access to cancel invitations
 
   schemas:
     Error:
@@ -489,6 +499,53 @@ components:
           example:
             code: DUPLICATE_AUTHORISATION_REQUEST
             message: The authorisation request is a duplicate of a previous request.
+    BadRequestCancelInvitation:
+      description: A path parameter is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidArn:
+              value:
+                code: ARN_FORMAT_INVALID
+                message: Bad Request
+            invalidInvitationId:
+              value:
+                code: INVITATION_ID_FORMAT_INVALID
+                message: Bad Request
+    ForbiddenCancelInvitation:
+      description: The caller is not permitted to cancel the invitation, or the invitation cannot be cancelled.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notAnAgent:
+              value:
+                code: NOT_AN_AGENT
+                message: This user does not have a Government Gateway agent account. They need to create an Government Gateway agent account before they can use this service.
+            agentNotSubscribed:
+              value:
+                code: AGENT_NOT_SUBSCRIBED
+                message: This agent needs to create an agent services account before they can use this service.
+            noPermissionOnAgency:
+              value:
+                code: NO_PERMISSION_ON_AGENCY
+                message: The user that is signed in cannot access this authorisation request. Their details do not match the agent business that created the authorisation request.
+            invalidInvitationStatus:
+              value:
+                code: INVALID_INVITATION_STATUS
+                message: This authorisation request cannot be cancelled as the client has already responded to the request, or the request has expired.
+    InvitationNotFound:
+      description: The authorisation request cannot be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INVITATION_NOT_FOUND
+            message: The authorisation request cannot be found.
     NotAcceptable:
       description: The Accept header is missing or invalid.
       content:
@@ -642,6 +699,38 @@ paths:
           $ref: '#/components/responses/NotAcceptable'
         '409':
           $ref: '#/components/responses/ConflictCreateInvitation'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /agents/{arn}/invitations/{invitationId}:
+    patch:
+      tags:
+        - Agents
+      summary: Cancel an authorisation request
+      description: >-
+        Cancels a pending authorisation request. The request has no body and a
+        Content-Type header is not required.
+      operationId: cancelInvitationV3
+      security:
+        - userRestricted:
+            - write:cancel-invitations
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/invitationIdParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+      responses:
+        '204':
+          description: The authorisation request was cancelled.
+        '400':
+          $ref: '#/components/responses/BadRequestCancelInvitation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/ForbiddenCancelInvitation'
+        '404':
+          $ref: '#/components/responses/InvitationNotFound'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
