@@ -43,8 +43,10 @@ versioning.
 ### V3 API development
 
 Agent Authorisation API is the single owner of the V3 runtime feature switch
-(`features.enable-v3`), which defaults to `false`. It combines that switch with
-the incoming `Accept` header to select the request flow:
+(`features.enable-v3`). Its packaged configuration defaults to `true` for local,
+SM2 and acceptance-test use. Deployed environments override the switch explicitly;
+do not rely on the packaged default outside local development. The service combines
+the switch with the incoming `Accept` header to select the request flow:
 
 - when the switch is enabled, an exact `application/vnd.hmrc.3.0+json` header selects the V3 handler;
 - shared routes use their existing V1/V2 handler when the switch is disabled or V3 is not requested;
@@ -53,9 +55,10 @@ the incoming `Accept` header to select the request flow:
 Downstream services provide backward-compatible capabilities and do not
 duplicate this exposure switch. A V3 handler must call its downstream contract
 explicitly rather than rely on the public `Accept` header being forwarded.
-Deploy compatible downstream capability first, deploy this service with V3
-disabled, and enable V3 here only after the full flow has been verified.
-Disabling this single switch removes public V3 exposure during rollback.
+Deploy compatible downstream capability and disabled environment overrides before
+releasing an artifact whose packaged default enables V3. Enable V3 in an environment
+only after the full flow has been verified. Disabling this single switch removes
+public V3 exposure during rollback.
 
 The V3 OpenAPI document is developed incrementally under
 `resources/public/api/conf/3.0/application.yaml` and remains unregistered until

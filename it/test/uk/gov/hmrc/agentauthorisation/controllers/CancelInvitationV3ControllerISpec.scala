@@ -34,7 +34,8 @@ class CancelInvitationV3ControllerISpec extends BaseISpec:
   private def patch(
     authenticatedArn: String = arn.value,
     routeArn: String = arn.value,
-    invitationId: String = invitationIdITSA.value
+    invitationId: String = invitationIdITSA.value,
+    acceptHeader: Option[String] = Some(ApiVersion.V3AcceptHeader)
   ) =
     givenAuthorisedAsValidAgent(authenticatedArn)
     given HeaderCarrier = HeaderCarrier(
@@ -42,7 +43,7 @@ class CancelInvitationV3ControllerISpec extends BaseISpec:
     )
 
     new Resource(s"/agents/$routeArn/invitations/$invitationId", port)
-      .patchEmpty(Seq("Accept" -> ApiVersion.V3AcceptHeader))
+      .patchEmpty(acceptHeader.toSeq.map("Accept" -> _))
 
   "PATCH /agents/:arn/invitations/:invitationId for V3" should:
     "return 204 without requiring a request body or Content-Type header" in:
@@ -90,6 +91,15 @@ class CancelInvitationV3ControllerISpec extends BaseISpec:
       response.status shouldBe 400
       response.json shouldBe InvitationIdInvalidFormat.toJson
 
+    "return a version warning without the exact V3 Accept header" in:
+      Seq(None, Some("application/vnd.hmrc.2.0+json"), Some("application/json")).foreach: acceptHeader =>
+        val response = patch(acceptHeader = acceptHeader)
+
+        response.status shouldBe 406
+        response.body shouldBe "invalid client version, this endpoint requires one of [V3]"
+
+      verify(0, putRequestedFor(urlPathMatching(".*/cancel-invitation/.*")))
+
 class CancelInvitationV3UnavailableISpec extends BaseISpec:
 
   override protected def additionalConfiguration: Map[String, Any] =
@@ -113,7 +123,7 @@ class CancelInvitationV3UnavailableISpec extends BaseISpec:
       response.json shouldBe StandardNotFound.toJson
       verify(0, putRequestedFor(urlPathMatching(".*/cancel-invitation/.*")))
 
-    "be unavailable without the exact V3 Accept header" in:
+    "be unavailable for other or missing headers when the V3 switch is off" in:
       Seq(None, Some("application/vnd.hmrc.2.0+json"), Some("application/json")).foreach: acceptHeader =>
         val response = patch(acceptHeader)
 

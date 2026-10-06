@@ -17,6 +17,8 @@
 package uk.gov.hmrc.agentauthorisation.actions
 
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.Results.NotAcceptable
+import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.models.{ApiVersion, Arn, StandardNotFound}
 
 import javax.inject.{Inject, Singleton}
@@ -26,8 +28,11 @@ import scala.concurrent.Future
 class VersionedAgentAction @Inject() (
   controllerComponents: ControllerComponents,
   apiVersionAction: ApiVersionAction,
-  authorisedAgentAction: AuthorisedAgentAction
+  authorisedAgentAction: AuthorisedAgentAction,
+  appConfig: AppConfig
 ):
+
+  private val v3VersionWarning = "invalid client version, this endpoint requires one of [V3]"
 
   def apply(requestedArn: Arn)(
     v1V2: AuthorisedAgentRequest[AnyContent] => Future[Result],
@@ -48,5 +53,6 @@ class VersionedAgentAction @Inject() (
       .andThen(apiVersionAction)
       .async: request =>
         request.apiVersion match
-          case ApiVersion.V1V2 => Future.successful(StandardNotFound.toResult)
-          case ApiVersion.V3   => authorisedAgentAction(requestedArn).invokeBlock(request, v3)
+          case ApiVersion.V1V2 if appConfig.v3Enabled => Future.successful(NotAcceptable(v3VersionWarning))
+          case ApiVersion.V1V2                        => Future.successful(StandardNotFound.toResult)
+          case ApiVersion.V3                          => authorisedAgentAction(requestedArn).invokeBlock(request, v3)
