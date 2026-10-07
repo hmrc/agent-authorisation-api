@@ -21,6 +21,7 @@ import uk.gov.hmrc.agentauthorisation.models.{AgentType, ApiClientId, ApiService
 final case class ApiServiceConfiguration(
   detailsService: String,
   suppliedClientIdType: String,
+  relationshipClientIdType: String,
   acceptedKnownFactTypes: Set[ApiKnownFactType],
   associatedService: Option[String] = None
 ):
@@ -41,16 +42,33 @@ object ApiServiceConfiguration:
 
   def forCommand(service: ApiService, clientId: ApiClientId): ApiServiceConfiguration =
     service match
-      case ApiService.MtdIt  => ApiServiceConfiguration("HMRC-MTD-IT", "ni", postalOrCountry, associatedService = Some("HMRC-MTD-IT-SUPP"))
-      case ApiService.MtdVat => ApiServiceConfiguration("HMRC-MTD-VAT", "vrn", Set(ApiKnownFactType.Date))
+      case ApiService.MtdIt =>
+        ApiServiceConfiguration(
+          "HMRC-MTD-IT",
+          "ni",
+          "ni",
+          postalOrCountry,
+          associatedService = Some("HMRC-MTD-IT-SUPP")
+        )
+      case ApiService.MtdVat => ApiServiceConfiguration("HMRC-MTD-VAT", "vrn", "VRN", Set(ApiKnownFactType.Date))
       case ApiService.Trusts if clientId.value.forall(_.isDigit) =>
-        ApiServiceConfiguration("HMRC-TERS-ORG", "utr", Set.empty)
-      case ApiService.Trusts => ApiServiceConfiguration("HMRC-TERSNT-ORG", "urn", Set.empty)
-      case ApiService.Irv    => ApiServiceConfiguration("PERSONAL-INCOME-RECORD", "ni", Set(ApiKnownFactType.Date))
-      case ApiService.CgtPd  => ApiServiceConfiguration("HMRC-CGT-PD", "CGTPDRef", postalOrCountry)
-      case ApiService.Ppt    => ApiServiceConfiguration("HMRC-PPT-ORG", "EtmpRegistrationNumber", Set(ApiKnownFactType.Date))
-      case ApiService.Cbc    => ApiServiceConfiguration("HMRC-CBC-ORG", "cbcId", Set(ApiKnownFactType.Email))
-      case ApiService.Pillar2 => ApiServiceConfiguration("HMRC-PILLAR2-ORG", "PLRID", Set(ApiKnownFactType.Date))
+        ApiServiceConfiguration("HMRC-TERS-ORG", "utr", "SAUTR", Set.empty)
+      case ApiService.Trusts => ApiServiceConfiguration("HMRC-TERSNT-ORG", "urn", "URN", Set.empty)
+      case ApiService.Irv =>
+        ApiServiceConfiguration("PERSONAL-INCOME-RECORD", "ni", "ni", Set(ApiKnownFactType.Date))
+      case ApiService.CgtPd =>
+        ApiServiceConfiguration("HMRC-CGT-PD", "CGTPDRef", "CGTPDRef", postalOrCountry)
+      case ApiService.Ppt =>
+        ApiServiceConfiguration(
+          "HMRC-PPT-ORG",
+          "EtmpRegistrationNumber",
+          "EtmpRegistrationNumber",
+          Set(ApiKnownFactType.Date)
+        )
+      case ApiService.Cbc =>
+        ApiServiceConfiguration("HMRC-CBC-ORG", "cbcId", "cbcId", Set(ApiKnownFactType.Email))
+      case ApiService.Pillar2 =>
+        ApiServiceConfiguration("HMRC-PILLAR2-ORG", "PLRID", "PLRID", Set(ApiKnownFactType.Date))
 
   def forAcrInvitationService(service: String): Option[ApiInvitationServiceConfiguration] =
     service match

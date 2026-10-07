@@ -47,6 +47,9 @@ abstract class PathValidationISpec extends BaseISpec:
           new Resource(s"/agents/$invalidArn/invitations/ABERULMHCKKW3", port).delete()
         ),
         "check relationship" -> (() => new Resource(s"/agents/$invalidArn/relationships", port).postAsJson("{}")),
+        "check relationship V3" -> (() =>
+          new Resource(s"/agents/$invalidArn/service/MTD-VAT/client/101747696/relationship", port).get()
+        ),
         "deauthorise client" -> (() => new Resource(s"/agents/$invalidArn/deauthorise-client", port).putAsJson("{}"))
       )
 

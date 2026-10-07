@@ -64,5 +64,16 @@ class VersionedAgentAction @Inject() (
       .andThen(apiVersionAction)
       .async: request =>
         request.apiVersion match
-          case ApiVersion.V3 => Future.successful(NotAcceptable(versionWarning(ApiVersion.V1V2)))
+          case ApiVersion.V3   => Future.successful(NotAcceptable(versionWarning(ApiVersion.V1V2)))
           case ApiVersion.V1V2 => authorisedAgentAction(requestedArn).invokeBlock(request, v1V2)
+
+  def v3OnlyWithUserId(requestedArn: Arn)(
+    v3: AuthorisedAgentWithUserIdRequest[AnyContent] => Future[Result]
+  ): Action[AnyContent] =
+    controllerComponents.actionBuilder
+      .andThen(apiVersionAction)
+      .async: request =>
+        request.apiVersion match
+          case ApiVersion.V1V2 if appConfig.v3Enabled => Future.successful(NotAcceptable(versionWarning(ApiVersion.V3)))
+          case ApiVersion.V1V2                        => Future.successful(StandardNotFound.toResult)
+          case ApiVersion.V3                          => authorisedAgentAction.withUserId(requestedArn).invokeBlock(request, v3)

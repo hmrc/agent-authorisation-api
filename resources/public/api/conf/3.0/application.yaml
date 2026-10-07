@@ -39,7 +39,7 @@ components:
     serviceParameter:
       name: service
       in: path
-      description: The service for which the client relationship should be removed.
+      description: The service for the client relationship.
       required: true
       schema:
         type: string
@@ -92,6 +92,7 @@ components:
           refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
           scopes:
             read:sent-invitations: Grants read access to sent invitations
+            read:check-relationship: Grants read access to check a client relationship
             write:sent-invitations: Grants write access to sent invitations
             write:cancel-invitations: Grants write access to cancel invitations
 
@@ -225,6 +226,25 @@ components:
       enum:
         - main
         - supporting
+
+    CheckRelationshipResponse:
+      type: object
+      required:
+        - agentAuthorised
+      properties:
+        agentAuthorised:
+          type: boolean
+          description: Whether the agency has a relationship with the client for the requested service.
+        userAssigned:
+          type: boolean
+          description: Whether the calling agent user is assigned to the client. Present only when agentAuthorised is true.
+        agentType:
+          type: string
+          description: The MTD-IT relationship type. Present only for an authorised MTD-IT relationship.
+          enum:
+            - main
+            - supporting
+            - mtdSignup
 
     PostcodeOrCountryCode:
       description: A UK postcode or a two-letter ISO country code.
@@ -622,6 +642,29 @@ components:
               value:
                 code: INVITATION_ID_FORMAT_INVALID
                 message: Bad Request
+    BadRequestCheckRelationship:
+      description: A path parameter or service/client identifier combination is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidArn:
+              value:
+                code: ARN_FORMAT_INVALID
+                message: Bad Request
+            unsupportedService:
+              value:
+                code: SERVICE_NOT_SUPPORTED
+                message: The service requested is not supported. Check the API documentation to find which services are supported.
+            invalidClientId:
+              value:
+                code: CLIENT_ID_FORMAT_INVALID
+                message: Client identifier must be in the correct format. Check the API documentation to find the correct format.
+            incompatibleClientId:
+              value:
+                code: CLIENT_ID_INCOMPATIBLE_WITH_SERVICE
+                message: The specified client identifier does not match the requested service. Check the API documentation to find the correct format.
     ForbiddenCancelInvitation:
       description: The caller is not permitted to cancel the invitation, or the invitation cannot be cancelled.
       content:
@@ -875,6 +918,52 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /agents/{arn}/service/{service}/client/{clientId}/relationship:
+    get:
+      tags:
+        - Agents
+      summary: Check the status of a client relationship
+      description: >-
+        Checks whether the calling agency has a relationship with the client and,
+        when it does, whether the calling agent user is assigned to the client.
+      operationId: checkRelationshipV3
+      security:
+        - userRestricted:
+            - read:check-relationship
+      parameters:
+        - $ref: '#/components/parameters/arnParameter'
+        - $ref: '#/components/parameters/serviceParameter'
+        - $ref: '#/components/parameters/clientIdParameter'
+        - $ref: '#/components/parameters/acceptHeader'
+      responses:
+        '200':
+          description: The relationship and user-assignment status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckRelationshipResponse'
+              examples:
+                assigned:
+                  value:
+                    agentAuthorised: true
+                    userAssigned: true
+                unassignedMtdItSupporting:
+                  value:
+                    agentAuthorised: true
+                    userAssigned: false
+                    agentType: supporting
+                noRelationship:
+                  value:
+                    agentAuthorised: false
+        '400':
+          $ref: '#/components/responses/BadRequestCheckRelationship'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/ForbiddenAgent'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
         - Agents
@@ -904,7 +993,6 @@ paths:
           $ref: '#/components/responses/NotAcceptable'
         '500':
           $ref: '#/components/responses/InternalServerError'
-
 
 tags:
   - name: Agents

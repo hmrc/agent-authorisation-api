@@ -23,7 +23,7 @@ import uk.gov.hmrc.agentauthorisation.models.Arn
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Retrieval, ~}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
@@ -32,6 +32,8 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AuthActions extends AuthorisedFunctions {
 
   private val affinityGroupAllEnrolls: Retrieval[Option[AffinityGroup] ~ Enrolments] = affinityGroup and allEnrolments
+  private val agentDetails: Retrieval[Option[AffinityGroup] ~ Enrolments ~ Option[Credentials]] =
+    affinityGroup and allEnrolments and credentials
 
   private def isAgent(group: AffinityGroup): Boolean =
     group.toString.contains("Agent")
@@ -41,6 +43,32 @@ trait AuthActions extends AuthorisedFunctions {
       .find(_.key == enrolKey)
       .flatMap(_.getIdentifier(enrolId))
       .map(_.value)
+
+  private def enrolledAgentDetails(using
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Either[ApiErrorResponse, (Arn, String)]] =
+    authorised(AuthProviders(GovernmentGateway))
+      .retrieve(agentDetails) {
+        case Some(affinity) ~ allEnrols ~ Some(credentials) =>
+          (
+            isAgent(affinity),
+            extractEnrolmentData(allEnrols.enrolments, "HMRC-AS-AGENT", "AgentReferenceNumber")
+          ) match {
+            case (true, Some(arn)) => Future.successful(Right(Arn(arn) -> credentials.providerId))
+            case (true, None) =>
+              Logger(getClass).warn(
+                s"Logged in user has Affinity Group: Agent but does not have Enrolment: HMRC-AS-AGENT"
+              )
+              Future.successful(Left(AgentNotSubscribed))
+            case _ =>
+              Logger(getClass).warn(s"Logged in user does not have Affinity Group: Agent. Discovered: $affinity")
+              Future.successful(Left(NotAnAgent))
+          }
+        case _ =>
+          Logger(getClass).warn(s"User Attempted to Login with Invalid Credentials")
+          Future.successful(Left(NotAnAgent))
+      }
 
   private def enrolledAgentArn(using hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ApiErrorResponse, Arn]] =
     authorised(AuthProviders(GovernmentGateway))
@@ -64,6 +92,21 @@ trait AuthActions extends AuthorisedFunctions {
           Logger(getClass).warn(s"User Attempted to Login with Invalid Credentials")
           Future.successful(Left(NotAnAgent))
       }
+
+  protected def authorisedAgentDetails[A](using
+    ec: ExecutionContext,
+    request: Request[A]
+  ): Future[Either[ApiErrorResponse, (Arn, String)]] = {
+    given HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
+    enrolledAgentDetails.recover {
+      case _: InsufficientEnrolments =>
+        Logger(getClass).warn(s"User has Insufficient Enrolments to Login")
+        Left(NotAnAgent)
+      case e: AuthorisationException =>
+        Logger(getClass).warn(s"User has Missing Bearer Token in Header or: $e")
+        Left(StandardUnauthorised)
+    }
+  }
 
   protected def authorisedAgentArn[A](using
     ec: ExecutionContext,
