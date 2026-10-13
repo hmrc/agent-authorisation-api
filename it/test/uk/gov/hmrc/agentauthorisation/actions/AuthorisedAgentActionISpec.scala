@@ -50,6 +50,27 @@ class AuthorisedAgentActionISpec extends BaseISpec:
         )
     ).futureValue
 
+  private def invokeWithUserId(
+    requestedArn: Arn = arn,
+    apiVersion: ApiVersion = ApiVersion.V3
+  ): Result =
+    val request = FakeRequest().withHeaders(HeaderNames.AUTHORIZATION -> "Bearer XYZ")
+    val versionedRequest = new ApiVersionRequest(apiVersion, request)
+
+    action.withUserId(requestedArn).invokeBlock(
+      versionedRequest,
+      authorisedRequest =>
+        Future.successful(
+          Ok(
+            Json.obj(
+              "arn"        -> authorisedRequest.arn.value,
+              "userId"     -> authorisedRequest.userId,
+              "apiVersion" -> authorisedRequest.apiVersion.toString
+            )
+          )
+        )
+    ).futureValue
+
   "AuthorisedAgentAction" should:
     "pass the authenticated ARN and selected API version to the next action" in:
       givenAuthorisedAsValidAgent(arn.value)
@@ -116,3 +137,24 @@ class AuthorisedAgentActionISpec extends BaseISpec:
 
       status(result) shouldBe 401
       contentAsJson(result) shouldBe StandardUnauthorised.toJson
+
+  "AuthorisedAgentAction.withUserId" should:
+    "pass the authenticated ARN, user ID and selected API version to the next action" in:
+      givenAuthorisedAsValidAgentWithUserId(arn.value, "agent-user-id")
+
+      val result = invokeWithUserId()
+
+      status(result) shouldBe 200
+      contentAsJson(result) shouldBe Json.obj(
+        "arn"        -> arn.value,
+        "userId"     -> "agent-user-id",
+        "apiVersion" -> "V3"
+      )
+
+    "preserve the existing NOT_AN_AGENT response for insufficient enrolments" in:
+      givenUnauthorisedWith("InsufficientEnrolments")
+
+      val result = invokeWithUserId()
+
+      status(result) shouldBe 403
+      contentAsJson(result) shouldBe NotAnAgent.toJson

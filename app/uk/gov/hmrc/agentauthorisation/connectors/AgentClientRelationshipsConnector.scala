@@ -220,11 +220,10 @@ class AgentClientRelationshipsConnector @Inject() (
     clientId: String,
     userId: Option[String]
   )(using rh: RequestHeader): Future[Either[ApiErrorResponse, Boolean]] = {
+    val baseUrl = url"$acrUrl/agent/${arn.value}/service/$service/client/$clientIdType/$clientId"
     val requestUrl = userId match {
-      case Some(value) =>
-        url"$acrUrl/agent/${arn.value}/service/$service/client/$clientIdType/$clientId?userId=$value"
-      case None =>
-        url"$acrUrl/agent/${arn.value}/service/$service/client/$clientIdType/$clientId"
+      case Some(value) => url"$baseUrl?userId=$value"
+      case None        => baseUrl
     }
 
     httpClient

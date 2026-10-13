@@ -31,6 +31,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait AuthActions extends AuthorisedFunctions {
 
+  // Keep this predicate limited to identity checks. Agent-access-control handlers collapse NO_RELATIONSHIP and
+  // NO_ASSIGNMENT into InsufficientEnrolments, so those permission outcomes must be obtained from ACR instead.
+  private val agentIdentityPredicate = AuthProviders(GovernmentGateway)
   private val affinityGroupAllEnrolls: Retrieval[Option[AffinityGroup] ~ Enrolments] = affinityGroup and allEnrolments
   private val agentDetails: Retrieval[Option[AffinityGroup] ~ Enrolments ~ Option[Credentials]] =
     affinityGroup and allEnrolments and credentials
@@ -48,7 +51,7 @@ trait AuthActions extends AuthorisedFunctions {
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Either[ApiErrorResponse, (Arn, String)]] =
-    authorised(AuthProviders(GovernmentGateway))
+    authorised(agentIdentityPredicate)
       .retrieve(agentDetails) {
         case Some(affinity) ~ allEnrols ~ Some(credentials) =>
           (
@@ -71,7 +74,7 @@ trait AuthActions extends AuthorisedFunctions {
       }
 
   private def enrolledAgentArn(using hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ApiErrorResponse, Arn]] =
-    authorised(AuthProviders(GovernmentGateway))
+    authorised(agentIdentityPredicate)
       .retrieve(affinityGroupAllEnrolls) {
         case Some(affinity) ~ allEnrols =>
           (
