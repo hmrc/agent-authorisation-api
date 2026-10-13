@@ -31,6 +31,13 @@ final class AuthorisedAgentRequest[A](
   request: Request[A]
 ) extends WrappedRequest[A](request)
 
+final class AuthorisedAgentWithUserIdRequest[A](
+  val arn: Arn,
+  val userId: String,
+  val apiVersion: ApiVersion,
+  request: Request[A]
+) extends WrappedRequest[A](request)
+
 @Singleton
 class AuthorisedAgentAction @Inject() (
   override val authConnector: AuthConnector,
@@ -51,6 +58,26 @@ class AuthorisedAgentAction @Inject() (
           case Right(authenticatedArn) if authenticatedArn == requestedArn =>
             Right(new AuthorisedAgentRequest(authenticatedArn, request.apiVersion, request))
           case Right(authenticatedArn) =>
+            logger.warn(
+              s"Requested Arn ${requestedArn.value} does not match to logged in Arn ${authenticatedArn.value}"
+            )
+            Left(NoPermissionOnAgency.toResult)
+          case Left(error) => Left(error.toResult)
+        }
+
+      override protected def executionContext: ExecutionContext = controllerComponents.executionContext
+
+  def withUserId(requestedArn: Arn): ActionRefiner[ApiVersionRequest, AuthorisedAgentWithUserIdRequest] =
+    new ActionRefiner[ApiVersionRequest, AuthorisedAgentWithUserIdRequest]:
+      override protected def refine[A](
+        request: ApiVersionRequest[A]
+      ): Future[Either[Result, AuthorisedAgentWithUserIdRequest[A]]] =
+        given Request[A] = request
+
+        authorisedAgentDetails.map {
+          case Right((authenticatedArn, userId)) if authenticatedArn == requestedArn =>
+            Right(new AuthorisedAgentWithUserIdRequest(authenticatedArn, userId, request.apiVersion, request))
+          case Right((authenticatedArn, _)) =>
             logger.warn(
               s"Requested Arn ${requestedArn.value} does not match to logged in Arn ${authenticatedArn.value}"
             )

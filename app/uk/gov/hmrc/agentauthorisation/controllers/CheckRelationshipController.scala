@@ -17,10 +17,12 @@
 package uk.gov.hmrc.agentauthorisation.controllers
 
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc._
-import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction}
+import uk.gov.hmrc.agentauthorisation.actions.{ApiVersionAction, AuthorisedAgentAction, VersionedAgentAction}
 import uk.gov.hmrc.agentauthorisation.models._
 import uk.gov.hmrc.agentauthorisation.services.{CheckRelationshipService, ValidateClientAccessDataService}
+import uk.gov.hmrc.agentauthorisation.services.v3.CheckRelationshipV3Service
 import uk.gov.hmrc.agentauthorisation.models.Arn
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -33,7 +35,9 @@ class CheckRelationshipController @Inject() (
   validateClientAccessDataService: ValidateClientAccessDataService,
   cc: ControllerComponents,
   apiVersionAction: ApiVersionAction,
-  authorisedAgentAction: AuthorisedAgentAction
+  authorisedAgentAction: AuthorisedAgentAction,
+  versionedAgentAction: VersionedAgentAction,
+  checkRelationshipV3Service: CheckRelationshipV3Service
 )(using val ec: ExecutionContext)
     extends BackendController(cc):
 
@@ -57,3 +61,18 @@ class CheckRelationshipController @Inject() (
             }
         )
     }
+
+  def checkRelationshipV3(
+    givenArn: Arn,
+    service: ApiService,
+    clientId: String
+  ): Action[AnyContent] =
+    versionedAgentAction.v3OnlyWithUserId(givenArn): request =>
+      ApiClientId.from(clientId).toRight(ClientIdInvalidFormat).flatMap(ApiServiceClient.from(service, _)) match
+        case Left(error) => Future.successful(error.toResult)
+        case Right(serviceClient) =>
+          checkRelationshipV3Service
+            .checkRelationship(request.arn, request.userId, serviceClient)(using request)
+            .map:
+              case Left(error)     => error.toResult
+              case Right(response) => Ok(Json.toJson(response))

@@ -32,6 +32,9 @@ trait AuthStubs {
   def givenAuthorisedAsValidAgent(arn: String): Unit =
     givenAuthenticatedAgent(Enrolment("HMRC-AS-AGENT", "AgentReferenceNumber", arn))
 
+  def givenAuthorisedAsValidAgentWithUserId(arn: String, userId: String = "agent-user-id"): Unit =
+    givenAuthenticatedAgentWithUserId(Enrolment("HMRC-AS-AGENT", "AgentReferenceNumber", arn), userId)
+
   def authenticatedAgent[A](request: FakeRequest[A], enrolment: Enrolment): FakeRequest[A] =
     givenAuthenticatedAgent(enrolment)
     request.withSession(SessionKeys.authToken -> "Bearer XYZ")
@@ -54,6 +57,29 @@ trait AuthStubs {
          |    {"key":"${enrolment.identifierName}", "value": "${enrolment.identifierValue}"}
          |  ]}
          |]}
+          """.stripMargin
+    )
+
+  def givenAuthenticatedAgentWithUserId(enrolment: Enrolment, userId: String): Unit =
+    givenAuthorisedFor(
+      s"""
+         |{
+         |  "authorise": [
+         |    { "authProviders": ["GovernmentGateway"] }
+         |  ],
+         |  "retrieve":["affinityGroup","allEnrolments","optionalCredentials"]
+         |}
+           """.stripMargin,
+      s"""
+         |{
+         |"affinityGroup":"Agent",
+         |"allEnrolments": [
+         |  { "key":"${enrolment.serviceName}", "identifiers": [
+         |    {"key":"${enrolment.identifierName}", "value": "${enrolment.identifierValue}"}
+         |  ]}
+         |],
+         |"optionalCredentials":{"providerId":"$userId","providerType":"GovernmentGateway"}
+         |}
           """.stripMargin
     )
 
