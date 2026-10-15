@@ -60,9 +60,8 @@ releasing an artifact whose packaged default enables V3. Enable V3 in an environ
 only after the full flow has been verified. Disabling this single switch removes
 public V3 exposure during rollback.
 
-The V3 OpenAPI document is developed incrementally under
-`resources/public/api/conf/3.0/application.yaml` and remains unregistered until
-the complete V3 contract is ready for release.
+The V3 OpenAPI document is not packaged or published until the complete V3
+contract is ready for release.
 
 ### Errors
 We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They are usually in the range:
