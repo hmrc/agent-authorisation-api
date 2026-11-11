@@ -32,6 +32,7 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
   private def controller(accessType: String): DocumentationController =
     val appConfig = mock[AppConfig]
     when(appConfig.apiType).thenReturn(accessType)
+    when(appConfig.apiV3Type).thenReturn("PRIVATE")
     val controllerComponents = stubControllerComponents()
     val constructor = classOf[DocumentationController].getConstructors.head
     val arguments = constructor.getParameterTypes.toSeq.map:
@@ -61,6 +62,12 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
             "status"           -> "BETA",
             "endpointsEnabled" -> true,
             "access"           -> accessType
+          ),
+          Json.obj(
+            "version"          -> "3.0",
+            "status"           -> "BETA",
+            "endpointsEnabled" -> true,
+            "access"           -> "PRIVATE"
           )
         )
       )
@@ -77,4 +84,5 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
       val result = controller("PUBLIC").definition()(FakeRequest()).futureValue
       val versions = (contentAsJson(result) \ "api" \ "versions").as[JsArray].value
 
-      versions.map(_ \ "access").map(_.as[String]).distinct shouldBe Seq("PUBLIC")
+      versions.take(2).map(_ \ "access").map(_.as[String]).distinct shouldBe Seq("PUBLIC")
+      (versions.last \ "access").as[String] shouldBe "PRIVATE"

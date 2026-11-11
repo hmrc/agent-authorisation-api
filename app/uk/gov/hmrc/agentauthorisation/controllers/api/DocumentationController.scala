@@ -38,10 +38,11 @@ class DocumentationController @Inject() (
 ) extends BackendController(cc) {
 
   private val apiAccess = ApiAccess(appConfig.apiType)
+  private val apiV3Access = ApiAccess(appConfig.apiV3Type)
 
   def definition(): Action[AnyContent] = Action.async:
     Future.successful(
-      Ok(txt.definition(apiAccess))
+      Ok(txt.definition(apiAccess, apiV3Access))
         .as(ContentTypes.withCharset(MimeTypes.JSON)(using Codec.utf_8))
     )
 

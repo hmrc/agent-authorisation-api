@@ -74,10 +74,16 @@ class PlatformIntegrationSpec extends BaseISpec {
       Helpers.contentAsString(result) should startWith("openapi: 3.0.3")
     }
 
-    "not expose V3 OpenAPI documentation before release" in {
+    "provide the private V3 OpenAPI contract" in {
       val result = yamlController.yaml("3.0", "application.yaml")(request)
 
-      status(result) shouldBe NOT_FOUND
+      status(result) shouldBe OK
+      val yaml = Helpers.contentAsString(result)
+      yaml should include("version: '3.0'")
+      yaml should include("/agents/{arn}/invitations:")
+      yaml should include("operationId: createInvitationV3")
+      yaml should include("operationId: getInvitationsV3")
+      yaml should include("application/vnd.hmrc.3.0+json")
     }
   }
 }

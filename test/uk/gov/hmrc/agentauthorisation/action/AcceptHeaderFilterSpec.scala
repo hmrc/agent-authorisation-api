@@ -31,7 +31,7 @@ import scala.concurrent.Future
 class AcceptHeaderFilterSpec extends BaseSpec {
 
   val config = Configuration.apply(
-    "api.supported-versions"                                                 -> List("1.0"),
+    "api.supported-versions"                                                 -> List("1.0", "3.0"),
     "api.access.type"                                                        -> "some config string",
     "microservice.services.agent-client-relationships.host"                  -> "localhost",
     "microservice.services.agent-client-relationships.port"                  -> 9434,
@@ -65,6 +65,12 @@ class AcceptHeaderFilterSpec extends BaseSpec {
         val supportedVersions: Seq[String] = Seq("1.0")
         val fakeTestHeader = fakeHeaders(testHeaderVersion("1.0"))
         TestAcceptHeaderFilter(supportedVersions).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
+      }
+
+      "V3 is configured as a supported media type" in {
+        val fakeTestHeader = fakeHeaders(testHeaderVersion("3.0"))
+
+        TestAcceptHeaderFilter(Seq("1.0", "3.0")).response(toResult(Ok("")))(fakeTestHeader) shouldBe Ok("")
       }
 
       "uri is /ping/ping with no headers" in {

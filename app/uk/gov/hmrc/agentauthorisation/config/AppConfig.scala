@@ -39,6 +39,7 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, config: Configuration
   val apiSupportedVersions: util.List[String] = config.underlying.getStringList("api.supported-versions")
 
   val apiType: String = servicesConfig.getString("api.access.type")
+  val apiV3Type: String = config.getOptional[String]("api.access.v3.type").getOrElse("PRIVATE")
 
   val v3Enabled: Boolean = config.getOptional[Boolean]("features.enable-v3").getOrElse(false)
 
