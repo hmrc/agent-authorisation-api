@@ -94,6 +94,7 @@ components:
             read:sent-invitations: Grants read access to sent invitations
             read:check-relationship: Grants read access to check a client relationship
             write:sent-invitations: Grants write access to sent invitations
+            write:relationships: Grants write access to client relationships
             write:cancel-invitations: Grants write access to cancel invitations
 
   schemas:
@@ -974,7 +975,8 @@ paths:
         when no relationship exists.
       operationId: deauthoriseRelationshipV3
       security:
-        - userRestricted: []
+        - userRestricted:
+            - write:relationships
       parameters:
         - $ref: '#/components/parameters/arnParameter'
         - $ref: '#/components/parameters/serviceParameter'
