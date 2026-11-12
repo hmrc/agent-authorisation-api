@@ -29,10 +29,10 @@ import controllers.Assets
 
 class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
 
-  private def controller(accessType: String): DocumentationController =
+  private def controller(accessType: String, v3AccessType: String = "CONTROLLED"): DocumentationController =
     val appConfig = mock[AppConfig]
     when(appConfig.apiType).thenReturn(accessType)
-    when(appConfig.apiV3Type).thenReturn("PRIVATE")
+    when(appConfig.apiV3Type).thenReturn(v3AccessType)
     val controllerComponents = stubControllerComponents()
     val constructor = classOf[DocumentationController].getConstructors.head
     val arguments = constructor.getParameterTypes.toSeq.map:
@@ -44,7 +44,7 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
 
     constructor.newInstance(arguments.map(_.asInstanceOf[Object])*).asInstanceOf[DocumentationController]
 
-  private def expectedDefinition(accessType: String) =
+  private def expectedDefinition(accessType: String, v3AccessType: String = "CONTROLLED") =
     Json.obj(
       "api" -> Json.obj(
         "name"        -> "Agent Authorisation",
@@ -67,22 +67,27 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
             "version"          -> "3.0",
             "status"           -> "BETA",
             "endpointsEnabled" -> true,
-            "access"           -> "PRIVATE"
+            "access"           -> v3AccessType
           )
         )
       )
     )
 
   "definition" should:
-    "return 200 JSON with the expected API definition for PRIVATE access" in:
-      val result = controller("PRIVATE").definition()(FakeRequest()).futureValue
+    "return 200 JSON with the expected controlled API definition" in:
+      val result = controller("CONTROLLED").definition()(FakeRequest()).futureValue
 
       status(result) shouldBe 200
-      contentAsJson(result) shouldBe expectedDefinition("PRIVATE")
+      contentAsJson(result) shouldBe expectedDefinition("CONTROLLED")
 
     "reflect the configured api access type" in:
       val result = controller("PUBLIC").definition()(FakeRequest()).futureValue
       val versions = (contentAsJson(result) \ "api" \ "versions").as[JsArray].value
 
       versions.take(2).map(_ \ "access").map(_.as[String]).distinct shouldBe Seq("PUBLIC")
-      (versions.last \ "access").as[String] shouldBe "PRIVATE"
+      (versions.last \ "access").as[String] shouldBe "CONTROLLED"
+
+    "publish V3 as a public version only when explicitly configured" in:
+      val result = controller("PUBLIC", "PUBLIC").definition()(FakeRequest()).futureValue
+
+      contentAsJson(result) shouldBe expectedDefinition("PUBLIC", "PUBLIC")

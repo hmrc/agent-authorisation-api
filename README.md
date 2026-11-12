@@ -61,9 +61,8 @@ only after the full flow has been verified. Disabling this single switch removes
 public V3 exposure during rollback.
 
 The V3 OpenAPI document is available under
-`resources/public/api/conf/3.0/application.yaml`. V3 is registered as a private
-API version by default so it can be validated in External Test without being
-published to external developers. Its access is controlled independently with
+`resources/public/api/conf/3.0/application.yaml`. V3 is registered as a
+controlled API version by default. Its access is configured independently with
 `api.access.v3.type`; change that setting to `PUBLIC` only after the V3 contract
 and External Test evidence have been approved for release.
 
