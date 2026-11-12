@@ -22,6 +22,7 @@ import uk.gov.hmrc.agentauthorisation.models.*
 import uk.gov.hmrc.agentauthorisation.support.{BaseISpec, Resource}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 
+import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class CancelInvitationV3ControllerISpec extends BaseISpec:
@@ -30,6 +31,9 @@ class CancelInvitationV3ControllerISpec extends BaseISpec:
     Map("features.enable-v3" -> true)
 
   private given WSClient = app.injector.instanceOf[WSClient]
+
+  private val trustInvitationId =
+    InvitationId.create("TARN0000001", "1234567890", "HMRC-TERS-ORG", LocalDateTime.parse("2026-11-12T12:00:00"))(using 'D')
 
   private def patch(
     authenticatedArn: String = arn.value,
@@ -56,6 +60,18 @@ class CancelInvitationV3ControllerISpec extends BaseISpec:
       verify(
         putRequestedFor(
           urlEqualTo(s"/agent-client-relationships/agent/cancel-invitation/${invitationIdITSA.value}")
+        )
+      )
+
+    "cancel a new-profile invitation whose ID uses its service prefix" in:
+      givenCancelAgentInvitationStub(trustInvitationId, 204)
+
+      val response = patch(invitationId = trustInvitationId.value)
+
+      response.status shouldBe 204
+      verify(
+        putRequestedFor(
+          urlEqualTo(s"/agent-client-relationships/agent/cancel-invitation/${trustInvitationId.value}")
         )
       )
 
