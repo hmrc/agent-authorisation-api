@@ -60,8 +60,12 @@ releasing an artifact whose packaged default enables V3. Enable V3 in an environ
 only after the full flow has been verified. Disabling this single switch removes
 public V3 exposure during rollback.
 
-The V3 OpenAPI document is not packaged or published until the complete V3
-contract is ready for release.
+The V3 OpenAPI document is available under
+`resources/public/api/conf/3.0/application.yaml`. V3 is registered as a private
+API version by default so it can be validated in External Test without being
+published to external developers. Its access is controlled independently with
+`api.access.v3.type`; change that setting to `PUBLIC` only after the V3 contract
+and External Test evidence have been approved for release.
 
 ### Errors
 We use standard [HTTP status codes](https://www.tax.service.gov.uk/api-documentation/docs/reference-guide#http-status-codes) to show whether an API request succeeded or not. They are usually in the range:
