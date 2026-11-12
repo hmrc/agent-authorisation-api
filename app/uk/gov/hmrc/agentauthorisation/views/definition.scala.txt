@@ -11,17 +11,17 @@
       "version": "1.0",
       "status": "BETA",
       "endpointsEnabled": true,
-      "access": "@{access.`type`}"
+      "access": @Json.stringify(ApiAccess.asDefinitionJson(access))
     }, {
       "version": "2.0",
       "status": "BETA",
       "endpointsEnabled": true,
-      "access": "@{access.`type`}"
+      "access": @Json.stringify(ApiAccess.asDefinitionJson(access))
     }, {
       "version": "3.0",
       "status": "BETA",
       "endpointsEnabled": true,
-      "access": "@{v3Access.`type`}"
+      "access": @Json.stringify(ApiAccess.asDefinitionJson(v3Access))
     }]
   }
 }

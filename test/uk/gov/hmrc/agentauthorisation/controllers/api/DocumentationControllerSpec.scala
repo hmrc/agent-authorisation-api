@@ -19,7 +19,7 @@ package uk.gov.hmrc.agentauthorisation.controllers.api
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.HttpErrorHandler
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers.stubControllerComponents
@@ -29,10 +29,10 @@ import controllers.Assets
 
 class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
 
-  private def controller(accessType: String): DocumentationController =
+  private def controller(accessType: String, v3AccessType: String = "PRIVATE"): DocumentationController =
     val appConfig = mock[AppConfig]
     when(appConfig.apiType).thenReturn(accessType)
-    when(appConfig.apiV3Type).thenReturn("PRIVATE")
+    when(appConfig.apiV3Type).thenReturn(v3AccessType)
     val controllerComponents = stubControllerComponents()
     val constructor = classOf[DocumentationController].getConstructors.head
     val arguments = constructor.getParameterTypes.toSeq.map:
@@ -44,7 +44,10 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
 
     constructor.newInstance(arguments.map(_.asInstanceOf[Object])*).asInstanceOf[DocumentationController]
 
-  private def expectedDefinition(accessType: String) =
+  private def expectedAccess(accessType: String): JsValue =
+    if accessType == "PRIVATE" then Json.obj("type" -> "PRIVATE") else JsString(accessType)
+
+  private def expectedDefinition(accessType: String, v3AccessType: String = "PRIVATE") =
     Json.obj(
       "api" -> Json.obj(
         "name"        -> "Agent Authorisation",
@@ -55,19 +58,19 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
             "version"          -> "1.0",
             "status"           -> "BETA",
             "endpointsEnabled" -> true,
-            "access"           -> accessType
+            "access"           -> expectedAccess(accessType)
           ),
           Json.obj(
             "version"          -> "2.0",
             "status"           -> "BETA",
             "endpointsEnabled" -> true,
-            "access"           -> accessType
+            "access"           -> expectedAccess(accessType)
           ),
           Json.obj(
             "version"          -> "3.0",
             "status"           -> "BETA",
             "endpointsEnabled" -> true,
-            "access"           -> "PRIVATE"
+            "access"           -> expectedAccess(v3AccessType)
           )
         )
       )
@@ -85,4 +88,9 @@ class DocumentationControllerSpec extends BaseSpec with MockitoSugar:
       val versions = (contentAsJson(result) \ "api" \ "versions").as[JsArray].value
 
       versions.take(2).map(_ \ "access").map(_.as[String]).distinct shouldBe Seq("PUBLIC")
-      (versions.last \ "access").as[String] shouldBe "PRIVATE"
+      (versions.last \ "access" \ "type").as[String] shouldBe "PRIVATE"
+
+    "publish V3 as a public version only when explicitly configured" in:
+      val result = controller("PUBLIC", "PUBLIC").definition()(FakeRequest()).futureValue
+
+      contentAsJson(result) shouldBe expectedDefinition("PUBLIC", "PUBLIC")

@@ -35,19 +35,19 @@ class ApiPlatformISpec extends BaseISpec {
           "version"          -> "1.0",
           "status"           -> "BETA",
           "endpointsEnabled" -> true,
-          "access"           -> "PRIVATE"
+          "access"           -> Json.obj("type" -> "PRIVATE")
         ),
         Json.obj(
           "version"          -> "2.0",
           "status"           -> "BETA",
           "endpointsEnabled" -> true,
-          "access"           -> "PRIVATE"
+          "access"           -> Json.obj("type" -> "PRIVATE")
         ),
         Json.obj(
           "version"          -> "3.0",
           "status"           -> "BETA",
           "endpointsEnabled" -> true,
-          "access"           -> "PRIVATE"
+          "access"           -> Json.obj("type" -> "PRIVATE")
         )
       )
     )

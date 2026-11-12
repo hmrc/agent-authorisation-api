@@ -18,7 +18,7 @@ package uk.gov.hmrc.agentauthorisation.controllers.api
 
 import javax.inject.{Inject, Singleton}
 import play.api.http.{ContentTypes, MimeTypes}
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{JsString, JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, Codec, ControllerComponents}
 import uk.gov.hmrc.agentauthorisation.config.AppConfig
 import uk.gov.hmrc.agentauthorisation.views.txt
@@ -30,6 +30,11 @@ case class ApiAccess(`type`: String)
 
 object ApiAccess:
   given OFormat[ApiAccess] = Json.format[ApiAccess]
+
+  def asDefinitionJson(access: ApiAccess): JsValue =
+    access.`type` match
+      case "PRIVATE" => Json.toJson(access)
+      case other     => JsString(other)
 
 @Singleton
 class DocumentationController @Inject() (
