@@ -74,7 +74,7 @@ class PlatformIntegrationSpec extends BaseISpec {
       Helpers.contentAsString(result) should startWith("openapi: 3.0.3")
     }
 
-    "provide the private V3 OpenAPI contract" in {
+    "provide the controlled V3 OpenAPI contract" in {
       val result = yamlController.yaml("3.0", "application.yaml")(request)
 
       status(result) shouldBe OK

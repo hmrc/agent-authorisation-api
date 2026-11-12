@@ -6,7 +6,7 @@ info:
   description: >-
     Create and manage requests for a client to authorise an agent.
 
-    Version 3.0 access is controlled independently while its contract and
+    Version 3.0 is registered as a controlled API while its contract and
     External Test behaviour are validated. External availability is determined
     by the API access configured in each deployed environment.
 

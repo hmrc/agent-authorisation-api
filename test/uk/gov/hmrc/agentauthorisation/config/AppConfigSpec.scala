@@ -40,7 +40,7 @@ class AppConfigSpec extends UnitSpec {
       appConfig.acrBaseUrl shouldBe "http://localhost:9434"
       appConfig.acrfExternalUrl shouldBe "http://localhost:9435"
       appConfig.apiType shouldBe "PRIVATE"
-      appConfig.apiV3Type shouldBe "PRIVATE"
+      appConfig.apiV3Type shouldBe "CONTROLLED"
       appConfig.apiSupportedVersions.toArray.toSeq shouldBe Seq("1.0", "2.0")
       appConfig.v3Enabled shouldBe false
     }
@@ -76,7 +76,7 @@ class AppConfigSpec extends UnitSpec {
       val configuration = Configuration(
         "api.supported-versions"                                                 -> List("1.0", "2.0", "3.0"),
         "api.access.type"                                                        -> "PUBLIC",
-        "api.access.v3.type"                                                     -> "PRIVATE",
+        "api.access.v3.type"                                                     -> "CONTROLLED",
         "microservice.services.agent-client-relationships.host"                  -> "localhost",
         "microservice.services.agent-client-relationships.port"                  -> 9434,
         "microservice.services.agent-client-relationships-frontend.external-url" -> "http://localhost:9435"
@@ -85,7 +85,7 @@ class AppConfigSpec extends UnitSpec {
       val appConfig = AppConfig(servicesConfig(configuration), configuration)
 
       appConfig.apiType shouldBe "PUBLIC"
-      appConfig.apiV3Type shouldBe "PRIVATE"
+      appConfig.apiV3Type shouldBe "CONTROLLED"
     }
   }
 }
