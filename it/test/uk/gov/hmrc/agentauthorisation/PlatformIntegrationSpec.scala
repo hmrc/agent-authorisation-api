@@ -84,6 +84,8 @@ class PlatformIntegrationSpec extends BaseISpec {
       yaml should include("operationId: createInvitationV3")
       yaml should include("operationId: getInvitationsV3")
       yaml should include("application/vnd.hmrc.3.0+json")
+      yaml should include("write:relationships: Grants write access to client relationships")
+      yaml should include regex "(?s)operationId: deauthoriseRelationshipV3.*?security:\\s+- userRestricted:\\s+- write:relationships".r
     }
   }
 }
