@@ -19,12 +19,37 @@ package uk.gov.hmrc.agentauthorisation.binders
 import uk.gov.hmrc.agentauthorisation.support.UnitSpec
 import uk.gov.hmrc.agentauthorisation.models.{ApiClientId, ApiService, Arn, InvitationId}
 
+import java.time.LocalDateTime
+
 class BindersSpec extends UnitSpec:
 
   "getInvitationIdBinder.bind" should {
     "return a successful invitationId when the invitationId is valid" in {
       UrlBinders.getInvitationIdBinder
         .bind("invitationId", "ABERULMHCKKW3") shouldBe Right(InvitationId("ABERULMHCKKW3"))
+    }
+
+    "accept invitation IDs for every supported service prefix" in {
+      val timestamp = LocalDateTime.parse("2026-11-12T12:00:00")
+
+      Seq('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L').foreach: prefix =>
+        val invitationId = InvitationId.create("TARN0000001", "clientId", "service", timestamp)(using prefix)
+
+        withClue(s"prefix $prefix: ") {
+          UrlBinders.getInvitationIdBinder.bind("invitationId", invitationId.value) shouldBe Right(invitationId)
+        }
+    }
+
+    "reject a checksum-valid invitation ID with an unsupported service prefix" in {
+      val invitationId = InvitationId.create(
+        "TARN0000001",
+        "clientId",
+        "service",
+        LocalDateTime.parse("2026-11-12T12:00:00")
+      )(using 'Z')
+
+      UrlBinders.getInvitationIdBinder
+        .bind("invitationId", invitationId.value) shouldBe Left(ErrorConstants.InvitationIdInvalid)
     }
 
     "return an error when the invitationId is invalid" in {

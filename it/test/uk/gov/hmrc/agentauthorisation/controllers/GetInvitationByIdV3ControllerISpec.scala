@@ -23,6 +23,7 @@ import uk.gov.hmrc.agentauthorisation.models.*
 import uk.gov.hmrc.agentauthorisation.support.{BaseISpec, Resource}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 
+import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class GetInvitationByIdV3ControllerISpec extends BaseISpec:
@@ -32,29 +33,36 @@ class GetInvitationByIdV3ControllerISpec extends BaseISpec:
 
   private given WSClient = app.injector.instanceOf[WSClient]
 
-  private val acrPath =
-    s"/agent-client-relationships/agent/${arn.value}/authorisation-request-info/${invitationIdITSA.value}"
+  private val trustInvitationId =
+    InvitationId.create("TARN0000001", "1234567890", "HMRC-TERS-ORG", LocalDateTime.parse("2026-11-12T12:00:00"))(using 'D')
+
+  private def acrPath(invitationId: InvitationId) =
+    s"/agent-client-relationships/agent/${arn.value}/authorisation-request-info/${invitationId.value}"
   private val clientActionUrl =
     "http://localhost:9435/agent-client-relationships/appoint-someone-to-deal-with-HMRC-for-you" +
       "/12345678/agent-1/income-tax"
 
-  private def getInvitation(authenticatedArn: String = arn.value) =
+  private def getInvitation(authenticatedArn: String = arn.value, invitationId: InvitationId = invitationIdITSA) =
     givenAuthorisedAsValidAgent(authenticatedArn)
     given HeaderCarrier = HeaderCarrier(
       authorization = Some(Authorization("Bearer XYZ"))
     )
 
-    new Resource(s"/agents/${arn.value}/invitations/${invitationIdITSA.value}", port)
+    new Resource(s"/agents/${arn.value}/invitations/${invitationId.value}", port)
       .get(Seq("Accept" -> ApiVersion.V3AcceptHeader))
 
-  private def invitationInfo(status: String, service: String = "HMRC-MTD-IT"): String =
+  private def invitationInfo(
+    status: String,
+    service: String = "HMRC-MTD-IT",
+    invitationId: InvitationId = invitationIdITSA
+  ): String =
     Json.obj(
       "agentLink" -> Json.obj(
         "uid"                 -> "12345678",
         "normalizedAgentName" -> "agent-1"
       ),
       "authorisationRequest" -> Json.obj(
-        "invitationId" -> invitationIdITSA.value,
+        "invitationId" -> invitationId.value,
         "service"      -> service,
         "status"       -> status,
         "expiryDate"   -> "2026-10-19",
@@ -63,8 +71,8 @@ class GetInvitationByIdV3ControllerISpec extends BaseISpec:
       )
     ).toString
 
-  private def stubInvitationInfo(status: Int, body: String = ""): Unit =
-    stubFor(get(urlEqualTo(acrPath)).willReturn(aResponse().withStatus(status).withBody(body)))
+  private def stubInvitationInfo(status: Int, body: String = "", invitationId: InvitationId = invitationIdITSA): Unit =
+    stubFor(get(urlEqualTo(acrPath(invitationId))).willReturn(aResponse().withStatus(status).withBody(body)))
 
   "GET /agents/:arn/invitations/:invitationId for V3" should:
     "return a pending invitation with its pending-only fields" in:
@@ -82,7 +90,21 @@ class GetInvitationByIdV3ControllerISpec extends BaseISpec:
         "clientActionUrl" -> clientActionUrl,
         "agentType"       -> "main"
       )
-      verify(getRequestedFor(urlEqualTo(acrPath)))
+      verify(getRequestedFor(urlEqualTo(acrPath(invitationIdITSA))))
+
+    "return a new-profile invitation whose ID uses its service prefix" in:
+      stubInvitationInfo(
+        200,
+        invitationInfo("Pending", "HMRC-TERS-ORG", trustInvitationId),
+        trustInvitationId
+      )
+
+      val response = getInvitation(invitationId = trustInvitationId)
+
+      response.status shouldBe 200
+      (response.json \ "invitationId").as[String] shouldBe trustInvitationId.value
+      (response.json \ "service").as[String] shouldBe "TRUSTS"
+      verify(getRequestedFor(urlEqualTo(acrPath(trustInvitationId))))
 
     "return a responded invitation with its updated timestamp" in:
       stubInvitationInfo(200, invitationInfo("Accepted"))
@@ -120,4 +142,4 @@ class GetInvitationByIdV3ControllerISpec extends BaseISpec:
 
       response.status shouldBe 403
       response.json shouldBe NoPermissionOnAgency.toJson
-      verify(0, getRequestedFor(urlEqualTo(acrPath)))
+      verify(0, getRequestedFor(urlEqualTo(acrPath(invitationIdITSA))))
