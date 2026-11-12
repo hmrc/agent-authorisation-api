@@ -21,8 +21,6 @@ import uk.gov.hmrc.agentauthorisation.models.{ApiClientId, ApiService, Arn, Invi
 
 object UrlBinders {
 
-  private val supportedInvitationIdPrefixes = Set('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L')
-
   given invitationIdBinder: PathBindable[InvitationId] =
     getInvitationIdBinder
   given apiServiceBinder: PathBindable[ApiService] = new PathBindable[ApiService] {
@@ -51,10 +49,7 @@ object UrlBinders {
     new PathBindable[InvitationId] {
 
       override def bind(key: String, value: String): Either[String, InvitationId] = {
-        val isValidPrefix =
-          value.headOption.exists(supportedInvitationIdPrefixes.contains)
-
-        if (isValidPrefix && InvitationId.isValid(value))
+        if (InvitationId.isValid(value))
           Right(InvitationId(value))
         else
           Left(ErrorConstants.InvitationIdInvalid)
