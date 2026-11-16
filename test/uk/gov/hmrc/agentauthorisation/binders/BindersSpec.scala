@@ -29,10 +29,10 @@ class BindersSpec extends UnitSpec:
         .bind("invitationId", "ABERULMHCKKW3") shouldBe Right(InvitationId("ABERULMHCKKW3"))
     }
 
-    "accept invitation IDs for every supported service prefix" in {
+    "accept invitation IDs using every character supported by the ACR model" in {
       val timestamp = LocalDateTime.parse("2026-11-12T12:00:00")
 
-      Seq('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L').foreach: prefix =>
+      "ABCDEFGHJKLMNOPRSTUWXYZ123456789".foreach: prefix =>
         val invitationId = InvitationId.create("TARN0000001", "clientId", "service", timestamp)(using prefix)
 
         withClue(s"prefix $prefix: ") {
@@ -40,16 +40,9 @@ class BindersSpec extends UnitSpec:
         }
     }
 
-    "reject a checksum-valid invitation ID with an unsupported service prefix" in {
-      val invitationId = InvitationId.create(
-        "TARN0000001",
-        "clientId",
-        "service",
-        LocalDateTime.parse("2026-11-12T12:00:00")
-      )(using 'Z')
-
+    "reject an invitation ID with an invalid checksum" in {
       UrlBinders.getInvitationIdBinder
-        .bind("invitationId", invitationId.value) shouldBe Left(ErrorConstants.InvitationIdInvalid)
+        .bind("invitationId", "ABERULMHCKKW4") shouldBe Left(ErrorConstants.InvitationIdInvalid)
     }
 
     "return an error when the invitationId is invalid" in {
